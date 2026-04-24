@@ -1,0 +1,141 @@
+body {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+}
+
+#demo-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(18, 18, 18, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+}
+
+.toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+}
+
+.toolbar-group-actions {
+  margin-left: auto;
+}
+
+.toolbar-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.toolbar-control select,
+.toolbar-control input[type='number'],
+.toolbar-button {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.toolbar-control input[type='number'] {
+  width: 72px;
+}
+
+.toolbar-control input[type='checkbox'] {
+  accent-color: #ff8c1a;
+}
+
+.toolbar-button {
+  cursor: pointer;
+}
+
+.toolbar-button:disabled,
+.toolbar-control input:disabled,
+.toolbar-control select:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+#demo-shortcuts-modal {
+  width: min(720px, calc(100vw - 32px));
+  max-height: min(80vh, 700px);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: #161616;
+  color: #fff;
+  box-sizing: border-box;
+  margin: auto;
+}
+
+#demo-shortcuts-modal[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+#demo-shortcuts-modal::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.shortcuts-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.shortcuts-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.shortcuts-modal-content {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 18px;
+  padding: 18px;
+  overflow-y: auto;
+}
+
+.shortcuts-section h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: #ffb15c;
+}
+
+.shortcuts-section ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.shortcuts-section li {
+  margin: 6px 0;
+  line-height: 1.35;
+}

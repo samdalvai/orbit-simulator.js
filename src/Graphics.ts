@@ -1,4 +1,4 @@
-import { RigidBody } from './RigidBody';
+import { Body } from './Body';
 import { Vec2 } from './Vec2';
 
 export default class Graphics {
@@ -168,7 +168,7 @@ export default class Graphics {
         this.ctx.restore();
     }
 
-    static drawBody(body: RigidBody, debug: boolean, showLabels: boolean): void {
+    static drawBody(body: Body, debug: boolean, showLabels: boolean): void {
         const x = body.position.x;
         const y = body.position.y;
 

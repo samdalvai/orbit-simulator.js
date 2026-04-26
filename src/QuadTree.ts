@@ -1,4 +1,4 @@
-import { RigidBody } from './RigidBody';
+import { Body } from './Body';
 
 // TODO: needs to be scaled by new scale of simulation (km)
 const MIN_NODE_HALF_SIZE = 1;
@@ -11,7 +11,7 @@ export type QuadNode = {
     totalMass: number;
     centerOfMassX: number;
     centerOfMassY: number;
-    bodies: RigidBody[];
+    bodies: Body[];
     children: QuadNode[] | null;
 };
 
@@ -27,7 +27,7 @@ export type QuadNode = {
  * - `coulomb`: insert only charged bodies
  * - `combined`: insert bodies that matter for either force
  */
-export function buildQuadTree(bodies: readonly RigidBody[]): QuadNode | null {
+export function buildQuadTree(bodies: readonly Body[]): QuadNode | null {
     let hasContributor = false;
     let minX = 0;
     let maxX = 0;
@@ -90,7 +90,7 @@ function createNode(centerX: number, centerY: number, halfSize: number): QuadNod
     };
 }
 
-function insertBody(node: QuadNode, body: RigidBody): void {
+function insertBody(node: QuadNode, body: Body): void {
     node.bodyCount++;
     updateAggregates(node, body);
 
@@ -124,7 +124,7 @@ function insertBody(node: QuadNode, body: RigidBody): void {
     insertBody(children[getChildIndex(node, body)], body);
 }
 
-function updateAggregates(node: QuadNode, body: RigidBody): void {
+function updateAggregates(node: QuadNode, body: Body): void {
     if (body.mass !== 0) {
         const nextTotalMass = node.totalMass + body.mass;
         node.centerOfMassX =
@@ -139,7 +139,7 @@ function updateAggregates(node: QuadNode, body: RigidBody): void {
     }
 }
 
-function allBodiesSharePosition(bodies: readonly RigidBody[], body: RigidBody): boolean {
+function allBodiesSharePosition(bodies: readonly Body[], body: Body): boolean {
     for (let i = 0; i < bodies.length; i++) {
         const current = bodies[i];
         if (current.position.x !== body.position.x || current.position.y !== body.position.y) {
@@ -160,13 +160,13 @@ function subdivide(node: QuadNode): void {
     ];
 }
 
-function getChildIndex(node: QuadNode, body: RigidBody): number {
+function getChildIndex(node: QuadNode, body: Body): number {
     const east = body.position.x >= node.centerX ? 1 : 0;
     const south = body.position.y >= node.centerY ? 2 : 0;
     return east + south;
 }
 
-export function canApproximate(node: QuadNode, body: RigidBody, theta: number): boolean {
+export function canApproximate(node: QuadNode, body: Body, theta: number): boolean {
     if (theta <= 0 || bodyIsInsideNode(node, body)) {
         return false;
     }
@@ -183,7 +183,7 @@ export function canApproximate(node: QuadNode, body: RigidBody, theta: number): 
     return size * size < theta * theta * distanceSquared;
 }
 
-function bodyIsInsideNode(node: QuadNode, body: RigidBody): boolean {
+function bodyIsInsideNode(node: QuadNode, body: Body): boolean {
     const x = body.position.x;
     const y = body.position.y;
 

@@ -1,4 +1,4 @@
-import { RigidBody } from './RigidBody';
+import { Body } from './Body';
 import { Vec2 } from './Vec2';
 
 /**
@@ -11,7 +11,7 @@ import { Vec2 } from './Vec2';
  *
  * The returned vector is perpendicular to the radius (tangential direction).
  */
-export function getOrbitalSpeed(sun: RigidBody, planet: RigidBody, G: number): Vec2 {
+export function getOrbitalSpeed(sun: Body, planet: Body, G: number): Vec2 {
     const rVec = planet.position.subNew(sun.position);
     const r = rVec.magnitude();
     const v = Math.sqrt((G * (sun.mass + planet.mass)) / r);

@@ -1,5 +1,5 @@
 import { QuadNode, buildQuadTree, canApproximate } from './QuadTree';
-import { RigidBody } from './RigidBody';
+import { Body } from './Body';
 import { Vec2 } from './Vec2';
 
 // TODO: Check if clamping is still appropriate in this app
@@ -15,8 +15,8 @@ import { Vec2 } from './Vec2';
  * This avoids very large forces near the center and very tiny forces far away.
  */
 export function generateGravitationalForce(
-    a: RigidBody,
-    b: RigidBody,
+    a: Body,
+    b: Body,
     G: number,
     minDistanceSquared: number,
     maxDistanceSquared: number,
@@ -44,7 +44,7 @@ export function generateGravitationalForce(
  * Convenience version that applies all gravitational forces to all bodies
  */
 export function applyGravitationalForces(
-    bodies: readonly RigidBody[],
+    bodies: readonly Body[],
     G: number,
     minDistanceSquared: number,
     maxDistanceSquared: number,
@@ -67,7 +67,7 @@ export function applyGravitationalForces(
  * Smaller `theta` is more accurate, larger `theta` is faster.
  */
 export function generateBarnesHutGravitationalForce(
-    body: RigidBody,
+    body: Body,
     tree: QuadNode | null,
     G: number,
     minDistanceSquared: number,
@@ -85,7 +85,7 @@ export function generateBarnesHutGravitationalForce(
 
 function accumulateGravitationalForce(
     force: Vec2,
-    body: RigidBody,
+    body: Body,
     node: QuadNode,
     G: number,
     minDistanceSquared: number,
@@ -130,7 +130,7 @@ function accumulateGravitationalForce(
  * Convenience version that builds the tree once and applies one gravitational force per body.
  */
 export function applyBarnesHutGravitationalForces(
-    bodies: readonly RigidBody[],
+    bodies: readonly Body[],
     G: number,
     minDistanceSquared: number,
     maxDistanceSquared: number,

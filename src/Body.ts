@@ -2,7 +2,7 @@ import AssetStore, { TEXTURES } from './AssetStore';
 import * as Utils from './Utils';
 import { Vec2 } from './Vec2';
 
-export class RigidBody {
+export class Body {
     private static nextId = 0;
     readonly id: number;
 
@@ -37,7 +37,7 @@ export class RigidBody {
     constructor(x: number, y: number, radius: number, mass: number) {
         Utils.assert(mass > 0, 'Mass needs to be greater than 0');
 
-        this.id = RigidBody.nextId++;
+        this.id = Body.nextId++;
 
         this.radius = radius;
 

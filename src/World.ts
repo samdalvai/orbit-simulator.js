@@ -1,14 +1,14 @@
 import { MAX_BODIES } from './Constants';
 import { applyGravitationalForces } from './Gravity';
-import { RigidBody } from './RigidBody';
+import { Body } from './Body';
 import { Vec2 } from './Vec2';
 
 export class World {
     private G: number;
 
-    private bodies: RigidBody[] = [];
+    private bodies: Body[] = [];
     /** Pairs are allocated in blocks of 2 */
-    private potentialPairs: RigidBody[] = [];
+    private potentialPairs: Body[] = [];
 
     private forces: Vec2[] = [];
     private torques: number[] = [];
@@ -17,13 +17,13 @@ export class World {
         this.G = G;
     }
 
-    addBody(body: RigidBody): void {
+    addBody(body: Body): void {
         if (this.bodies.length >= MAX_BODIES) return;
 
         this.bodies.push(body);
     }
 
-    removeBody(body: RigidBody): void {
+    removeBody(body: Body): void {
         for (let i = 0; i < this.bodies.length; i++) {
             const current = this.bodies[i];
 
@@ -36,7 +36,7 @@ export class World {
         }
     }
 
-    getBodies(): RigidBody[] {
+    getBodies(): Body[] {
         return this.bodies;
     }
 

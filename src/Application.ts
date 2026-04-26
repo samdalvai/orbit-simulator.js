@@ -3,7 +3,7 @@ import { G, MAX_BODIES, SETTINGS } from './Constants';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { getOrbitalSpeed } from './Math';
-import { RigidBody } from './RigidBody';
+import { Body } from './Body';
 import { World } from './World';
 
 export default class Application {
@@ -47,16 +47,16 @@ export default class Application {
 
     loadDemo() {
         Graphics.zoom = 0.5;
-        const sun = new RigidBody(0, 0, 60, 1_000_000);
+        const sun = new Body(0, 0, 60, 1_000_000);
         sun.fillColor = 'yellow';
         sun.label = 'Sun';
 
-        const earth = new RigidBody(500, 500, 20, 20_000);
+        const earth = new Body(500, 500, 20, 20_000);
         earth.fillColor = 'blue';
         earth.velocity = getOrbitalSpeed(sun, earth, G);
         earth.label = 'Earth';
 
-        const moon = new RigidBody(550, 550, 5, 10_000);
+        const moon = new Body(550, 550, 5, 10_000);
         moon.fillColor = 'gray';
         moon.velocity = getOrbitalSpeed(earth, moon, G);
         moon.label = 'Moon';

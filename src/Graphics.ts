@@ -1,5 +1,5 @@
 import { Body } from './Body';
-import { PIXELS_PER_AU, PIXELS_PER_KM, PIXEL_PER_KM_RADIUS } from './Constants';
+import { EARTH_RADIUS_KM, PIXELS_PER_KM, PIXEL_PER_KM_RADIUS, RADIUS_SCALE_EXPONENT } from './Constants';
 import { Vec2 } from './Vec2';
 
 export default class Graphics {
@@ -172,7 +172,10 @@ export default class Graphics {
     static drawBody(body: Body, debug: boolean, showLabels: boolean): void {
         const x = body.position.x * PIXELS_PER_KM;
         const y = body.position.y * PIXELS_PER_KM;
-        const radius = body.radius * PIXELS_PER_KM * PIXEL_PER_KM_RADIUS;
+        const radius = Math.max(
+            2,
+            Math.pow(body.radius / EARTH_RADIUS_KM, RADIUS_SCALE_EXPONENT) * PIXEL_PER_KM_RADIUS,
+        );
 
         this.ctx.save();
         this.ctx.translate(x, y);
@@ -197,7 +200,7 @@ export default class Graphics {
             const labelFontSize = 12;
 
             this.ctx.save();
-            this.ctx.translate(body.maxX, body.maxY);
+            this.ctx.translate(x + radius, y + radius);
             this.ctx.scale(1 / this.zoom, -1 / this.zoom);
             this.ctx.fillStyle = labelColor;
             this.ctx.font = `${labelFontSize}px Arial`;

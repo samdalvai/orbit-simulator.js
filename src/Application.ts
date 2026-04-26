@@ -52,7 +52,7 @@ export default class Application {
         const SUN_RADIUS_KM = 695_700; // km
 
         const sun = new Body(0, 0, SUN_RADIUS_KM, SUN_MASS);
-        sun.fillColor = 'yellow';
+        sun.fillColor = '#fff7b2';
         sun.label = 'Sun';
 
         const MERCURY_MASS = 3.3011e23; // kg
@@ -60,7 +60,7 @@ export default class Application {
         const MERCURY_ORBIT_RADIUS_KM = 57_909_227; // km (0.387 AU)
 
         const mercury = new Body(0, MERCURY_ORBIT_RADIUS_KM, MERCURY_RADIUS_KM, MERCURY_MASS);
-        mercury.fillColor = 'blue';
+        mercury.fillColor = '#b7ada5';
         mercury.velocity = getOrbitalSpeed(sun, mercury, G);
         mercury.label = 'Venus';
 
@@ -69,7 +69,7 @@ export default class Application {
         const VENUS_ORBIT_RADIUS_KM = 108_209_475; // km (0.723 AU)
 
         const venus = new Body(0, VENUS_ORBIT_RADIUS_KM, VENUS_RADIUS_KM, VENUS_MASS);
-        venus.fillColor = 'blue';
+        venus.fillColor = '#d8b16f';
         venus.velocity = getOrbitalSpeed(sun, venus, G);
         venus.label = 'Venus';
 
@@ -82,7 +82,7 @@ export default class Application {
         console.log('radius: ', PIXELS_PER_KM * EARTH_RADIUS_KM);
 
         const earth = new Body(0, EARTH_ORBIT_RADIUS_KM, EARTH_RADIUS_KM, EARTH_MASS);
-        earth.fillColor = 'blue';
+        earth.fillColor = '#4a9fe8';
         earth.velocity = getOrbitalSpeed(sun, earth, G);
         earth.label = 'Earth';
 

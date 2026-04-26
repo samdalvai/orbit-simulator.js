@@ -1,6 +1,6 @@
+import { Body } from './Body';
 import { MAX_BODIES } from './Constants';
 import { applyGravitationalForces } from './Gravity';
-import { Body } from './Body';
 import { Vec2 } from './Vec2';
 
 export class World {
@@ -62,6 +62,10 @@ export class World {
             }
         }
 
+        // Apply gravity
+        // TODO: is this the right place?
+        applyGravitationalForces(this.bodies, this.G, 0, 10_000_000);
+
         // this.broadPhase();
 
         // Integrate all the forces
@@ -69,9 +73,6 @@ export class World {
             const body = bodies[i];
             body.integrateForces(dt);
         }
-
-        // Apply gravity
-        applyGravitationalForces(this.bodies, this.G, 0, 10_000_000);
 
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];

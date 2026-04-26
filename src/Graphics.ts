@@ -1,5 +1,5 @@
 import { Body } from './Body';
-import { PIXELS_PER_AU, PIXELS_PER_KM } from './Constants';
+import { PIXELS_PER_AU, PIXELS_PER_KM, PIXEL_PER_KM_RADIUS } from './Constants';
 import { Vec2 } from './Vec2';
 
 export default class Graphics {
@@ -172,6 +172,7 @@ export default class Graphics {
     static drawBody(body: Body, debug: boolean, showLabels: boolean): void {
         const x = body.position.x * PIXELS_PER_KM;
         const y = body.position.y * PIXELS_PER_KM;
+        const radius = body.radius * PIXELS_PER_KM * PIXEL_PER_KM_RADIUS;
 
         this.ctx.save();
         this.ctx.translate(x, y);
@@ -182,11 +183,11 @@ export default class Graphics {
         const label = body.label;
 
         if (debug) {
-            this.drawCircle(body.radius, strokeColor);
+            this.drawCircle(radius, strokeColor);
         } else if (texture) {
-            this.drawTexture(body.radius * 2, body.radius * 2, texture, 0, 0, 1);
+            this.drawTexture(radius * 2, radius * 2, texture, 0, 0, 1);
         } else {
-            this.drawFillCircle(0, 0, body.radius, fillColor);
+            this.drawFillCircle(0, 0, radius, fillColor);
         }
 
         this.ctx.restore();

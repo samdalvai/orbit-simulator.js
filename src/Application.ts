@@ -1,6 +1,6 @@
 import AssetStore from './AssetStore';
 import { Body } from './Body';
-import { G, MAX_BODIES, SETTINGS } from './Constants';
+import { G, MAX_BODIES, PIXELS_PER_KM, SETTINGS } from './Constants';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { getOrbitalSpeed } from './Math';
@@ -77,6 +77,10 @@ export default class Application {
         const EARTH_RADIUS_KM = 6_371; // km
         const EARTH_ORBIT_RADIUS_KM = 149_597_870.7; // 1 AU
 
+        console.log('PIXELS_PER_KM: ', PIXELS_PER_KM);
+        console.log('orbit: ', PIXELS_PER_KM * EARTH_ORBIT_RADIUS_KM);
+        console.log('radius: ', PIXELS_PER_KM * EARTH_RADIUS_KM);
+
         const earth = new Body(0, EARTH_ORBIT_RADIUS_KM, EARTH_RADIUS_KM, EARTH_MASS);
         earth.fillColor = 'blue';
         earth.velocity = getOrbitalSpeed(sun, earth, G);
@@ -88,6 +92,8 @@ export default class Application {
         // moon.label = 'Moon';
 
         this.world.addBody(sun);
+        this.world.addBody(mercury);
+        this.world.addBody(venus);
         this.world.addBody(earth);
         // this.world.addBody(moon);
     }
@@ -235,8 +241,8 @@ export default class Application {
             Graphics.drawBody(body, this.debug, this.showLabels);
         }
 
-        Graphics.drawLine(-50, 0, 50, 0, 'gray');
-        Graphics.drawLine(0, -50, 0, 50, 'gray');
+        // Graphics.drawLine(-50, 0, 50, 0, 'rgba(200, 200, 200, 0.5');
+        // Graphics.drawLine(0, -50, 0, 50, 'rgba(200, 200, 200, 0.5');
 
         Graphics.endWorld();
 
@@ -252,7 +258,8 @@ export default class Application {
             ['Bodies', `${this.world.getBodies().length}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
             ['Zoom', Graphics.zoom.toFixed(2)],
-            ['Mouse', `${x.toFixed(1)}, ${y.toFixed(1)}`],
+            ['Mouse (x)', `${(x / PIXELS_PER_KM).toExponential(5)} km`],
+            ['Mouse (y)', `${(y / PIXELS_PER_KM).toExponential(5)} km`],
             ['DT', `${SETTINGS.dt.toFixed(4)} s`],
             ['Substeps', `${SETTINGS.subSteps}`],
         ];

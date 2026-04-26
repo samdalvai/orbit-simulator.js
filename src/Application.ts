@@ -44,8 +44,9 @@ export default class Application {
     }
 
     loadDemo() {
+        Graphics.zoom = 0.5;
         const sun = new RigidBody(0, 0, 60, 1000);
-        const earth = new RigidBody(100, 20, 10, 20);
+        const earth = new RigidBody(500, 500, 10, 20);
 
         this.world.addBody(sun);
         this.world.addBody(earth);

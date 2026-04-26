@@ -5,6 +5,9 @@ export const AU_KM = 149_597_870.7;
 export const EARTH_RADIUS_KM = 6_371;
 export const G = 6.6743e-20; // km^3 / kg / s^2
 
+export const PIXELS_PER_AU = 120;
+export const PIXELS_PER_KM = PIXELS_PER_AU / AU_KM;
+
 export const SETTINGS = {
     subSteps: 1,
 

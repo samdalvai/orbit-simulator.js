@@ -1,4 +1,5 @@
 import { Body } from './Body';
+import { PIXELS_PER_AU, PIXELS_PER_KM } from './Constants';
 import { Vec2 } from './Vec2';
 
 export default class Graphics {
@@ -169,8 +170,8 @@ export default class Graphics {
     }
 
     static drawBody(body: Body, debug: boolean, showLabels: boolean): void {
-        const x = body.position.x;
-        const y = body.position.y;
+        const x = body.position.x * PIXELS_PER_KM;
+        const y = body.position.y * PIXELS_PER_KM;
 
         this.ctx.save();
         this.ctx.translate(x, y);

@@ -91,7 +91,7 @@ export default class Application {
         const MOON_RADIUS_KM = 1_737.4; // km
         const MOON_DISTANCE_KM = 384_400; // km (average distance to Earth)
 
-        const moonPos = earth.position.addNew(new Vec2(MOON_DISTANCE_KM, 0));
+        const moonPos = earth.position.addNew(new Vec2(MOON_DISTANCE_KM * 20, 0));
         const moon = new Body(moonPos.x, moonPos.y, MOON_RADIUS_KM, MOON_MASS);
         moon.fillColor = 'gray';
         // moon.velocity = getOrbitalSpeed(earth, moon, G);

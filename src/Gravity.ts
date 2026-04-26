@@ -2,6 +2,7 @@ import { QuadNode, buildQuadTree, canApproximate } from './QuadTree';
 import { RigidBody } from './RigidBody';
 import { Vec2 } from './Vec2';
 
+// TODO: Check if clamping is still appropriate in this app
 /**
  * Generates an inverse-square gravitational attraction force between two bodies.
  *
@@ -21,6 +22,7 @@ export function generateGravitationalForce(
     maxDistanceSquared: number,
 ): Vec2 {
     // Calculate the distance between the two objects
+    // TODO: we can use Vec2.distanceSquared?
     const d = b.position.subNew(a.position);
 
     let distanceSquared = d.magnitudeSquared();

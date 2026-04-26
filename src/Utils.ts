@@ -1,7 +1,3 @@
-export function randomNumber(min: number = 1.0, max: number = 10.0): number {
-    return Math.random() * (max - min) + min;
-}
-
 // Returns a random color as a hex string, e.g. "#A3F4C2"
 export function randomColor(): string {
     const r = Math.floor(Math.random() * 256);
@@ -14,10 +10,6 @@ export function randomColor(): string {
     const bHex = b.toString(16).padStart(2, '0');
 
     return `#${rHex}${gHex}${bHex}`;
-}
-
-export function clamp(value: number, low: number, high: number): number {
-    return Math.max(low, Math.min(value, high));
 }
 
 export function assert(...args: (boolean | string)[]): void {

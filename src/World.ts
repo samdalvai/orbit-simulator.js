@@ -1,10 +1,10 @@
-import { MAX_BODIES } from './Constants';
+import { GRAVITATIONAL_CONSTANT, MAX_BODIES } from './Constants';
+import { applyGravitationalForces } from './Gravity';
 import { RigidBody } from './RigidBody';
 import { Vec2 } from './Vec2';
 
 export class World {
     private readonly up = new Vec2(0, 1);
-    private G: number;
 
     private bodies: RigidBody[] = [];
     /** Pairs are allocated in blocks of 2 */
@@ -13,9 +13,7 @@ export class World {
     private forces: Vec2[] = [];
     private torques: number[] = [];
 
-    constructor(gravity: number) {
-        this.G = -gravity;
-    }
+    constructor() {}
 
     addBody(body: RigidBody): void {
         if (this.bodies.length >= MAX_BODIES) return;
@@ -71,6 +69,7 @@ export class World {
         }
 
         // Apply gravity
+        applyGravitationalForces(this.bodies, GRAVITATIONAL_CONSTANT, 0, 10_000_000);
 
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];

@@ -129,16 +129,8 @@ export class Vec2 {
         return new Vec2(this.x * cos - this.y * sin, this.x * sin + this.y * cos);
     }
 
-    lerp(v: Vec2, t: number): Vec2 {
-        return new Vec2(this.x + (v.x - this.x) * t, this.y + (v.y - this.y) * t);
-    }
-
-    leftPerpNew(): Vec2 {
-        return new Vec2(-this.y, this.x);
-    }
-
     perpNew(): Vec2 {
-        return this.leftPerpNew();
+        return new Vec2(-this.y, this.x);
     }
 
     normal(): Vec2 {
@@ -161,11 +153,6 @@ export class Vec2 {
             result.y = this.y / length;
         }
         return result;
-    }
-
-    /** Vector in the -90° (clockwise) perpendicular direction scaled by n */
-    crossScalar(n: number): Vec2 {
-        return new Vec2(-n * this.y, n * this.x);
     }
 
     dot(v: Vec2): number {

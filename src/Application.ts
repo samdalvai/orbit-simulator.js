@@ -1,7 +1,8 @@
 import AssetStore from './AssetStore';
-import { GRAVITY, MAX_BODIES, SETTINGS } from './Constants';
+import { GRAVITATIONAL_CONSTANT, MAX_BODIES, SETTINGS } from './Constants';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
+import { getOrbitalSpeed } from './Math';
 import { RigidBody } from './RigidBody';
 import { World } from './World';
 
@@ -23,7 +24,7 @@ export default class Application {
     private lastFPSUpdate = 0;
 
     constructor() {
-        this.world = new World(GRAVITY);
+        this.world = new World();
     }
 
     isRunning(): boolean {
@@ -45,11 +46,20 @@ export default class Application {
 
     loadDemo() {
         Graphics.zoom = 0.5;
-        const sun = new RigidBody(0, 0, 60, 1000);
-        const earth = new RigidBody(500, 500, 10, 20);
+        const sun = new RigidBody(0, 0, 60, 1_000_000);
+        sun.fillColor = 'yellow';
+
+        const earth = new RigidBody(500, 500, 20, 20_000);
+        earth.fillColor = 'blue';
+        earth.velocity = getOrbitalSpeed(sun, earth, GRAVITATIONAL_CONSTANT);
+
+        const moon = new RigidBody(550, 550, 5, 10_000);
+        moon.fillColor = 'gray';
+        moon.velocity = getOrbitalSpeed(earth, moon, GRAVITATIONAL_CONSTANT);
 
         this.world.addBody(sun);
         this.world.addBody(earth);
+        this.world.addBody(moon);
     }
 
     input(): void {
@@ -78,11 +88,11 @@ export default class Application {
                         this.world.update(-SETTINGS.dt);
                     }
 
-                    if (inputEvent.key === '*') {
+                    if (inputEvent.key === '+') {
                         SETTINGS.subSteps += 1;
                     }
 
-                    if (inputEvent.key === '/') {
+                    if (inputEvent.key === '-') {
                         SETTINGS.subSteps -= 1;
                     }
 
@@ -209,6 +219,8 @@ export default class Application {
             ['FPS', this.FPS.toFixed(2)],
             ['Zoom', Graphics.zoom.toFixed(2)],
             ['Mouse', `${x.toFixed(1)}, ${y.toFixed(1)}`],
+            ['DT', `${SETTINGS.dt.toFixed(4)} s`],
+            ['Substeps', `${SETTINGS.subSteps}`],
         ];
 
         const panelX = 20;

@@ -176,7 +176,7 @@ export default class Graphics {
         this.ctx.translate(x, y);
 
         const strokeColor = 'white';
-        const fillColor = 'yellow';
+        const fillColor = body.fillColor ?? 'yellow';
         const texture = body.texture;
 
         if (debug) {

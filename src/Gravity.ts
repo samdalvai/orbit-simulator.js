@@ -1,5 +1,5 @@
-import { QuadNode, buildQuadTree, canApproximate } from './QuadTree';
 import { Body } from './Body';
+import { QuadNode, buildQuadTree, canApproximate } from './QuadTree';
 import { Vec2 } from './Vec2';
 
 // TODO: Check if clamping is still appropriate in this app
@@ -18,17 +18,17 @@ export function generateGravitationalForce(
     a: Body,
     b: Body,
     G: number,
-    minDistanceSquared: number,
-    maxDistanceSquared: number,
+    // minDistanceSquared: number,
+    // maxDistanceSquared: number,
 ): Vec2 {
     // Calculate the distance between the two objects
     // TODO: we can use Vec2.distanceSquared?
     const d = b.position.subNew(a.position);
 
-    let distanceSquared = d.magnitudeSquared();
+    const distanceSquared = d.magnitudeSquared();
 
     // Clamp the squared distance so the resulting force stays within a tunable range.
-    distanceSquared = Math.min(Math.max(distanceSquared, minDistanceSquared), maxDistanceSquared);
+    // distanceSquared = Math.min(Math.max(distanceSquared, minDistanceSquared), maxDistanceSquared);
 
     // Calculate the direction of the attraction force
     const attractionDirection = d.unitVector();
@@ -46,14 +46,15 @@ export function generateGravitationalForce(
 export function applyGravitationalForces(
     bodies: readonly Body[],
     G: number,
-    minDistanceSquared: number,
-    maxDistanceSquared: number,
+    // minDistanceSquared: number,
+    // maxDistanceSquared: number,
 ): void {
     for (let i = 0; i < bodies.length - 1; i++) {
         const a = bodies[i];
         for (let j = i + 1; j < bodies.length; j++) {
             const b = bodies[j];
-            const attraction = generateGravitationalForce(a, b, G, minDistanceSquared, maxDistanceSquared);
+            // const attraction = generateGravitationalForce(a, b, G, minDistanceSquared, maxDistanceSquared);
+            const attraction = generateGravitationalForce(a, b, G);
             a.addForce(attraction);
             b.addForce(attraction.negateNew());
         }

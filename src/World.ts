@@ -64,7 +64,7 @@ export class World {
 
         // Apply gravity
         // TODO: is this the right place?
-        applyGravitationalForces(this.bodies, this.G, 0, 10_000_000);
+        applyGravitationalForces(this.bodies, this.G);
 
         // this.broadPhase();
 

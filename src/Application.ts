@@ -94,7 +94,8 @@ export default class Application {
         const moonPos = earth.position.addNew(new Vec2(MOON_DISTANCE_KM, 0));
         const moon = new Body(moonPos.x, moonPos.y, MOON_RADIUS_KM, MOON_MASS);
         moon.fillColor = 'gray';
-        moon.velocity = getOrbitalSpeed(earth, moon, G);
+        // moon.velocity = getOrbitalSpeed(earth, moon, G);
+        moon.velocity = earth.velocity.addNew(getOrbitalSpeed(earth, moon, G));
         moon.label = 'Moon';
 
         this.world.addBody(sun);

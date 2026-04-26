@@ -22,6 +22,7 @@ export default class Application {
     private debug = true;
     private FPS = 0;
     private lastFPSUpdate = 0;
+    private showLabels = false;
 
     constructor() {
         this.world = new World();
@@ -48,14 +49,17 @@ export default class Application {
         Graphics.zoom = 0.5;
         const sun = new RigidBody(0, 0, 60, 1_000_000);
         sun.fillColor = 'yellow';
+        sun.label = 'Sun';
 
         const earth = new RigidBody(500, 500, 20, 20_000);
         earth.fillColor = 'blue';
         earth.velocity = getOrbitalSpeed(sun, earth, GRAVITATIONAL_CONSTANT);
+        earth.label = 'Earth';
 
         const moon = new RigidBody(550, 550, 5, 10_000);
         moon.fillColor = 'gray';
         moon.velocity = getOrbitalSpeed(earth, moon, GRAVITATIONAL_CONSTANT);
+        moon.label = 'Moon';
 
         this.world.addBody(sun);
         this.world.addBody(earth);
@@ -72,6 +76,10 @@ export default class Application {
                 case 'keydown': {
                     if (inputEvent.key === 'd') {
                         this.setDebug(!this.debug);
+                    }
+
+                    if (inputEvent.key === 's') {
+                        this.showLabels = !this.showLabels;
                     }
 
                     if (inputEvent.key === 'p') {
@@ -198,7 +206,7 @@ export default class Application {
 
         // Draw all bodies
         for (const body of this.world.getBodies()) {
-            Graphics.drawBody(body, this.debug);
+            Graphics.drawBody(body, this.debug, this.showLabels);
         }
 
         Graphics.drawLine(-50, 0, 50, 0, 'gray');

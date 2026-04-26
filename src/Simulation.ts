@@ -352,26 +352,6 @@ function createBelt(
     }
 }
 
-/**
- * Computes the tangential velocity for a circular orbit of `planet` around `sun`.
- *
- * Uses: v = sqrt(G * (M + m) / r)
- * - M = sun mass
- * - m = planet mass
- * - r = distance between bodies
- *
- * The returned vector is perpendicular to the radius (tangential direction).
- */
-function getOrbitalSpeed(sun: RigidBody, planet: RigidBody, G: number): Vec2 {
-    const rVec = planet.position.subNew(sun.position);
-    const r = rVec.magnitude();
-    const v = Math.sqrt((G * (sun.mass + planet.mass)) / r);
-    const dir = planet.position.subNew(sun.position).unitVector();
-    const tangent = new Vec2(-dir.y, dir.x);
-
-    return tangent.scaleNew(v);
-}
-
 const planetOrbitDemo = defineDemo('Solar system orbit', setupPlanetOrbit);
 
 export default planetOrbitDemo;

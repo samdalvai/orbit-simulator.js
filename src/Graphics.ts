@@ -168,7 +168,7 @@ export default class Graphics {
         this.ctx.restore();
     }
 
-    static drawBody(body: RigidBody, debug = false): void {
+    static drawBody(body: RigidBody, debug: boolean, showLabels: boolean): void {
         const x = body.position.x;
         const y = body.position.y;
 
@@ -178,6 +178,7 @@ export default class Graphics {
         const strokeColor = 'white';
         const fillColor = body.fillColor ?? 'yellow';
         const texture = body.texture;
+        const label = body.label;
 
         if (debug) {
             this.drawCircle(body.radius, strokeColor);
@@ -189,16 +190,19 @@ export default class Graphics {
 
         this.ctx.restore();
 
-        // if (showLabels && label) {
-        //     this.ctx.save();
-        //     this.ctx.translate(body.maxX, body.maxY);
-        //     this.ctx.scale(1 / this.zoom, -1 / this.zoom);
-        //     this.ctx.fillStyle = labelColor;
-        //     this.ctx.font = `${labelFontSize}px Arial`;
-        //     this.ctx.textAlign = 'left';
-        //     this.ctx.textBaseline = 'bottom';
-        //     this.ctx.fillText(label, 8, -8);
-        //     this.ctx.restore();
-        // }
+        if (showLabels && label) {
+            const labelColor = 'white';
+            const labelFontSize = 12;
+
+            this.ctx.save();
+            this.ctx.translate(body.maxX, body.maxY);
+            this.ctx.scale(1 / this.zoom, -1 / this.zoom);
+            this.ctx.fillStyle = labelColor;
+            this.ctx.font = `${labelFontSize}px Arial`;
+            this.ctx.textAlign = 'left';
+            this.ctx.textBaseline = 'bottom';
+            this.ctx.fillText(label, 8, -8);
+            this.ctx.restore();
+        }
     }
 }

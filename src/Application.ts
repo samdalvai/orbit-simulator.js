@@ -1,9 +1,9 @@
 import AssetStore from './AssetStore';
+import { Body } from './Body';
 import { G, MAX_BODIES, SETTINGS } from './Constants';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { getOrbitalSpeed } from './Math';
-import { Body } from './Body';
 import { World } from './World';
 
 export default class Application {
@@ -47,23 +47,49 @@ export default class Application {
 
     loadDemo() {
         Graphics.zoom = 0.5;
-        const sun = new Body(0, 0, 60, 1_000_000);
+
+        const SUN_MASS = 1.98847e30; // kg
+        const SUN_RADIUS_KM = 695_700; // km
+
+        const sun = new Body(0, 0, SUN_RADIUS_KM, SUN_MASS);
         sun.fillColor = 'yellow';
         sun.label = 'Sun';
 
-        const earth = new Body(500, 500, 20, 20_000);
+        const MERCURY_MASS = 3.3011e23; // kg
+        const MERCURY_RADIUS_KM = 2_439.7; // km
+        const MERCURY_ORBIT_RADIUS_KM = 57_909_227; // km (0.387 AU)
+
+        const mercury = new Body(0, MERCURY_ORBIT_RADIUS_KM, MERCURY_RADIUS_KM, MERCURY_MASS);
+        mercury.fillColor = 'blue';
+        mercury.velocity = getOrbitalSpeed(sun, mercury, G);
+        mercury.label = 'Venus';
+
+        const VENUS_MASS = 4.8675e24; // kg
+        const VENUS_RADIUS_KM = 6_051.8; // km
+        const VENUS_ORBIT_RADIUS_KM = 108_209_475; // km (0.723 AU)
+
+        const venus = new Body(0, VENUS_ORBIT_RADIUS_KM, VENUS_RADIUS_KM, VENUS_MASS);
+        venus.fillColor = 'blue';
+        venus.velocity = getOrbitalSpeed(sun, venus, G);
+        venus.label = 'Venus';
+
+        const EARTH_MASS = 5.972e24; // kg
+        const EARTH_RADIUS_KM = 6_371; // km
+        const EARTH_ORBIT_RADIUS_KM = 149_597_870.7; // 1 AU
+
+        const earth = new Body(0, EARTH_ORBIT_RADIUS_KM, EARTH_RADIUS_KM, EARTH_MASS);
         earth.fillColor = 'blue';
         earth.velocity = getOrbitalSpeed(sun, earth, G);
         earth.label = 'Earth';
 
-        const moon = new Body(550, 550, 5, 10_000);
-        moon.fillColor = 'gray';
-        moon.velocity = getOrbitalSpeed(earth, moon, G);
-        moon.label = 'Moon';
+        // const moon = new Body(550, 550, 5, 10_000);
+        // moon.fillColor = 'gray';
+        // moon.velocity = getOrbitalSpeed(earth, moon, G);
+        // moon.label = 'Moon';
 
         this.world.addBody(sun);
         this.world.addBody(earth);
-        this.world.addBody(moon);
+        // this.world.addBody(moon);
     }
 
     input(): void {

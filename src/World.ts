@@ -60,12 +60,6 @@ export class World {
             for (let j = 0; j < forces.length; j++) {
                 body.addForce(forces[j]);
             }
-
-            // Apply torque to all bodiesx
-            const torques = this.torques;
-            for (let j = 0; j < torques.length; j++) {
-                body.addTorque(torques[j]);
-            }
         }
 
         // this.broadPhase();
@@ -75,6 +69,8 @@ export class World {
             const body = bodies[i];
             body.integrateForces(dt);
         }
+
+        // Apply gravity
 
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];

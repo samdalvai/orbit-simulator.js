@@ -1,4 +1,3 @@
-import { DEMO_LABELS } from '../gravity/demo/samples';
 import AssetStore from './AssetStore';
 import { GRAVITY, MAX_BODIES, SETTINGS } from './Constants';
 import Graphics from './Graphics';
@@ -11,7 +10,7 @@ export default class Application {
     private paused = false;
 
     // Demos
-    private demoIndex = 1;
+    // private demoIndex = 1;
 
     // Inputs
     private middleMousePressed = false;
@@ -199,7 +198,6 @@ export default class Application {
         const y = InputManager.mousePosition.y;
 
         const stats: Array<[string, string]> = [
-            ['Demo', DEMO_LABELS[this.demoIndex] ?? ''],
             ['Paused', this.paused ? 'ON' : 'OFF'],
             ['BodiesFactory', `${this.world.getBodies().length}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],

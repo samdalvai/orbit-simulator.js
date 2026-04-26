@@ -134,7 +134,7 @@ export function applyBarnesHutGravitationalForces(
     maxDistanceSquared: number,
     theta = 0.5,
 ): void {
-    const tree = buildQuadTree(bodies, 'gravity');
+    const tree = buildQuadTree(bodies);
 
     for (let i = 0; i < bodies.length; i++) {
         const b = bodies[i];

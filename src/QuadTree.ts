@@ -1,8 +1,7 @@
-import { RigidBody } from '../core/RigidBody';
+import { RigidBody } from './RigidBody';
 
+// TODO: needs to be scaled by new scale of simulation (km)
 const MIN_NODE_HALF_SIZE = 1;
-
-export type QuadNodeKind = 'gravity' | 'coulomb' | 'combined';
 
 export type QuadNode = {
     centerX: number;
@@ -12,12 +11,6 @@ export type QuadNode = {
     totalMass: number;
     centerOfMassX: number;
     centerOfMassY: number;
-    positiveCharge: number;
-    positiveChargeX: number;
-    positiveChargeY: number;
-    negativeCharge: number;
-    negativeChargeX: number;
-    negativeChargeY: number;
     bodies: RigidBody[];
     children: QuadNode[] | null;
 };
@@ -34,7 +27,7 @@ export type QuadNode = {
  * - `coulomb`: insert only charged bodies
  * - `combined`: insert bodies that matter for either force
  */
-export function buildQuadTree(bodies: readonly RigidBody[], kind: QuadNodeKind = 'combined'): QuadNode | null {
+export function buildQuadTree(bodies: readonly RigidBody[]): QuadNode | null {
     let hasContributor = false;
     let minX = 0;
     let maxX = 0;
@@ -43,7 +36,7 @@ export function buildQuadTree(bodies: readonly RigidBody[], kind: QuadNodeKind =
 
     for (let i = 0; i < bodies.length; i++) {
         const body = bodies[i];
-        if (!bodyContributesToTree(body, kind)) continue;
+        if (body.mass === 0) continue;
 
         const x = body.position.x;
         const y = body.position.y;
@@ -75,7 +68,7 @@ export function buildQuadTree(bodies: readonly RigidBody[], kind: QuadNodeKind =
 
     for (let i = 0; i < bodies.length; i++) {
         const body = bodies[i];
-        if (!bodyContributesToTree(body, kind)) continue;
+        if (body.mass === 0) continue;
         insertBody(root, body);
     }
 
@@ -91,27 +84,10 @@ function createNode(centerX: number, centerY: number, halfSize: number): QuadNod
         totalMass: 0,
         centerOfMassX: 0,
         centerOfMassY: 0,
-        positiveCharge: 0,
-        positiveChargeX: 0,
-        positiveChargeY: 0,
-        negativeCharge: 0,
-        negativeChargeX: 0,
-        negativeChargeY: 0,
+
         bodies: [],
         children: null,
     };
-}
-
-function bodyContributesToTree(body: RigidBody, kind: QuadNodeKind): boolean {
-    if (kind === 'gravity') {
-        return body.mass !== 0;
-    }
-
-    if (kind === 'coulomb') {
-        return body.charge !== 0;
-    }
-
-    return body.mass !== 0 || body.charge !== 0;
 }
 
 function insertBody(node: QuadNode, body: RigidBody): void {
@@ -160,34 +136,6 @@ function updateAggregates(node: QuadNode, body: RigidBody): void {
                 ? 0
                 : (node.centerOfMassY * node.totalMass + body.position.y * body.mass) / nextTotalMass;
         node.totalMass = nextTotalMass;
-    }
-
-    if (body.charge > 0) {
-        const nextPositiveCharge = node.positiveCharge + body.charge;
-        node.positiveChargeX =
-            nextPositiveCharge === 0
-                ? 0
-                : (node.positiveChargeX * node.positiveCharge + body.position.x * body.charge) / nextPositiveCharge;
-        node.positiveChargeY =
-            nextPositiveCharge === 0
-                ? 0
-                : (node.positiveChargeY * node.positiveCharge + body.position.y * body.charge) / nextPositiveCharge;
-        node.positiveCharge = nextPositiveCharge;
-        return;
-    }
-
-    if (body.charge < 0) {
-        const chargeMagnitude = -body.charge;
-        const nextNegativeCharge = node.negativeCharge + chargeMagnitude;
-        node.negativeChargeX =
-            nextNegativeCharge === 0
-                ? 0
-                : (node.negativeChargeX * node.negativeCharge + body.position.x * chargeMagnitude) / nextNegativeCharge;
-        node.negativeChargeY =
-            nextNegativeCharge === 0
-                ? 0
-                : (node.negativeChargeY * node.negativeCharge + body.position.y * chargeMagnitude) / nextNegativeCharge;
-        node.negativeCharge = nextNegativeCharge;
     }
 }
 

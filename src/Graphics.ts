@@ -198,13 +198,17 @@ export default class Graphics {
         this.ctx.save();
         this.ctx.translate(x, y);
 
-        // if (debug) {
-        // this.drawCircle(circleShape.radius, body.isBullet ? 'red' : strokeColor);
-        // } else if (texture) {
-        //     this.drawTexture(circleShape.radius * 2, circleShape.radius * 2, texture, 0, 0, textureScale);
-        // } else {
-        //     this.drawFillCircle(0, 0, circleShape.radius, fillColor);
-        // }
+        const strokeColor = 'white';
+        const fillColor = 'yellow';
+        const texture = body.texture;
+
+        if (debug) {
+            this.drawCircle(body.radius, strokeColor);
+        } else if (texture) {
+            this.drawTexture(body.radius * 2, body.radius * 2, texture, 0, 0, 1);
+        } else {
+            this.drawFillCircle(0, 0, body.radius, fillColor);
+        }
 
         this.ctx.restore();
 

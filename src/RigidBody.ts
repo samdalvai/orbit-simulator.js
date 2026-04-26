@@ -1,3 +1,4 @@
+import AssetStore, { TEXTURES } from './AssetStore';
 import * as Utils from './Utils';
 import { Vec2 } from './Vec2';
 
@@ -27,6 +28,12 @@ export class RigidBody {
     maxX = 0;
     minY = 0;
     maxY = 0;
+
+    // Rendering Style
+    // TODO: Decide if this needs moving to another class
+    private _texture: ImageBitmap | null = null;
+    fillColor: string = 'white';
+    label: string = '';
 
     constructor(x: number, y: number, radius: number, mass: number) {
         Utils.assert(mass > 0, 'Mass needs to be greater than 0');
@@ -70,6 +77,15 @@ export class RigidBody {
 
     get invI(): number {
         return this._invI;
+    }
+
+    get texture(): ImageBitmap | null {
+        return this._texture;
+    }
+
+    set texture(name: keyof typeof TEXTURES) {
+        const texture = AssetStore.getTexture(name);
+        this._texture = texture;
     }
 
     addForce(force: Vec2): void {

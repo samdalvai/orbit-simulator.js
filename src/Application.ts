@@ -2,6 +2,7 @@ import AssetStore from './AssetStore';
 import { GRAVITY, MAX_BODIES, SETTINGS } from './Constants';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
+import { RigidBody } from './RigidBody';
 import { World } from './World';
 
 export default class Application {
@@ -43,7 +44,11 @@ export default class Application {
     }
 
     loadDemo() {
-        //
+        const sun = new RigidBody(0, 0, 60, 1000);
+        const earth = new RigidBody(100, 20, 10, 20);
+
+        this.world.addBody(sun);
+        this.world.addBody(earth);
     }
 
     input(): void {
@@ -182,7 +187,7 @@ export default class Application {
 
         // Draw all bodies
         for (const body of this.world.getBodies()) {
-            // Graphics.drawBody(body, this.bodyRenderRegistry.getStyle(body), this.debug, this.showLabels);
+            Graphics.drawBody(body, this.debug);
         }
 
         Graphics.drawLine(-50, 0, 50, 0, 'gray');
@@ -199,7 +204,7 @@ export default class Application {
 
         const stats: Array<[string, string]> = [
             ['Paused', this.paused ? 'ON' : 'OFF'],
-            ['BodiesFactory', `${this.world.getBodies().length}/${MAX_BODIES}`],
+            ['Bodies', `${this.world.getBodies().length}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
             ['Zoom', Graphics.zoom.toFixed(2)],
             ['Mouse', `${x.toFixed(1)}, ${y.toFixed(1)}`],

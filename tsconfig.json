@@ -9,11 +9,9 @@
   },
   "include": [
     "src/**/*",
-    "gravity/__tests__/**/*",
-    "gravity/demo/**/*",
     "benchmark/**/*",
-    "benchmark copy/functions.ts"
-, "main.ts"  ],
+    "main.ts"
+  ],
   "exclude": [
     "node_modules"
   ]

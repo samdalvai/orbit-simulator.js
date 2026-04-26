@@ -6,8 +6,7 @@ export class RigidBody {
     private static nextId = 0;
     readonly id: number;
 
-    // Radius in km
-    radius: number;
+    radius: number; // km
 
     // Linear motion
     position: Vec2;
@@ -18,7 +17,7 @@ export class RigidBody {
     private _sumForces: Vec2;
 
     // Mass and Moment of Inertia
-    private _mass: number;
+    private _mass: number; // kg
     private _invMass: number;
     private _I: number;
     private _invI: number;

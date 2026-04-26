@@ -1,5 +1,5 @@
 import AssetStore from './AssetStore';
-import { GRAVITATIONAL_CONSTANT, MAX_BODIES, SETTINGS } from './Constants';
+import { G, MAX_BODIES, SETTINGS } from './Constants';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { getOrbitalSpeed } from './Math';
@@ -25,7 +25,7 @@ export default class Application {
     private showLabels = false;
 
     constructor() {
-        this.world = new World();
+        this.world = new World(G);
     }
 
     isRunning(): boolean {
@@ -53,12 +53,12 @@ export default class Application {
 
         const earth = new RigidBody(500, 500, 20, 20_000);
         earth.fillColor = 'blue';
-        earth.velocity = getOrbitalSpeed(sun, earth, GRAVITATIONAL_CONSTANT);
+        earth.velocity = getOrbitalSpeed(sun, earth, G);
         earth.label = 'Earth';
 
         const moon = new RigidBody(550, 550, 5, 10_000);
         moon.fillColor = 'gray';
-        moon.velocity = getOrbitalSpeed(earth, moon, GRAVITATIONAL_CONSTANT);
+        moon.velocity = getOrbitalSpeed(earth, moon, G);
         moon.label = 'Moon';
 
         this.world.addBody(sun);

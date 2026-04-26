@@ -4,6 +4,7 @@ import { G, MAX_BODIES, PIXELS_PER_KM, SETTINGS } from './Constants';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { getOrbitalSpeed } from './Math';
+import { Vec2 } from './Vec2';
 import { World } from './World';
 
 export default class Application {
@@ -86,16 +87,21 @@ export default class Application {
         earth.velocity = getOrbitalSpeed(sun, earth, G);
         earth.label = 'Earth';
 
-        // const moon = new Body(550, 550, 5, 10_000);
-        // moon.fillColor = 'gray';
-        // moon.velocity = getOrbitalSpeed(earth, moon, G);
-        // moon.label = 'Moon';
+        const MOON_MASS = 7.342e22; // kg
+        const MOON_RADIUS_KM = 1_737.4; // km
+        const MOON_DISTANCE_KM = 384_400; // km (average distance to Earth)
+
+        const moonPos = earth.position.addNew(new Vec2(MOON_DISTANCE_KM, 0));
+        const moon = new Body(moonPos.x, moonPos.y, MOON_RADIUS_KM, MOON_MASS);
+        moon.fillColor = 'gray';
+        moon.velocity = getOrbitalSpeed(earth, moon, G);
+        moon.label = 'Moon';
 
         this.world.addBody(sun);
         this.world.addBody(mercury);
         this.world.addBody(venus);
         this.world.addBody(earth);
-        // this.world.addBody(moon);
+        this.world.addBody(moon);
     }
 
     input(): void {

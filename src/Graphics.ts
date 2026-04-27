@@ -169,7 +169,7 @@ export default class Graphics {
         this.ctx.restore();
     }
 
-    static drawBody(body: Body, debug: boolean, showLabels: boolean): void {
+    static drawBody(body: Body, showTextures: boolean, showLabels: boolean): void {
         const x = body.position.x * PIXELS_PER_KM;
         const y = body.position.y * PIXELS_PER_KM;
         const radius = Math.max(
@@ -185,7 +185,7 @@ export default class Graphics {
         const texture = body.texture;
         const label = body.label;
 
-        if (debug) {
+        if (!showTextures) {
             this.drawCircle(radius, strokeColor);
         } else if (texture) {
             this.drawTexture(radius * 2, radius * 2, texture, 0, 0, 1.2);

@@ -22,7 +22,8 @@ export default class Application {
     private debug = true;
     private FPS = 0;
     private lastFPSUpdate = 0;
-    private showLabels = false;
+    private showTextures = true;
+    private showLabels = true;
     private totalTime = 0;
 
     constructor() {
@@ -183,12 +184,18 @@ export default class Application {
 
             switch (inputEvent.type) {
                 case 'keydown': {
+                    const key = inputEvent.key.toLowerCase();
+
                     if (inputEvent.key === 'd') {
                         this.setDebug(!this.debug);
                     }
 
                     if (inputEvent.key === 's') {
                         this.showLabels = !this.showLabels;
+                    }
+
+                    if (inputEvent.key === 'f') {
+                        this.showTextures = !this.showTextures;
                     }
 
                     if (inputEvent.key === 'p') {
@@ -211,6 +218,10 @@ export default class Application {
 
                     if (inputEvent.key === '-') {
                         SETTINGS.subSteps = clamp(SETTINGS.subSteps - 1, 1, SETTINGS.subSteps - 1);
+                    }
+
+                    if (key === 'r' && inputEvent.shiftKey) {
+                        this.loadDemo();
                     }
 
                     if (inputEvent.code === 'MetaLeft') {
@@ -323,7 +334,7 @@ export default class Application {
 
         // Draw all bodies
         for (const body of this.engine.getBodies()) {
-            Graphics.drawBody(body, this.debug, this.showLabels);
+            Graphics.drawBody(body, this.showTextures, this.showLabels);
         }
 
         // Graphics.drawLine(-50, 0, 50, 0, 'rgba(200, 200, 200, 0.5');

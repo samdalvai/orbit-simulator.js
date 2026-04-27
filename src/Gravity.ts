@@ -101,7 +101,7 @@ function accumulateGravitationalForce(
         for (let i = 0; i < node.bodies.length; i++) {
             const other = node.bodies[i];
             if (other.id === body.id) continue;
-            force.addAssign(generateGravitationalForce(body, other, G, minDistanceSquared, maxDistanceSquared));
+            force.addAssign(generateGravitationalForce(body, other, G));
         }
         return;
     }

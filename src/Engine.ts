@@ -9,7 +9,6 @@ export class Engine {
     private potentialPairs: Body[] = [];
 
     private forces: Vec2[] = [];
-    private torques: number[] = [];
 
     constructor() {
         //
@@ -42,39 +41,39 @@ export class Engine {
         this.forces.push(force);
     }
 
-    addTorque(torque: number): void {
-        this.torques.push(torque);
-    }
-
     update(dt: number): void {
         const bodies = this.bodies;
 
-        // Loop all bodies of the world applying forces
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];
-
-            // Apply forces to all bodies
-            const forces = this.forces;
-            for (let j = 0; j < forces.length; j++) {
-                body.addForce(forces[j]);
-            }
+            body.integrateVerletPosition(dt);
         }
 
-        // Apply gravity
-        // TODO: is this the right place?
+        this.clearAllForces();
         applyGravitationalForces(this.bodies, G);
 
-        // this.broadPhase();
-
-        // Integrate all the forces
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];
-            body.integrateForces(dt);
+            body.integrateVerletVelocity(dt);
         }
+    }
 
+    initializeVerlet(): void {
+        this.clearAllForces();
+        applyGravitationalForces(this.bodies, G);
+
+        const bodies = this.bodies;
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];
-            body.integrateVelocities(dt);
+            body.initializeAccelleration();
+        }
+    }
+
+    clearAllForces() {
+        const bodies = this.bodies;
+        for (let i = 0; i < bodies.length; i++) {
+            const body = bodies[i];
+            body.clearForces();
         }
     }
 

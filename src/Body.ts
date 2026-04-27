@@ -101,26 +101,41 @@ export class Body {
         this.velocity.y += j.y * this.invMass;
     }
 
-    integrateForces(dt: number): void {
+    initializeAccelleration(): void {
         // Find the acceleration based on the forces that are being applied and the mass
         this._acceleration.x = this._sumForces.x * this.invMass;
         this._acceleration.y = this._sumForces.y * this.invMass;
-
-        // Integrate the acceleration to find the new velocity
-        this.velocity.x += this._acceleration.x * dt;
-        this.velocity.y += this._acceleration.y * dt;
 
         // Clear all the forces and torque acting on the object before the next physics step
         this.clearForces();
     }
 
-    integrateVelocities(dt: number): void {
-        // Integrate the velocity to find the new position
-        this.position.x += this.velocity.x * dt;
-        this.position.y += this.velocity.y * dt;
+    integrateVerletPosition(dt: number): void {
+        const ax = this._acceleration.x;
+        const ay = this._acceleration.y;
+
+        this.position.x += this.velocity.x * dt + 0.5 * ax * dt * dt;
+        this.position.y += this.velocity.y * dt + 0.5 * ay * dt * dt;
 
         // Update AABB values based on new position
         this.updateAABB();
+    }
+
+    integrateVerletVelocity(dt: number): void {
+        const oldAx = this._acceleration.x;
+        const oldAy = this._acceleration.y;
+
+        const newAx = this._sumForces.x * this.invMass;
+        const newAy = this._sumForces.y * this.invMass;
+
+        this.velocity.x += 0.5 * (oldAx + newAx) * dt;
+        this.velocity.y += 0.5 * (oldAy + newAy) * dt;
+
+        // store for next step
+        this._acceleration.x = newAx;
+        this._acceleration.y = newAy;
+
+        this.clearForces();
     }
 
     updateAABB() {

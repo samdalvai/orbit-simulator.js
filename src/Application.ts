@@ -1,11 +1,11 @@
 import AssetStore from './AssetStore';
 import { Body } from './Body';
 import { FIXED_DELTA_TIME, G, MAX_BODIES, PIXELS_PER_KM, SETTINGS } from './Constants';
+import { Engine } from './Engine';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp, getOrbitalSpeed } from './Math';
 import { Vec2 } from './Vec2';
-import { Engine } from './Engine';
 
 export default class Application {
     private engine: Engine;
@@ -107,6 +107,8 @@ export default class Application {
         this.engine.addBody(venus);
         this.engine.addBody(earth);
         this.engine.addBody(moon);
+
+        this.engine.initializeVerlet();
     }
 
     input(): void {

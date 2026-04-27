@@ -1,8 +1,8 @@
 import { TEXTURES } from './AssetStore';
 import { Body, BodyType } from './Body';
-import { EARTH_RADIUS_KM, G } from './Constants';
+import { AU_KM, EARTH_RADIUS_KM, G } from './Constants';
 import { Engine } from './Engine';
-import { clamp, getOrbitPosition, getOrbitalSpeed } from './Math';
+import { clamp, getOrbitPosition, getOrbitalSpeed, randomNumber } from './Math';
 
 type TextureName = keyof typeof TEXTURES;
 
@@ -17,6 +17,17 @@ type CelestialBodySpec = {
     orbitRadiusKm?: number;
     orbitAngleDegrees?: number;
     moons?: CelestialBodySpec[];
+};
+
+type BeltSpec = {
+    innerOrbitRadiusKm: number;
+    outerOrbitRadiusKm: number;
+    minRadiusKm: number;
+    maxRadiusKm: number;
+    minMassKg: number;
+    maxMassKg: number;
+    numBodies: number;
+    colors: string[];
 };
 
 const SUN: CelestialBodySpec = {
@@ -267,6 +278,29 @@ const PLANETS: CelestialBodySpec[] = [
     },
 ];
 
+const BELTS: BeltSpec[] = [
+    {
+        innerOrbitRadiusKm: 2.15 * AU_KM,
+        outerOrbitRadiusKm: 3.35 * AU_KM,
+        minRadiusKm: 15,
+        maxRadiusKm: 260,
+        minMassKg: 1e14,
+        maxMassKg: 8e18,
+        numBodies: 160,
+        colors: ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'],
+    },
+    {
+        innerOrbitRadiusKm: 33 * AU_KM,
+        outerOrbitRadiusKm: 50 * AU_KM,
+        minRadiusKm: 20,
+        maxRadiusKm: 420,
+        minMassKg: 1e14,
+        maxMassKg: 2e19,
+        numBodies: 260,
+        colors: ['#c8d6df', '#9eb3c0', '#dfe8ec', '#8093a0'],
+    },
+];
+
 export function createSolarSystem(engine: Engine): Body[] {
     const bodies: Body[] = [];
     const sun = createBody(SUN, BodyType.STAR);
@@ -279,6 +313,10 @@ export function createSolarSystem(engine: Engine): Body[] {
         for (const moonSpec of planetSpec.moons ?? []) {
             bodies.push(createBody(moonSpec, BodyType.MOON, planet));
         }
+    }
+
+    for (const beltSpec of BELTS) {
+        bodies.push(...createBelt(sun, beltSpec));
     }
 
     for (const body of bodies) {
@@ -297,7 +335,8 @@ function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: Body | 
     body.parent = parent;
     body.fillColor = spec.color;
     body.label = spec.name;
-    body.labelColor = spec.labelColor ?? (bodyType === BodyType.MOON ? 'rgba(255, 255, 255, 0.78)' : spec.color);
+    body.labelColor =
+        spec.labelColor ?? (bodyType === BodyType.MOON ? 'rgba(255, 255, 255, 0.78)' : spec.color);
     body.labelFontSize = spec.labelFontSize ?? getLabelFontSize(spec, bodyType);
 
     if (spec.texture) {
@@ -309,6 +348,30 @@ function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: Body | 
     }
 
     return body;
+}
+
+function createBelt(sun: Body, spec: BeltSpec): Body[] {
+    const bodies: Body[] = [];
+
+    for (let i = 0; i < spec.numBodies; i++) {
+        const position = getOrbitPosition(
+            randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm),
+            randomNumber(0, 360),
+        );
+        const asteroid = new Body(
+            position.x,
+            position.y,
+            randomNumber(spec.minRadiusKm, spec.maxRadiusKm),
+            randomNumber(spec.minMassKg, spec.maxMassKg),
+            BodyType.ASTEROID,
+        );
+
+        asteroid.fillColor = spec.colors[Math.floor(randomNumber(0, spec.colors.length))];
+        asteroid.velocity = getOrbitalSpeed(sun, asteroid, G);
+        bodies.push(asteroid);
+    }
+
+    return bodies;
 }
 
 function getLabelFontSize(spec: CelestialBodySpec, bodyType: BodyType): number {

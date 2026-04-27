@@ -2,9 +2,18 @@ import AssetStore, { TEXTURES } from './AssetStore';
 import * as Utils from './Utils';
 import { Vec2 } from './Vec2';
 
+export enum BodyType {
+    STAR,
+    PLANET,
+    MOON,
+    ASTEROID,
+}
 export class Body {
     private static nextId = 0;
     readonly id: number;
+
+    parent: Body | null = null;
+    bodyType: BodyType;
 
     radius: number; // km
 
@@ -34,10 +43,11 @@ export class Body {
     fillColor: string = 'white';
     label: string = '';
 
-    constructor(x: number, y: number, radius: number, mass: number) {
+    constructor(x: number, y: number, radius: number, mass: number, bodyType: BodyType) {
         Utils.assert(mass > 0, 'Mass needs to be greater than 0');
 
         this.id = Body.nextId++;
+        this.bodyType = bodyType;
 
         this.radius = radius;
 

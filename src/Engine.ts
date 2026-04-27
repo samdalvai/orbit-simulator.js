@@ -53,6 +53,9 @@ export class Engine {
         // applyGravitationalForces(this.bodies, G);
         applyBarnesHutGravitationalForces(this.bodies, G);
 
+        // TODO: where is the right place to put broad phase?
+        // this.broadPhase();
+
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];
             body.integrateVerletVelocity(dt);

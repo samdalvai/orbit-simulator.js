@@ -1,4 +1,5 @@
 import AssetStore from './AssetStore';
+import { BodyRenderStyle } from './BodyRenderStyle';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
 import { Engine } from './Engine';
 import Graphics from './Graphics';
@@ -8,6 +9,7 @@ import { createSolarSystem } from './SolarSystem';
 
 export default class Application {
     private engine: Engine;
+    private bodyRenderStyles = new Map<number, BodyRenderStyle>();
     private running = false;
     private paused = false;
 
@@ -52,7 +54,8 @@ export default class Application {
         this.engine.clear();
         Graphics.zoom = 0.5;
 
-        createSolarSystem(this.engine);
+        const solarSystem = createSolarSystem(this.engine);
+        this.bodyRenderStyles = solarSystem.renderStyles;
 
         this.engine.initializeVerlet();
     }
@@ -219,7 +222,13 @@ export default class Application {
 
         // Draw all bodies
         for (const body of this.engine.getBodies()) {
-            Graphics.drawBody(body, this.showTextures, this.showLabels, this.showMoonLabels);
+            Graphics.drawBody(
+                body,
+                this.bodyRenderStyles.get(body.id),
+                this.showTextures,
+                this.showLabels,
+                this.showMoonLabels,
+            );
         }
 
         // Graphics.drawLine(-50, 0, 50, 0, 'rgba(200, 200, 200, 0.5');

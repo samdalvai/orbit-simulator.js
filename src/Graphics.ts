@@ -1,4 +1,5 @@
 import { Body, BodyType } from './Body';
+import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
 import {
     ASTEROID_MIN_RENDERING_RADIUS,
     ASTEROID_RADIUS_RENDERING_SCALE,
@@ -226,7 +227,14 @@ export default class Graphics {
         return bodyType === BodyType.ASTEROID ? ASTEROID_MIN_RENDERING_RADIUS : MIN_BODY_RENDERING_RADIUS;
     }
 
-    static drawBody(body: Body, showTextures: boolean, showLabels: boolean, showMoonLabels: boolean): void {
+    static drawBody(
+        body: Body,
+        style: BodyRenderStyle | undefined,
+        showTextures: boolean,
+        showLabels: boolean,
+        showMoonLabels: boolean,
+    ): void {
+        const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
         const renderPosition = this.getBodyRenderPosition(body);
         const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
@@ -236,9 +244,9 @@ export default class Graphics {
         this.ctx.translate(x, y);
 
         const strokeColor = 'white';
-        const fillColor = body.fillColor ?? 'yellow';
-        const texture = body.texture;
-        const label = body.label;
+        const fillColor = renderStyle.fillColor;
+        const texture = renderStyle.texture;
+        const label = renderStyle.label;
 
         if (!showTextures) {
             this.drawCircle(radius, strokeColor);
@@ -251,8 +259,8 @@ export default class Graphics {
         this.ctx.restore();
 
         if (showLabels && label && (showMoonLabels || body.bodyType !== BodyType.MOON)) {
-            const labelColor = body.labelColor;
-            const labelFontSize = body.labelFontSize;
+            const labelColor = renderStyle.labelColor;
+            const labelFontSize = renderStyle.labelFontSize;
             const labelGap = Math.max(8, labelFontSize * 0.6);
 
             this.ctx.save();

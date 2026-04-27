@@ -1,5 +1,6 @@
-import { TEXTURES } from './AssetStore';
+import AssetStore, { TEXTURES } from './AssetStore';
 import { Body, BodyType } from './Body';
+import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
 import { AU_KM, EARTH_RADIUS_KM, G } from './Constants';
 import { Engine } from './Engine';
 import { clamp, getOrbitPosition, getOrbitalSpeed, randomNumber } from './Math';
@@ -28,6 +29,11 @@ type BeltSpec = {
     maxMassKg: number;
     numBodies: number;
     colors: string[];
+};
+
+export type SolarSystem = {
+    bodies: Body[];
+    renderStyles: Map<number, BodyRenderStyle>;
 };
 
 const SUN: CelestialBodySpec = {
@@ -301,29 +307,34 @@ const BELTS: BeltSpec[] = [
     },
 ];
 
-export function createSolarSystem(engine: Engine): Body[] {
+export function createSolarSystem(engine: Engine): SolarSystem {
     const bodies: Body[] = [];
+    const renderStyles = new Map<number, BodyRenderStyle>();
     const sun = createBody(SUN, BodyType.STAR);
     bodies.push(sun);
+    renderStyles.set(sun.id, createRenderStyle(SUN, BodyType.STAR));
 
     for (const planetSpec of PLANETS) {
         const planet = createBody(planetSpec, BodyType.PLANET, sun);
         bodies.push(planet);
+        renderStyles.set(planet.id, createRenderStyle(planetSpec, BodyType.PLANET));
 
         for (const moonSpec of planetSpec.moons ?? []) {
-            bodies.push(createBody(moonSpec, BodyType.MOON, planet));
+            const moon = createBody(moonSpec, BodyType.MOON, planet);
+            bodies.push(moon);
+            renderStyles.set(moon.id, createRenderStyle(moonSpec, BodyType.MOON));
         }
     }
 
     for (const beltSpec of BELTS) {
-        bodies.push(...createBelt(sun, beltSpec));
+        bodies.push(...createBelt(sun, beltSpec, renderStyles));
     }
 
     for (const body of bodies) {
         engine.addBody(body);
     }
 
-    return bodies;
+    return { bodies, renderStyles };
 }
 
 function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: Body | null = null): Body {
@@ -333,15 +344,6 @@ function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: Body | 
 
     const body = new Body(position.x, position.y, spec.radiusKm, spec.massKg, bodyType);
     body.parent = parent;
-    body.fillColor = spec.color;
-    body.label = spec.name;
-    body.labelColor =
-        spec.labelColor ?? (bodyType === BodyType.MOON ? 'rgba(255, 255, 255, 0.78)' : spec.color);
-    body.labelFontSize = spec.labelFontSize ?? getLabelFontSize(spec, bodyType);
-
-    if (spec.texture) {
-        body.texture = spec.texture;
-    }
 
     if (parent) {
         body.velocity = parent.velocity.addNew(getOrbitalSpeed(parent, body, G));
@@ -350,7 +352,7 @@ function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: Body | 
     return body;
 }
 
-function createBelt(sun: Body, spec: BeltSpec): Body[] {
+function createBelt(sun: Body, spec: BeltSpec, renderStyles: Map<number, BodyRenderStyle>): Body[] {
     const bodies: Body[] = [];
 
     for (let i = 0; i < spec.numBodies; i++) {
@@ -366,12 +368,35 @@ function createBelt(sun: Body, spec: BeltSpec): Body[] {
             BodyType.ASTEROID,
         );
 
-        asteroid.fillColor = spec.colors[Math.floor(randomNumber(0, spec.colors.length))];
+        const fillColor = spec.colors[Math.floor(randomNumber(0, spec.colors.length))];
+
         asteroid.velocity = getOrbitalSpeed(sun, asteroid, G);
+        renderStyles.set(asteroid.id, {
+            ...DEFAULT_BODY_RENDER_STYLE,
+            fillColor,
+        });
         bodies.push(asteroid);
     }
 
     return bodies;
+}
+
+function createRenderStyle(spec: CelestialBodySpec, bodyType: BodyType): BodyRenderStyle {
+    return {
+        fillColor: spec.color,
+        texture: spec.texture ? AssetStore.getTexture(spec.texture) : null,
+        label: spec.name,
+        labelColor: spec.labelColor ?? getDefaultLabelColor(spec, bodyType),
+        labelFontSize: spec.labelFontSize ?? getLabelFontSize(spec, bodyType),
+    };
+}
+
+function getDefaultLabelColor(spec: CelestialBodySpec, bodyType: BodyType): string {
+    if (bodyType === BodyType.MOON) {
+        return 'rgba(255, 255, 255, 0.78)';
+    }
+
+    return spec.color;
 }
 
 function getLabelFontSize(spec: CelestialBodySpec, bodyType: BodyType): number {

@@ -1,5 +1,5 @@
 import AssetStore from './AssetStore';
-import { FIXED_DELTA_TIME, MAX_BODIES, PIXELS_PER_KM, SETTINGS } from './Constants';
+import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
 import { Engine } from './Engine';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
@@ -235,8 +235,8 @@ export default class Application {
             ['Bodies', `${this.engine.getBodies().length}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
             ['Zoom', Graphics.zoom.toFixed(2)],
-            ['Mouse (x)', `${(x / PIXELS_PER_KM).toExponential(5)} km`],
-            ['Mouse (y)', `${(y / PIXELS_PER_KM).toExponential(5)} km`],
+            ['Mouse (x)', `${(x / KILOMETERS_TO_PIXELS_RENDERING_SCALE).toExponential(5)} km`],
+            ['Mouse (y)', `${(y / KILOMETERS_TO_PIXELS_RENDERING_SCALE).toExponential(5)} km`],
             ['Physics step', this.formatDuration(SETTINGS.dt)],
             ['Sim time / sec', this.formatDuration(simulationSecondsPerSecond)],
             ['Total time', this.formatDuration(this.totalTime)],

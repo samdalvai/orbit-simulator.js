@@ -8,13 +8,19 @@ export const EARTH_RADIUS_KM = 6_371;
 /** Gravitational constant */
 export const G = 6.6743e-20; // km^3 / kg / s^2
 
-export const PIXELS_PER_AU = 500;
-export const PIXELS_PER_KM = PIXELS_PER_AU / AU_KM;
-export const MOON_ORBIT_RENDER_SCALE = 24;
-export const ASTEROID_RENDER_RADIUS_SCALE = 2.5;
-// Render radii are compressed so real km simulation values remain readable.
-export const PIXEL_PER_KM_RADIUS = 6;
-export const RADIUS_SCALE_EXPONENT = 0.35;
+// Orbit/distance rendering scales.
+export const PLANET_ORBIT_RENDERING_SCALE = 500; // pixels per AU
+export const KILOMETERS_TO_PIXELS_RENDERING_SCALE = PLANET_ORBIT_RENDERING_SCALE / AU_KM;
+export const MOON_ORBIT_RENDERING_SCALE = 24; // parent-relative moon orbit exaggeration
+
+// Radius rendering scales. Physical radii are compressed by the exponent below.
+export const RADIUS_RENDERING_EXPONENT = 0.35;
+export const MIN_BODY_RENDERING_RADIUS = 2;
+export const ASTEROID_MIN_RENDERING_RADIUS = 5;
+export const STAR_RADIUS_RENDERING_SCALE = 6;
+export const PLANET_RADIUS_RENDERING_SCALE = 6;
+export const MOON_RADIUS_RENDERING_SCALE = 6;
+export const ASTEROID_RADIUS_RENDERING_SCALE = 15;
 
 export const SETTINGS = {
     subSteps: 4,

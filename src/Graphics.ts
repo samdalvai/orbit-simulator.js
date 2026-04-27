@@ -1,11 +1,15 @@
 import { Body, BodyType } from './Body';
 import {
-    ASTEROID_RENDER_RADIUS_SCALE,
+    ASTEROID_MIN_RENDERING_RADIUS,
+    ASTEROID_RADIUS_RENDERING_SCALE,
     EARTH_RADIUS_KM,
-    MOON_ORBIT_RENDER_SCALE,
-    PIXELS_PER_KM,
-    PIXEL_PER_KM_RADIUS,
-    RADIUS_SCALE_EXPONENT,
+    KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+    MIN_BODY_RENDERING_RADIUS,
+    MOON_ORBIT_RENDERING_SCALE,
+    MOON_RADIUS_RENDERING_SCALE,
+    PLANET_RADIUS_RENDERING_SCALE,
+    RADIUS_RENDERING_EXPONENT,
+    STAR_RADIUS_RENDERING_SCALE,
 } from './Constants';
 import { Vec2 } from './Vec2';
 
@@ -182,28 +186,41 @@ export default class Graphics {
         }
 
         const parentPosition = this.getBodyRenderPosition(body.parent);
-        const moonOffset = body.position.subNew(body.parent.position).scaleNew(MOON_ORBIT_RENDER_SCALE);
+        const moonOffset = body.position.subNew(body.parent.position).scaleNew(MOON_ORBIT_RENDERING_SCALE);
 
         return parentPosition.addNew(moonOffset);
     }
 
     private static getBodyRenderRadius(body: Body): number {
-        const radius = Math.max(
-            2,
-            Math.pow(body.radius / EARTH_RADIUS_KM, RADIUS_SCALE_EXPONENT) * PIXEL_PER_KM_RADIUS,
-        );
+        const radius =
+            Math.pow(body.radius / EARTH_RADIUS_KM, RADIUS_RENDERING_EXPONENT) *
+            this.getBodyRadiusRenderingScale(body.bodyType);
 
-        if (body.bodyType !== BodyType.ASTEROID) {
-            return radius;
+        return Math.max(this.getBodyMinRenderingRadius(body.bodyType), radius);
+    }
+
+    private static getBodyRadiusRenderingScale(bodyType: BodyType): number {
+        switch (bodyType) {
+            case BodyType.STAR:
+                return STAR_RADIUS_RENDERING_SCALE;
+            case BodyType.MOON:
+                return MOON_RADIUS_RENDERING_SCALE;
+            case BodyType.ASTEROID:
+                return ASTEROID_RADIUS_RENDERING_SCALE;
+            case BodyType.PLANET:
+            default:
+                return PLANET_RADIUS_RENDERING_SCALE;
         }
+    }
 
-        return Math.max(radius * ASTEROID_RENDER_RADIUS_SCALE);
+    private static getBodyMinRenderingRadius(bodyType: BodyType): number {
+        return bodyType === BodyType.ASTEROID ? ASTEROID_MIN_RENDERING_RADIUS : MIN_BODY_RENDERING_RADIUS;
     }
 
     static drawBody(body: Body, showTextures: boolean, showLabels: boolean): void {
         const renderPosition = this.getBodyRenderPosition(body);
-        const x = renderPosition.x * PIXELS_PER_KM;
-        const y = renderPosition.y * PIXELS_PER_KM;
+        const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const radius = this.getBodyRenderRadius(body);
 
         this.ctx.save();

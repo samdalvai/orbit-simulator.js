@@ -65,7 +65,7 @@ export default class Application {
         const mercury = new Body(0, MERCURY_ORBIT_RADIUS_KM, MERCURY_RADIUS_KM, MERCURY_MASS);
         mercury.fillColor = '#b7ada5';
         mercury.velocity = getOrbitalSpeed(sun, mercury, G);
-        mercury.label = 'Venus';
+        mercury.label = 'Mercury';
         mercury.texture = 'planetMercury';
 
         const VENUS_MASS = 4.8675e24; // kg
@@ -76,7 +76,7 @@ export default class Application {
         venus.fillColor = '#d8b16f';
         venus.velocity = getOrbitalSpeed(sun, venus, G);
         venus.label = 'Venus';
-        mercury.texture = 'planetVenus';
+        venus.texture = 'planetVenus';
 
         const EARTH_MASS = 5.972e24; // kg
         const EARTH_RADIUS_KM = 6_371; // km
@@ -90,7 +90,7 @@ export default class Application {
         earth.fillColor = '#4a9fe8';
         earth.velocity = getOrbitalSpeed(sun, earth, G);
         earth.label = 'Earth';
-        mercury.texture = 'planetEarth';
+        earth.texture = 'planetEarth';
 
         const MOON_MASS = 7.342e22; // kg
         const MOON_RADIUS_KM = 1_737.4; // km
@@ -102,10 +102,65 @@ export default class Application {
         moon.velocity = earth.velocity.addNew(getOrbitalSpeed(earth, moon, G));
         moon.label = 'Moon';
 
+        const MARS_MASS = 6.4171e23; // kg
+        const MARS_RADIUS_KM = 3_389.5; // km
+        const MARS_ORBIT_RADIUS_KM = 227_943_824; // km (1.524 AU)
+
+        const mars = new Body(0, MARS_ORBIT_RADIUS_KM, MARS_RADIUS_KM, MARS_MASS);
+        mars.fillColor = '#c76245';
+        mars.velocity = getOrbitalSpeed(sun, mars, G);
+        mars.label = 'Mars';
+        mars.texture = 'planetMars';
+
+        const JUPITER_MASS = 1.8982e27; // kg
+        const JUPITER_RADIUS_KM = 69_911; // km
+        const JUPITER_ORBIT_RADIUS_KM = 778_340_821; // km (5.203 AU)
+
+        const jupiter = new Body(0, JUPITER_ORBIT_RADIUS_KM, JUPITER_RADIUS_KM, JUPITER_MASS);
+        jupiter.fillColor = '#d1a06f';
+        jupiter.velocity = getOrbitalSpeed(sun, jupiter, G);
+        jupiter.label = 'Jupiter';
+        jupiter.texture = 'planetJupiter';
+
+        const SATURN_MASS = 5.6834e26; // kg
+        const SATURN_RADIUS_KM = 58_232; // km
+        const SATURN_ORBIT_RADIUS_KM = 1_426_666_422; // km (9.537 AU)
+
+        const saturn = new Body(0, SATURN_ORBIT_RADIUS_KM, SATURN_RADIUS_KM, SATURN_MASS);
+        saturn.fillColor = '#d7c28b';
+        saturn.velocity = getOrbitalSpeed(sun, saturn, G);
+        saturn.label = 'Saturn';
+        saturn.texture = 'planetSaturn';
+
+        const URANUS_MASS = 8.681e25; // kg
+        const URANUS_RADIUS_KM = 25_362; // km
+        const URANUS_ORBIT_RADIUS_KM = 2_870_658_186; // km (19.191 AU)
+
+        const uranus = new Body(0, URANUS_ORBIT_RADIUS_KM, URANUS_RADIUS_KM, URANUS_MASS);
+        uranus.fillColor = '#9fe1df';
+        uranus.velocity = getOrbitalSpeed(sun, uranus, G);
+        uranus.label = 'Uranus';
+        uranus.texture = 'planetUranus';
+
+        const NEPTUNE_MASS = 1.02413e26; // kg
+        const NEPTUNE_RADIUS_KM = 24_622; // km
+        const NEPTUNE_ORBIT_RADIUS_KM = 4_498_396_441; // km (30.07 AU)
+
+        const neptune = new Body(0, NEPTUNE_ORBIT_RADIUS_KM, NEPTUNE_RADIUS_KM, NEPTUNE_MASS);
+        neptune.fillColor = '#5279e8';
+        neptune.velocity = getOrbitalSpeed(sun, neptune, G);
+        neptune.label = 'Neptune';
+        neptune.texture = 'planetNeptune';
+
         this.engine.addBody(sun);
         this.engine.addBody(mercury);
         this.engine.addBody(venus);
         this.engine.addBody(earth);
+        this.engine.addBody(mars);
+        this.engine.addBody(jupiter);
+        this.engine.addBody(saturn);
+        this.engine.addBody(uranus);
+        this.engine.addBody(neptune);
         this.engine.addBody(moon);
 
         this.engine.initializeVerlet();

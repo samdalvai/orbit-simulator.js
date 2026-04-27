@@ -24,6 +24,7 @@ export default class Application {
     private FPS = 0;
     private lastFPSUpdate = 0;
     private showLabels = false;
+    private totalTime = 0;
 
     constructor() {
         this.engine = new Engine();
@@ -283,6 +284,7 @@ export default class Application {
             ['Mouse (y)', `${(y / PIXELS_PER_KM).toExponential(5)} km`],
             ['Physics step', this.formatDuration(SETTINGS.dt)],
             ['Sim time / sec', this.formatDuration(simulationSecondsPerSecond)],
+            ['Total time', this.formatDuration(this.totalTime)],
             ['Substeps', `${SETTINGS.subSteps}`],
         ];
 
@@ -353,6 +355,7 @@ export default class Application {
 
     private stepSimulation(): void {
         this.engine.update(SETTINGS.dt);
+        this.totalTime += SETTINGS.dt;
     }
 
     private formatDuration(seconds: number): string {

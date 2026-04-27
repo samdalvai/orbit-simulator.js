@@ -5,6 +5,7 @@ import {
     EARTH_RADIUS_KM,
     KILOMETERS_TO_PIXELS_RENDERING_SCALE,
     MIN_BODY_RENDERING_RADIUS,
+    MIN_MOON_ORBIT_RENDERING_GAP,
     MOON_ORBIT_RENDERING_SCALE,
     MOON_RADIUS_RENDERING_SCALE,
     PLANET_RADIUS_RENDERING_SCALE,
@@ -187,6 +188,14 @@ export default class Graphics {
 
         const parentPosition = this.getBodyRenderPosition(body.parent);
         const moonOffset = body.position.subNew(body.parent.position).scaleNew(MOON_ORBIT_RENDERING_SCALE);
+        const moonOffsetMagnitude = moonOffset.magnitude();
+        const minMoonOrbitDistance =
+            (this.getBodyRenderRadius(body.parent) + this.getBodyRenderRadius(body) + MIN_MOON_ORBIT_RENDERING_GAP) /
+            KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+
+        if (moonOffsetMagnitude > 0 && moonOffsetMagnitude < minMoonOrbitDistance) {
+            moonOffset.scaleAssign(minMoonOrbitDistance / moonOffsetMagnitude);
+        }
 
         return parentPosition.addNew(moonOffset);
     }

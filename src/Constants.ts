@@ -12,6 +12,7 @@ export const G = 6.6743e-20; // km^3 / kg / s^2
 export const PLANET_ORBIT_RENDERING_SCALE = 500; // pixels per AU
 export const KILOMETERS_TO_PIXELS_RENDERING_SCALE = PLANET_ORBIT_RENDERING_SCALE / AU_KM;
 export const MOON_ORBIT_RENDERING_SCALE = 24; // parent-relative moon orbit exaggeration
+export const MIN_MOON_ORBIT_RENDERING_GAP = 8; // pixels between rendered parent and moon
 
 // Radius rendering scales. Physical radii are compressed by the exponent below.
 export const RADIUS_RENDERING_EXPONENT = 0.35;

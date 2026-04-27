@@ -10,6 +10,7 @@ export const G = 6.6743e-20; // km^3 / kg / s^2
 
 export const PIXELS_PER_AU = 500;
 export const PIXELS_PER_KM = PIXELS_PER_AU / AU_KM;
+export const MOON_ORBIT_RENDER_SCALE = 24;
 // Render radii are compressed so real km simulation values remain readable.
 export const PIXEL_PER_KM_RADIUS = 6;
 export const RADIUS_SCALE_EXPONENT = 0.35;

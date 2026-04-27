@@ -1,5 +1,11 @@
-import { Body } from './Body';
-import { EARTH_RADIUS_KM, PIXELS_PER_KM, PIXEL_PER_KM_RADIUS, RADIUS_SCALE_EXPONENT } from './Constants';
+import { Body, BodyType } from './Body';
+import {
+    EARTH_RADIUS_KM,
+    MOON_ORBIT_RENDER_SCALE,
+    PIXELS_PER_KM,
+    PIXEL_PER_KM_RADIUS,
+    RADIUS_SCALE_EXPONENT,
+} from './Constants';
 import { Vec2 } from './Vec2';
 
 export default class Graphics {
@@ -169,9 +175,21 @@ export default class Graphics {
         this.ctx.restore();
     }
 
+    private static getBodyRenderPosition(body: Body): Vec2 {
+        if (body.bodyType !== BodyType.MOON || !body.parent) {
+            return body.position;
+        }
+
+        const parentPosition = this.getBodyRenderPosition(body.parent);
+        const moonOffset = body.position.subNew(body.parent.position).scaleNew(MOON_ORBIT_RENDER_SCALE);
+
+        return parentPosition.addNew(moonOffset);
+    }
+
     static drawBody(body: Body, showTextures: boolean, showLabels: boolean): void {
-        const x = body.position.x * PIXELS_PER_KM;
-        const y = body.position.y * PIXELS_PER_KM;
+        const renderPosition = this.getBodyRenderPosition(body);
+        const x = renderPosition.x * PIXELS_PER_KM;
+        const y = renderPosition.y * PIXELS_PER_KM;
         const radius = Math.max(
             2,
             Math.pow(body.radius / EARTH_RADIUS_KM, RADIUS_SCALE_EXPONENT) * PIXEL_PER_KM_RADIUS,

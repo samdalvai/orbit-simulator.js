@@ -102,7 +102,7 @@ export default class Application {
 
         const moonOffset = getOrbitPosition(MOON_DISTANCE_KM, 250);
         const moonPos = earth.position.addNew(moonOffset);
-        const moon = new Body(moonPos.x, moonPos.y, MOON_RADIUS_KM, MOON_MASS, BodyType.PLANET);
+        const moon = new Body(moonPos.x, moonPos.y, MOON_RADIUS_KM, MOON_MASS, BodyType.MOON);
         moon.parent = earth;
         moon.fillColor = 'gray';
         moon.velocity = earth.velocity.addNew(getOrbitalSpeed(earth, moon, G));

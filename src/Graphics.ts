@@ -1,5 +1,6 @@
 import { Body, BodyType } from './Body';
 import {
+    ASTEROID_RENDER_RADIUS_SCALE,
     EARTH_RADIUS_KM,
     MOON_ORBIT_RENDER_SCALE,
     PIXELS_PER_KM,
@@ -186,14 +187,24 @@ export default class Graphics {
         return parentPosition.addNew(moonOffset);
     }
 
-    static drawBody(body: Body, showTextures: boolean, showLabels: boolean): void {
-        const renderPosition = this.getBodyRenderPosition(body);
-        const x = renderPosition.x * PIXELS_PER_KM;
-        const y = renderPosition.y * PIXELS_PER_KM;
+    private static getBodyRenderRadius(body: Body): number {
         const radius = Math.max(
             2,
             Math.pow(body.radius / EARTH_RADIUS_KM, RADIUS_SCALE_EXPONENT) * PIXEL_PER_KM_RADIUS,
         );
+
+        if (body.bodyType !== BodyType.ASTEROID) {
+            return radius;
+        }
+
+        return Math.max(radius * ASTEROID_RENDER_RADIUS_SCALE);
+    }
+
+    static drawBody(body: Body, showTextures: boolean, showLabels: boolean): void {
+        const renderPosition = this.getBodyRenderPosition(body);
+        const x = renderPosition.x * PIXELS_PER_KM;
+        const y = renderPosition.y * PIXELS_PER_KM;
+        const radius = this.getBodyRenderRadius(body);
 
         this.ctx.save();
         this.ctx.translate(x, y);

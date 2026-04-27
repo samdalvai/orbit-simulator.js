@@ -271,7 +271,8 @@ export default class Application {
             ['Zoom', Graphics.zoom.toFixed(2)],
             ['Mouse (x)', `${(x / PIXELS_PER_KM).toExponential(5)} km`],
             ['Mouse (y)', `${(y / PIXELS_PER_KM).toExponential(5)} km`],
-            ['DT', `${SETTINGS.dt.toFixed(4)} s`],
+            ['Physics step', `${SETTINGS.dt / 60} min`],
+            ['Physics step * second', `??? min`], // Compute simulation time passed after each second
             ['Substeps', `${SETTINGS.subSteps}`],
         ];
 

@@ -1,4 +1,4 @@
-export const FIXED_DELTA_TIME = 1 / 60;
+export const FIXED_DELTA_TIME = 1 / 60; // seconds
 export const MAX_BODIES = 5_000;
 export const SIMULATION_TIME_SCALE = 3600 * 100; // 100 hours per step
 
@@ -8,7 +8,6 @@ export const G = 6.6743e-20; // km^3 / kg / s^2
 
 export const PIXELS_PER_AU = 500;
 export const PIXELS_PER_KM = PIXELS_PER_AU / AU_KM;
-
 // Render radii are compressed so real km simulation values remain readable.
 export const PIXEL_PER_KM_RADIUS = 6;
 export const RADIUS_SCALE_EXPONENT = 0.35;

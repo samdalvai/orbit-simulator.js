@@ -98,7 +98,6 @@ export default class Application {
         const moonPos = earth.position.addNew(new Vec2(MOON_DISTANCE_KM * 20, 0));
         const moon = new Body(moonPos.x, moonPos.y, MOON_RADIUS_KM, MOON_MASS);
         moon.fillColor = 'gray';
-        // moon.velocity = getOrbitalSpeed(earth, moon, G);
         moon.velocity = earth.velocity.addNew(getOrbitalSpeed(earth, moon, G));
         moon.label = 'Moon';
 
@@ -243,6 +242,14 @@ export default class Application {
         for (let i = 0; i < SETTINGS.subSteps; i++) {
             this.stepSimulation();
         }
+
+        // Debug for moon to earh distance
+        // const bodies = this.engine.getBodies();
+        // const earth = bodies[bodies.length - 2];
+        // const moon = bodies[bodies.length - 1];
+        // const distSq = earth.position.distanceSquared(moon.position);
+        // const dist = Math.sqrt(distSq);
+        // console.log('dist: ', dist);
     }
 
     render(): void {

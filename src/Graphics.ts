@@ -214,8 +214,9 @@ export default class Graphics {
         this.ctx.restore();
 
         if (showLabels && label) {
-            const labelColor = 'white';
-            const labelFontSize = 12;
+            const labelColor = body.labelColor;
+            const labelFontSize = body.labelFontSize;
+            const labelGap = Math.max(8, labelFontSize * 0.6);
 
             this.ctx.save();
             this.ctx.translate(x + radius, y + radius);
@@ -224,7 +225,7 @@ export default class Graphics {
             this.ctx.font = `${labelFontSize}px Arial`;
             this.ctx.textAlign = 'left';
             this.ctx.textBaseline = 'bottom';
-            this.ctx.fillText(label, 8, -8);
+            this.ctx.fillText(label, labelGap, -labelGap);
             this.ctx.restore();
         }
     }

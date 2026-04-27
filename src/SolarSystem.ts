@@ -1,8 +1,8 @@
 import { TEXTURES } from './AssetStore';
 import { Body, BodyType } from './Body';
-import { G } from './Constants';
+import { EARTH_RADIUS_KM, G } from './Constants';
 import { Engine } from './Engine';
-import { getOrbitPosition, getOrbitalSpeed } from './Math';
+import { clamp, getOrbitPosition, getOrbitalSpeed } from './Math';
 
 type TextureName = keyof typeof TEXTURES;
 
@@ -11,6 +11,8 @@ type CelestialBodySpec = {
     radiusKm: number;
     massKg: number;
     color: string;
+    labelColor?: string;
+    labelFontSize?: number;
     texture?: TextureName;
     orbitRadiusKm?: number;
     orbitAngleDegrees?: number;
@@ -73,24 +75,24 @@ const PLANETS: CelestialBodySpec[] = [
         color: '#c76245',
         texture: 'planetMars',
         moons: [
-            {
-                name: 'Phobos',
-                radiusKm: 11.1,
-                massKg: 1.06e16,
-                orbitRadiusKm: 9_378,
-                orbitAngleDegrees: 40,
-                color: '#8f7a69',
-                texture: 'moonPhobos',
-            },
-            {
-                name: 'Deimos',
-                radiusKm: 6.2,
-                massKg: 2.4e15,
-                orbitRadiusKm: 23_459,
-                orbitAngleDegrees: 220,
-                color: '#a29486',
-                texture: 'moonDeimos',
-            },
+            // {
+            //     name: 'Phobos',
+            //     radiusKm: 11.1,
+            //     massKg: 1.06e16,
+            //     orbitRadiusKm: 9_378,
+            //     orbitAngleDegrees: 40,
+            //     color: '#8f7a69',
+            //     texture: 'moonPhobos',
+            // },
+            // {
+            //     name: 'Deimos',
+            //     radiusKm: 6.2,
+            //     massKg: 2.4e15,
+            //     orbitRadiusKm: 23_459,
+            //     orbitAngleDegrees: 220,
+            //     color: '#a29486',
+            //     texture: 'moonDeimos',
+            // },
         ],
     },
     {
@@ -295,6 +297,8 @@ function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: Body | 
     body.parent = parent;
     body.fillColor = spec.color;
     body.label = spec.name;
+    body.labelColor = spec.labelColor ?? (bodyType === BodyType.MOON ? 'rgba(255, 255, 255, 0.78)' : spec.color);
+    body.labelFontSize = spec.labelFontSize ?? getLabelFontSize(spec, bodyType);
 
     if (spec.texture) {
         body.texture = spec.texture;
@@ -305,4 +309,16 @@ function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: Body | 
     }
 
     return body;
+}
+
+function getLabelFontSize(spec: CelestialBodySpec, bodyType: BodyType): number {
+    if (bodyType === BodyType.STAR) {
+        return 20;
+    }
+
+    if (bodyType === BodyType.MOON) {
+        return 8;
+    }
+
+    return Math.round(clamp(10 + Math.sqrt(spec.radiusKm / EARTH_RADIUS_KM) * 2, 11, 17));
 }

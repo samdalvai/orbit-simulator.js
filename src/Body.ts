@@ -42,6 +42,8 @@ export class Body {
     private _texture: ImageBitmap | null = null;
     fillColor: string = 'white';
     label: string = '';
+    labelColor: string = 'white';
+    labelFontSize: number = 12;
 
     constructor(x: number, y: number, radius: number, mass: number, bodyType: BodyType) {
         Utils.assert(mass > 0, 'Mass needs to be greater than 0');

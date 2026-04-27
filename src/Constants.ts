@@ -24,7 +24,7 @@ export const MOON_RADIUS_RENDERING_SCALE = 6;
 export const ASTEROID_RADIUS_RENDERING_SCALE = 15;
 
 export const SETTINGS = {
-    subSteps: 4,
+    subSteps: 1,
 
     get dt() {
         return (FIXED_DELTA_TIME * SIMULATION_TIME_SCALE) / this.subSteps;

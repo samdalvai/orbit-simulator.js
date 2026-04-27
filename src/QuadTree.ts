@@ -1,7 +1,7 @@
 import { Body } from './Body';
 
 // TODO: needs to be scaled by new scale of simulation (km)
-const MIN_NODE_HALF_SIZE = 1_000;
+const MIN_NODE_HALF_SIZE = 1_000; // km
 
 export type QuadNode = {
     centerX: number;

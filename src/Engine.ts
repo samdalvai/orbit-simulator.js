@@ -1,11 +1,9 @@
 import { Body } from './Body';
-import { MAX_BODIES } from './Constants';
+import { G, MAX_BODIES } from './Constants';
 import { applyGravitationalForces } from './Gravity';
 import { Vec2 } from './Vec2';
 
-export class World {
-    private G: number;
-
+export class Engine {
     private bodies: Body[] = [];
     /** Pairs are allocated in blocks of 2 */
     private potentialPairs: Body[] = [];
@@ -13,8 +11,8 @@ export class World {
     private forces: Vec2[] = [];
     private torques: number[] = [];
 
-    constructor(G: number) {
-        this.G = G;
+    constructor() {
+        //
     }
 
     addBody(body: Body): void {
@@ -64,7 +62,7 @@ export class World {
 
         // Apply gravity
         // TODO: is this the right place?
-        applyGravitationalForces(this.bodies, this.G);
+        applyGravitationalForces(this.bodies, G);
 
         // this.broadPhase();
 

@@ -4,6 +4,8 @@ export const SIMULATION_TIME_SCALE = 3_600 * 100; // 100 simulated hours per rea
 
 export const AU_KM = 149_597_870.7;
 export const EARTH_RADIUS_KM = 6_371;
+
+/** Gravitational constant */
 export const G = 6.6743e-20; // km^3 / kg / s^2
 
 export const PIXELS_PER_AU = 500;

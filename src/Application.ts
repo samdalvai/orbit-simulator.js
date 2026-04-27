@@ -5,10 +5,10 @@ import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp, getOrbitalSpeed } from './Math';
 import { Vec2 } from './Vec2';
-import { World } from './World';
+import { Engine } from './Engine';
 
 export default class Application {
-    private world: World;
+    private engine: Engine;
     private running = false;
     private paused = false;
 
@@ -26,7 +26,7 @@ export default class Application {
     private showLabels = false;
 
     constructor() {
-        this.world = new World(G);
+        this.engine = new Engine();
     }
 
     isRunning(): boolean {
@@ -102,11 +102,11 @@ export default class Application {
         moon.velocity = earth.velocity.addNew(getOrbitalSpeed(earth, moon, G));
         moon.label = 'Moon';
 
-        this.world.addBody(sun);
-        this.world.addBody(mercury);
-        this.world.addBody(venus);
-        this.world.addBody(earth);
-        this.world.addBody(moon);
+        this.engine.addBody(sun);
+        this.engine.addBody(mercury);
+        this.engine.addBody(venus);
+        this.engine.addBody(earth);
+        this.engine.addBody(moon);
     }
 
     input(): void {
@@ -136,7 +136,7 @@ export default class Application {
                     if (inputEvent.key === ',') {
                         // Note: this is not physically accurate, as contacts cannot work correctly with
                         // negative delta time, this is just used for testing purposes
-                        this.world.update(-SETTINGS.dt);
+                        this.engine.update(-SETTINGS.dt);
                     }
 
                     if (inputEvent.key === '+') {
@@ -248,7 +248,7 @@ export default class Application {
         Graphics.beginWorld();
 
         // Draw all bodies
-        for (const body of this.world.getBodies()) {
+        for (const body of this.engine.getBodies()) {
             Graphics.drawBody(body, this.debug, this.showLabels);
         }
 
@@ -267,7 +267,7 @@ export default class Application {
 
         const stats: Array<[string, string]> = [
             ['Paused', this.paused ? 'ON' : 'OFF'],
-            ['Bodies', `${this.world.getBodies().length}/${MAX_BODIES}`],
+            ['Bodies', `${this.engine.getBodies().length}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
             ['Zoom', Graphics.zoom.toFixed(2)],
             ['Mouse (x)', `${(x / PIXELS_PER_KM).toExponential(5)} km`],
@@ -343,7 +343,7 @@ export default class Application {
     }
 
     private stepSimulation(): void {
-        this.world.update(SETTINGS.dt);
+        this.engine.update(SETTINGS.dt);
     }
 
     private formatDuration(seconds: number): string {

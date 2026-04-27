@@ -1,9 +1,9 @@
 import AssetStore from './AssetStore';
 import { Body } from './Body';
-import { G, MAX_BODIES, PIXELS_PER_KM, SETTINGS } from './Constants';
+import { FIXED_DELTA_TIME, G, MAX_BODIES, PIXELS_PER_KM, SETTINGS } from './Constants';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
-import { getOrbitalSpeed } from './Math';
+import { clamp, getOrbitalSpeed } from './Math';
 import { Vec2 } from './Vec2';
 import { World } from './World';
 
@@ -144,7 +144,7 @@ export default class Application {
                     }
 
                     if (inputEvent.key === '-') {
-                        SETTINGS.subSteps -= 1;
+                        SETTINGS.subSteps = clamp(SETTINGS.subSteps - 1, 1, SETTINGS.subSteps - 1);
                     }
 
                     if (inputEvent.code === 'MetaLeft') {
@@ -263,6 +263,7 @@ export default class Application {
 
         const x = InputManager.mousePosition.x;
         const y = InputManager.mousePosition.y;
+        const simulationSecondsPerSecond = (SETTINGS.dt * SETTINGS.subSteps) / FIXED_DELTA_TIME;
 
         const stats: Array<[string, string]> = [
             ['Paused', this.paused ? 'ON' : 'OFF'],
@@ -271,8 +272,8 @@ export default class Application {
             ['Zoom', Graphics.zoom.toFixed(2)],
             ['Mouse (x)', `${(x / PIXELS_PER_KM).toExponential(5)} km`],
             ['Mouse (y)', `${(y / PIXELS_PER_KM).toExponential(5)} km`],
-            ['Physics step', `${SETTINGS.dt / 60} min`],
-            ['Physics step * second', `??? min`], // Compute simulation time passed after each second
+            ['Physics step', this.formatDuration(SETTINGS.dt)],
+            ['Sim time / sec', this.formatDuration(simulationSecondsPerSecond)],
             ['Substeps', `${SETTINGS.subSteps}`],
         ];
 
@@ -343,5 +344,20 @@ export default class Application {
 
     private stepSimulation(): void {
         this.world.update(SETTINGS.dt);
+    }
+
+    private formatDuration(seconds: number): string {
+        const minutes = seconds / 60;
+        if (minutes < 60) {
+            return `${minutes.toFixed(2)} min`;
+        }
+
+        const hours = minutes / 60;
+        if (hours < 24) {
+            return `${hours.toFixed(2)} h`;
+        }
+
+        const days = hours / 24;
+        return `${days.toFixed(2)} d`;
     }
 }

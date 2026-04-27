@@ -1,6 +1,6 @@
 export const FIXED_DELTA_TIME = 1 / 60; // seconds
 export const MAX_BODIES = 5_000;
-export const SIMULATION_TIME_SCALE = 3600 * 100; // 100 hours per step
+export const SIMULATION_TIME_SCALE = 3600 * 100; // 100 simulated hours per real second
 
 export const AU_KM = 149_597_870.7;
 export const EARTH_RADIUS_KM = 6_371;

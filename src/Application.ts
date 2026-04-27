@@ -100,11 +100,11 @@ export default class Application {
                         this.engine.update(-SETTINGS.dt);
                     }
 
-                    if (inputEvent.key === '+') {
+                    if (inputEvent.key === '*') {
                         SETTINGS.subSteps += 1;
                     }
 
-                    if (inputEvent.key === '-') {
+                    if (inputEvent.key === '/') {
                         SETTINGS.subSteps = clamp(SETTINGS.subSteps - 1, 1, SETTINGS.subSteps - 1);
                     }
 

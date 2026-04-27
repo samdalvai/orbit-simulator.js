@@ -220,6 +220,8 @@ export default class Application {
         Graphics.clearScreen();
         Graphics.beginWorld();
 
+        const viewport = Graphics.getRenderViewport();
+
         // Draw all bodies
         for (const body of this.engine.getBodies()) {
             Graphics.drawBody(
@@ -228,6 +230,7 @@ export default class Application {
                 this.showTextures,
                 this.showLabels,
                 this.showMoonLabels,
+                viewport,
             );
         }
 

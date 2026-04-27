@@ -15,6 +15,14 @@ import {
 } from './Constants';
 import { Vec2 } from './Vec2';
 
+export type RenderViewport = {
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    labelMargin: number;
+};
+
 export default class Graphics {
     static windowWidth: number;
     static windowHeight: number;
@@ -79,6 +87,19 @@ export default class Graphics {
 
     static clearScreen(): void {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    static getRenderViewport(): RenderViewport {
+        const halfViewWidth = this.windowWidth / (2 * this.zoom);
+        const halfViewHeight = this.windowHeight / (2 * this.zoom);
+
+        return {
+            minX: this.pan.x - halfViewWidth,
+            minY: this.pan.y - halfViewHeight,
+            maxX: this.pan.x + halfViewWidth,
+            maxY: this.pan.y + halfViewHeight,
+            labelMargin: 160 / this.zoom,
+        };
     }
 
     /**
@@ -233,6 +254,7 @@ export default class Graphics {
         showTextures: boolean,
         showLabels: boolean,
         showMoonLabels: boolean,
+        viewport: RenderViewport,
     ): void {
         const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
         const renderPosition = this.getBodyRenderPosition(body);
@@ -240,13 +262,36 @@ export default class Graphics {
         const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const radius = this.getBodyRenderRadius(body);
 
-        this.ctx.save();
-        this.ctx.translate(x, y);
-
         const strokeColor = 'white';
         const fillColor = renderStyle.fillColor;
         const texture = renderStyle.texture;
         const label = renderStyle.label;
+
+        // Viewport culling for objects outside viewport
+        const drawLabel = showLabels && label && (showMoonLabels || body.bodyType !== BodyType.MOON);
+        const labelMargin = drawLabel ? viewport.labelMargin : 0;
+        const renderOffsetX = renderPosition.x - body.position.x;
+        const renderOffsetY = renderPosition.y - body.position.y;
+        const minX = (body.minX + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const minY = (body.minY + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const maxX = (body.maxX + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const maxY = (body.maxY + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const aabbHalfWidth = (maxX - minX) * 0.5;
+        const aabbHalfHeight = (maxY - minY) * 0.5;
+        const paddingX = Math.max(0, radius - aabbHalfWidth) + labelMargin;
+        const paddingY = Math.max(0, radius - aabbHalfHeight) + labelMargin;
+
+        if (
+            maxX + paddingX < viewport.minX ||
+            minX - paddingX > viewport.maxX ||
+            maxY + paddingY < viewport.minY ||
+            minY - paddingY > viewport.maxY
+        ) {
+            return;
+        }
+
+        this.ctx.save();
+        this.ctx.translate(x, y);
 
         if (!showTextures) {
             this.drawCircle(radius, strokeColor);
@@ -258,7 +303,7 @@ export default class Graphics {
 
         this.ctx.restore();
 
-        if (showLabels && label && (showMoonLabels || body.bodyType !== BodyType.MOON)) {
+        if (drawLabel) {
             const labelColor = renderStyle.labelColor;
             const labelFontSize = renderStyle.labelFontSize;
             const labelGap = Math.max(8, labelFontSize * 0.6);

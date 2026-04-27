@@ -12,6 +12,25 @@ export const TEXTURES = {
     planetSaturn: 'assets/saturn.png',
     planetUranus: 'assets/uranus.png',
     planetNeptune: 'assets/neptune.png',
+
+    // Moon orbit sprites
+    moonLuna: 'assets/moon-luna.png',
+    moonPhobos: 'assets/moon-phobos.png',
+    moonDeimos: 'assets/moon-deimos.png',
+    moonIo: 'assets/moon-io.png',
+    moonEuropa: 'assets/moon-europa.png',
+    moonGanymede: 'assets/moon-ganymede.png',
+    moonCallisto: 'assets/moon-callisto.png',
+    moonTitan: 'assets/moon-titan.png',
+    moonEnceladus: 'assets/moon-enceladus.png',
+    moonRhea: 'assets/moon-rhea.png',
+    moonIapetus: 'assets/moon-iapetus.png',
+    moonMiranda: 'assets/moon-miranda.png',
+    moonAriel: 'assets/moon-ariel.png',
+    moonUmbriel: 'assets/moon-umbriel.png',
+    moonTitania: 'assets/moon-titania.png',
+    moonOberon: 'assets/moon-oberon.png',
+    moonTriton: 'assets/moon-triton.png',
 };
 
 type TextureMap = Record<string, ImageBitmap>;

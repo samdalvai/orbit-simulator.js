@@ -188,7 +188,7 @@ export default class Graphics {
         if (debug) {
             this.drawCircle(radius, strokeColor);
         } else if (texture) {
-            this.drawTexture(radius * 2, radius * 2, texture, 0, 0, 1);
+            this.drawTexture(radius * 2, radius * 2, texture, 0, 0, 1.2);
         } else {
             this.drawFillCircle(0, 0, radius, fillColor);
         }

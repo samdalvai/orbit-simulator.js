@@ -55,6 +55,7 @@ export default class Application {
         const sun = new Body(0, 0, SUN_RADIUS_KM, SUN_MASS);
         sun.fillColor = '#fff7b2';
         sun.label = 'Sun';
+        sun.texture = 'planetSun';
 
         const MERCURY_MASS = 3.3011e23; // kg
         const MERCURY_RADIUS_KM = 2_439.7; // km
@@ -64,6 +65,7 @@ export default class Application {
         mercury.fillColor = '#b7ada5';
         mercury.velocity = getOrbitalSpeed(sun, mercury, G);
         mercury.label = 'Venus';
+        mercury.texture = 'planetMercury';
 
         const VENUS_MASS = 4.8675e24; // kg
         const VENUS_RADIUS_KM = 6_051.8; // km
@@ -73,6 +75,7 @@ export default class Application {
         venus.fillColor = '#d8b16f';
         venus.velocity = getOrbitalSpeed(sun, venus, G);
         venus.label = 'Venus';
+        mercury.texture = 'planetVenus';
 
         const EARTH_MASS = 5.972e24; // kg
         const EARTH_RADIUS_KM = 6_371; // km
@@ -86,6 +89,7 @@ export default class Application {
         earth.fillColor = '#4a9fe8';
         earth.velocity = getOrbitalSpeed(sun, earth, G);
         earth.label = 'Earth';
+        mercury.texture = 'planetEarth';
 
         const MOON_MASS = 7.342e22; // kg
         const MOON_RADIUS_KM = 1_737.4; // km

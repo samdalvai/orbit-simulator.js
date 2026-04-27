@@ -4,8 +4,7 @@ import { FIXED_DELTA_TIME, G, MAX_BODIES, PIXELS_PER_KM, SETTINGS } from './Cons
 import { Engine } from './Engine';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
-import { clamp, getOrbitalSpeed } from './Math';
-import { Vec2 } from './Vec2';
+import { clamp, getOrbitPosition, getOrbitalSpeed } from './Math';
 
 export default class Application {
     private engine: Engine;
@@ -48,6 +47,7 @@ export default class Application {
     }
 
     loadDemo() {
+        this.engine.clear();
         Graphics.zoom = 0.5;
 
         const SUN_MASS = 1.98847e30; // kg
@@ -62,7 +62,8 @@ export default class Application {
         const MERCURY_RADIUS_KM = 2_439.7; // km
         const MERCURY_ORBIT_RADIUS_KM = 57_909_227; // km (0.387 AU)
 
-        const mercury = new Body(0, MERCURY_ORBIT_RADIUS_KM, MERCURY_RADIUS_KM, MERCURY_MASS);
+        const mercuryPos = getOrbitPosition(MERCURY_ORBIT_RADIUS_KM, 15);
+        const mercury = new Body(mercuryPos.x, mercuryPos.y, MERCURY_RADIUS_KM, MERCURY_MASS);
         mercury.fillColor = '#b7ada5';
         mercury.velocity = getOrbitalSpeed(sun, mercury, G);
         mercury.label = 'Mercury';
@@ -72,7 +73,8 @@ export default class Application {
         const VENUS_RADIUS_KM = 6_051.8; // km
         const VENUS_ORBIT_RADIUS_KM = 108_209_475; // km (0.723 AU)
 
-        const venus = new Body(0, VENUS_ORBIT_RADIUS_KM, VENUS_RADIUS_KM, VENUS_MASS);
+        const venusPos = getOrbitPosition(VENUS_ORBIT_RADIUS_KM, 105);
+        const venus = new Body(venusPos.x, venusPos.y, VENUS_RADIUS_KM, VENUS_MASS);
         venus.fillColor = '#d8b16f';
         venus.velocity = getOrbitalSpeed(sun, venus, G);
         venus.label = 'Venus';
@@ -86,7 +88,8 @@ export default class Application {
         console.log('orbit: ', PIXELS_PER_KM * EARTH_ORBIT_RADIUS_KM);
         console.log('radius: ', PIXELS_PER_KM * EARTH_RADIUS_KM);
 
-        const earth = new Body(0, EARTH_ORBIT_RADIUS_KM, EARTH_RADIUS_KM, EARTH_MASS);
+        const earthPos = getOrbitPosition(EARTH_ORBIT_RADIUS_KM, 190);
+        const earth = new Body(earthPos.x, earthPos.y, EARTH_RADIUS_KM, EARTH_MASS);
         earth.fillColor = '#4a9fe8';
         earth.velocity = getOrbitalSpeed(sun, earth, G);
         earth.label = 'Earth';
@@ -96,7 +99,8 @@ export default class Application {
         const MOON_RADIUS_KM = 1_737.4; // km
         const MOON_DISTANCE_KM = 384_400; // km (average distance to Earth)
 
-        const moonPos = earth.position.addNew(new Vec2(MOON_DISTANCE_KM * 20, 0));
+        const moonOffset = getOrbitPosition(MOON_DISTANCE_KM * 20, 250);
+        const moonPos = earth.position.addNew(moonOffset);
         const moon = new Body(moonPos.x, moonPos.y, MOON_RADIUS_KM, MOON_MASS);
         moon.fillColor = 'gray';
         moon.velocity = earth.velocity.addNew(getOrbitalSpeed(earth, moon, G));
@@ -106,7 +110,8 @@ export default class Application {
         const MARS_RADIUS_KM = 3_389.5; // km
         const MARS_ORBIT_RADIUS_KM = 227_943_824; // km (1.524 AU)
 
-        const mars = new Body(0, MARS_ORBIT_RADIUS_KM, MARS_RADIUS_KM, MARS_MASS);
+        const marsPos = getOrbitPosition(MARS_ORBIT_RADIUS_KM, 280);
+        const mars = new Body(marsPos.x, marsPos.y, MARS_RADIUS_KM, MARS_MASS);
         mars.fillColor = '#c76245';
         mars.velocity = getOrbitalSpeed(sun, mars, G);
         mars.label = 'Mars';
@@ -116,7 +121,8 @@ export default class Application {
         const JUPITER_RADIUS_KM = 69_911; // km
         const JUPITER_ORBIT_RADIUS_KM = 778_340_821; // km (5.203 AU)
 
-        const jupiter = new Body(0, JUPITER_ORBIT_RADIUS_KM, JUPITER_RADIUS_KM, JUPITER_MASS);
+        const jupiterPos = getOrbitPosition(JUPITER_ORBIT_RADIUS_KM, 335);
+        const jupiter = new Body(jupiterPos.x, jupiterPos.y, JUPITER_RADIUS_KM, JUPITER_MASS);
         jupiter.fillColor = '#d1a06f';
         jupiter.velocity = getOrbitalSpeed(sun, jupiter, G);
         jupiter.label = 'Jupiter';
@@ -126,7 +132,8 @@ export default class Application {
         const SATURN_RADIUS_KM = 58_232; // km
         const SATURN_ORBIT_RADIUS_KM = 1_426_666_422; // km (9.537 AU)
 
-        const saturn = new Body(0, SATURN_ORBIT_RADIUS_KM, SATURN_RADIUS_KM, SATURN_MASS);
+        const saturnPos = getOrbitPosition(SATURN_ORBIT_RADIUS_KM, 55);
+        const saturn = new Body(saturnPos.x, saturnPos.y, SATURN_RADIUS_KM, SATURN_MASS);
         saturn.fillColor = '#d7c28b';
         saturn.velocity = getOrbitalSpeed(sun, saturn, G);
         saturn.label = 'Saturn';
@@ -136,7 +143,8 @@ export default class Application {
         const URANUS_RADIUS_KM = 25_362; // km
         const URANUS_ORBIT_RADIUS_KM = 2_870_658_186; // km (19.191 AU)
 
-        const uranus = new Body(0, URANUS_ORBIT_RADIUS_KM, URANUS_RADIUS_KM, URANUS_MASS);
+        const uranusPos = getOrbitPosition(URANUS_ORBIT_RADIUS_KM, 145);
+        const uranus = new Body(uranusPos.x, uranusPos.y, URANUS_RADIUS_KM, URANUS_MASS);
         uranus.fillColor = '#9fe1df';
         uranus.velocity = getOrbitalSpeed(sun, uranus, G);
         uranus.label = 'Uranus';
@@ -146,7 +154,8 @@ export default class Application {
         const NEPTUNE_RADIUS_KM = 24_622; // km
         const NEPTUNE_ORBIT_RADIUS_KM = 4_498_396_441; // km (30.07 AU)
 
-        const neptune = new Body(0, NEPTUNE_ORBIT_RADIUS_KM, NEPTUNE_RADIUS_KM, NEPTUNE_MASS);
+        const neptunePos = getOrbitPosition(NEPTUNE_ORBIT_RADIUS_KM, 245);
+        const neptune = new Body(neptunePos.x, neptunePos.y, NEPTUNE_RADIUS_KM, NEPTUNE_MASS);
         neptune.fillColor = '#5279e8';
         neptune.velocity = getOrbitalSpeed(sun, neptune, G);
         neptune.label = 'Neptune';

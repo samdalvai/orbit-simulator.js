@@ -21,10 +21,25 @@ export function getOrbitalSpeed(sun: Body, planet: Body, G: number): Vec2 {
     return tangent.scaleNew(v);
 }
 
+/**
+ * 
+ * @param distance In km
+ * @param angle In degrees
+ * @returns Orbit distance with an angle
+ */
+export function getOrbitPosition(distance: number, angle: number): Vec2 {
+    const radians = degreesToRadians(angle);
+    return new Vec2(Math.cos(radians) * distance, Math.sin(radians) * distance);
+}
+
 export function randomNumber(min: number = 1.0, max: number = 10.0): number {
     return Math.random() * (max - min) + min;
 }
 
 export function clamp(value: number, low: number, high: number): number {
     return Math.max(low, Math.min(value, high));
+}
+
+export function degreesToRadians(degrees: number): number {
+    return (degrees * Math.PI) / 180;
 }

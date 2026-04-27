@@ -24,6 +24,7 @@ export default class Application {
     private lastFPSUpdate = 0;
     private showTextures = true;
     private showLabels = true;
+    private showMoonLabels = false;
     private totalTime = 0;
 
     constructor() {
@@ -66,16 +67,20 @@ export default class Application {
                 case 'keydown': {
                     const key = inputEvent.key.toLowerCase();
 
-                    if (inputEvent.key === 'd') {
-                        this.setDebug(!this.debug);
-                    }
-
                     if (inputEvent.key === 's') {
                         this.showLabels = !this.showLabels;
                     }
 
+                    if (inputEvent.key === 'd') {
+                        this.setDebug(!this.debug);
+                    }
+
                     if (inputEvent.key === 'f') {
                         this.showTextures = !this.showTextures;
+                    }
+
+                    if (inputEvent.key === 'g') {
+                        this.showMoonLabels = !this.showMoonLabels;
                     }
 
                     if (inputEvent.key === 'p') {
@@ -214,7 +219,7 @@ export default class Application {
 
         // Draw all bodies
         for (const body of this.engine.getBodies()) {
-            Graphics.drawBody(body, this.showTextures, this.showLabels);
+            Graphics.drawBody(body, this.showTextures, this.showLabels, this.showMoonLabels);
         }
 
         // Graphics.drawLine(-50, 0, 50, 0, 'rgba(200, 200, 200, 0.5');
@@ -235,6 +240,8 @@ export default class Application {
             ['Bodies', `${this.engine.getBodies().length}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
             ['Zoom', Graphics.zoom.toFixed(2)],
+            ['Labels', this.showLabels ? 'ON' : 'OFF'],
+            ['Moon labels', this.showMoonLabels ? 'ON' : 'OFF'],
             ['Mouse (x)', `${(x / KILOMETERS_TO_PIXELS_RENDERING_SCALE).toExponential(5)} km`],
             ['Mouse (y)', `${(y / KILOMETERS_TO_PIXELS_RENDERING_SCALE).toExponential(5)} km`],
             ['Physics step', this.formatDuration(SETTINGS.dt)],

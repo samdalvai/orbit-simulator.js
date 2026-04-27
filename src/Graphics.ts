@@ -226,7 +226,7 @@ export default class Graphics {
         return bodyType === BodyType.ASTEROID ? ASTEROID_MIN_RENDERING_RADIUS : MIN_BODY_RENDERING_RADIUS;
     }
 
-    static drawBody(body: Body, showTextures: boolean, showLabels: boolean): void {
+    static drawBody(body: Body, showTextures: boolean, showLabels: boolean, showMoonLabels: boolean): void {
         const renderPosition = this.getBodyRenderPosition(body);
         const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
@@ -250,7 +250,7 @@ export default class Graphics {
 
         this.ctx.restore();
 
-        if (showLabels && label) {
+        if (showLabels && label && (showMoonLabels || body.bodyType !== BodyType.MOON)) {
             const labelColor = body.labelColor;
             const labelFontSize = body.labelFontSize;
             const labelGap = Math.max(8, labelFontSize * 0.6);

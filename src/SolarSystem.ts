@@ -292,7 +292,7 @@ const BELTS: BeltSpec[] = [
         maxRadiusKm: 260,
         minMassKg: 1e14,
         maxMassKg: 8e18,
-        numBodies: 160,
+        numBodies: 500,
         colors: ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'],
     },
     {

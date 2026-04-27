@@ -67,32 +67,17 @@ export function applyGravitationalForces(
  * Use `theta = 0` to disable approximation and recover the exact pairwise sum.
  * Smaller `theta` is more accurate, larger `theta` is faster.
  */
-export function generateBarnesHutGravitationalForce(
-    body: Body,
-    tree: QuadNode | null,
-    G: number,
-    minDistanceSquared: number,
-    maxDistanceSquared: number,
-    theta = 0.5,
-): Vec2 {
+export function generateBarnesHutGravitationalForce(body: Body, tree: QuadNode | null, G: number, theta = 0.5): Vec2 {
     if (tree === null || body.mass === 0) {
         return new Vec2();
     }
 
     const force = new Vec2();
-    accumulateGravitationalForce(force, body, tree, G, minDistanceSquared, maxDistanceSquared, theta);
+    accumulateGravitationalForce(force, body, tree, G, theta);
     return force;
 }
 
-function accumulateGravitationalForce(
-    force: Vec2,
-    body: Body,
-    node: QuadNode,
-    G: number,
-    minDistanceSquared: number,
-    maxDistanceSquared: number,
-    theta: number,
-): void {
+function accumulateGravitationalForce(force: Vec2, body: Body, node: QuadNode, G: number, theta: number): void {
     if (node.bodyCount === 0 || node.totalMass === 0) {
         return;
     }
@@ -112,9 +97,8 @@ function accumulateGravitationalForce(
         const distanceSquared = dx * dx + dy * dy;
 
         if (distanceSquared !== 0) {
-            const clampedDistanceSquared = Math.min(Math.max(distanceSquared, minDistanceSquared), maxDistanceSquared);
             const inverseDistance = 1 / Math.sqrt(distanceSquared);
-            const magnitude = (G * body.mass * node.totalMass) / clampedDistanceSquared;
+            const magnitude = (G * body.mass * node.totalMass) / distanceSquared;
             force.x += dx * inverseDistance * magnitude;
             force.y += dy * inverseDistance * magnitude;
         }
@@ -123,25 +107,19 @@ function accumulateGravitationalForce(
     }
 
     for (let i = 0; i < node.children.length; i++) {
-        accumulateGravitationalForce(force, body, node.children[i], G, minDistanceSquared, maxDistanceSquared, theta);
+        accumulateGravitationalForce(force, body, node.children[i], G, theta);
     }
 }
 
 /**
  * Convenience version that builds the tree once and applies one gravitational force per body.
  */
-export function applyBarnesHutGravitationalForces(
-    bodies: readonly Body[],
-    G: number,
-    minDistanceSquared: number,
-    maxDistanceSquared: number,
-    theta = 0.5,
-): void {
+export function applyBarnesHutGravitationalForces(bodies: readonly Body[], G: number, theta = 0.5): void {
     const tree = buildQuadTree(bodies);
 
     for (let i = 0; i < bodies.length; i++) {
         const b = bodies[i];
-        const force = generateBarnesHutGravitationalForce(b, tree, G, minDistanceSquared, maxDistanceSquared, theta);
+        const force = generateBarnesHutGravitationalForce(b, tree, G, theta);
 
         b.addForce(force);
     }

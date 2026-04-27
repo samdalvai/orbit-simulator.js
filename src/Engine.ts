@@ -1,6 +1,6 @@
 import { Body } from './Body';
 import { G, MAX_BODIES } from './Constants';
-import { applyGravitationalForces } from './Gravity';
+import { applyBarnesHutGravitationalForces, applyGravitationalForces } from './Gravity';
 import { Vec2 } from './Vec2';
 
 export class Engine {
@@ -50,7 +50,8 @@ export class Engine {
         }
 
         this.clearAllForces();
-        applyGravitationalForces(this.bodies, G);
+        // applyGravitationalForces(this.bodies, G);
+        applyBarnesHutGravitationalForces(this.bodies, G);
 
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];
@@ -60,7 +61,8 @@ export class Engine {
 
     initializeVerlet(): void {
         this.clearAllForces();
-        applyGravitationalForces(this.bodies, G);
+        // applyGravitationalForces(this.bodies, G);
+        applyBarnesHutGravitationalForces(this.bodies, G);
 
         const bodies = this.bodies;
         for (let i = 0; i < bodies.length; i++) {

@@ -120,6 +120,14 @@ export class Engine {
                 }
 
                 // Objects may be colliding: resolve collision
+                const dx = b.position.x - a.position.x;
+                const dy = b.position.y - a.position.y;
+                const radiusSum = a.radius + b.radius;
+                const distSq = dx * dx + dy * dy;
+
+                if (distSq <= radiusSum * radiusSum) {
+                    console.log('Collision');
+                }
             }
         }
     }

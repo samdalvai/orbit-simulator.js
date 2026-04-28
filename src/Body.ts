@@ -17,18 +17,16 @@ export class Body {
     radius: number; // km
 
     // Linear motion
-    position: Vec2;
-    velocity: Vec2;
+    position: Vec2; // km
+    velocity: Vec2; // km/s
     private _acceleration: Vec2;
 
     // Forces
     private _sumForces: Vec2;
 
-    // Mass and Moment of Inertia
+    // Mass
     private _mass: number; // kg
     private _invMass: number;
-    private _I: number;
-    private _invI: number;
 
     // AABB for collision
     minX = 0;
@@ -53,10 +51,6 @@ export class Body {
         this._mass = mass;
         this._invMass = 1 / mass;
 
-        // Moment of inertia of circle
-        this._I = 0.5 * this.radius * this.radius * mass;
-        this._invI = 1 / this._I;
-
         this.updateAABB();
     }
 
@@ -67,18 +61,11 @@ export class Body {
     set mass(value: number) {
         Utils.assert(value >= 0);
         this._mass = value;
+        this._invMass = 1 / value;
     }
 
     get invMass(): number {
         return this._invMass;
-    }
-
-    get I(): number {
-        return this._I;
-    }
-
-    get invI(): number {
-        return this._invI;
     }
 
     addForce(force: Vec2): void {
@@ -95,7 +82,7 @@ export class Body {
         this.velocity.y += j.y * this.invMass;
     }
 
-    initializeAccelleration(): void {
+    initializeAcceleration(): void {
         // Find the acceleration based on the forces that are being applied and the mass
         this._acceleration.x = this._sumForces.x * this.invMass;
         this._acceleration.y = this._sumForces.y * this.invMass;

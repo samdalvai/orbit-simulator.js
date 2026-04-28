@@ -1,5 +1,6 @@
 import { Body, BodyType } from '../src/Body';
 import { G, SETTINGS } from '../src/Constants';
+import { applyBarnesHutGravitationalForces as applyBarnesHutGravitationalForces_old, applyGravitationalForces as applyGravitationalForces_old } from '../src/Gravity_old';
 import { applyBarnesHutGravitationalForces, applyGravitationalForces } from '../src/Gravity';
 import { randomNumber } from '../src/Math';
 
@@ -20,11 +21,13 @@ for (let i = 0; i < numBodies; i++) {
 }
 
 export function runOriginal() {
-    applyGravitationalForces(bodies, G);
+    applyGravitationalForces_old(bodies, G);
+    applyBarnesHutGravitationalForces_old(bodies, G);
 }
 
 export function runModified() {
-    applyBarnesHutGravitationalForces(bodies, G);
+    // applyGravitationalForces(bodies, G);
+    // applyBarnesHutGravitationalForces(bodies, G);
 }
 
 process.on('exit', () => {

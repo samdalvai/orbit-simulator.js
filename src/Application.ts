@@ -6,7 +6,6 @@ import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
 import { createSolarSystem } from './SolarSystem';
-import { Vec2 } from './Vec2';
 
 export default class Application {
     private engine: Engine;

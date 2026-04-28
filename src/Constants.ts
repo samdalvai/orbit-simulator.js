@@ -1,5 +1,5 @@
 export const FIXED_DELTA_TIME = 1 / 60; // seconds
-export const MAX_BODIES = 5_000;
+export const MAX_BODIES = 10_000;
 // TODO: decrease to 10 hours from 100 because fast movin moons (e.g Phobos are not well simulated)
 export const SIMULATION_TIME_SCALE = 3_600 * 10; // 10 simulated hours per real second
 

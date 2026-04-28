@@ -6,6 +6,7 @@ import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
 import { createSolarSystem } from './SolarSystem';
+import { Vec2 } from './Vec2';
 
 export default class Application {
     private engine: Engine;
@@ -52,6 +53,8 @@ export default class Application {
 
     loadDemo() {
         this.engine.clear();
+        Graphics.pan.x = 0;
+        Graphics.pan.y = 0;
         Graphics.zoom = 0.5;
 
         const solarSystem = createSolarSystem(this.engine);

@@ -1,196 +1,256 @@
 import { Body } from './Body';
+import { Vec2 } from './Vec2';
 
-// TODO: needs to be scaled by new scale of simulation (km)
-const MIN_NODE_HALF_SIZE = 1_000; // km
-
-export type QuadNode = {
+export type Quad = {
     centerX: number;
     centerY: number;
-    halfSize: number;
-    bodyCount: number;
-    totalMass: number;
-    centerOfMassX: number;
-    centerOfMassY: number;
-    bodies: Body[];
-    children: QuadNode[] | null;
+    size: number;
 };
 
-/**
- * Builds a quadtree once and stores the aggregates needed by Barnes-Hut.
- *
- * The same tree can be reused for:
- * - gravity, using the node mass and center of mass
- * - Coulomb forces, using separate positive/negative charge aggregates
- *
- * Use `kind` to keep the tree focused on the force you want to compute:
- * - `gravity`: insert only bodies with mass
- * - `coulomb`: insert only charged bodies
- * - `combined`: insert bodies that matter for either force
- */
-export function buildQuadTree(bodies: readonly Body[]): QuadNode | null {
-    let hasContributor = false;
-    let minX = 0;
-    let maxX = 0;
-    let minY = 0;
-    let maxY = 0;
+export type QuadNode = {
+    children: number;
+    next: number;
+    posX: number;
+    posY: number;
+    mass: number;
+    quad: Quad;
+};
 
-    for (let i = 0; i < bodies.length; i++) {
-        const body = bodies[i];
-        if (body.mass === 0) continue;
+export class QuadTree {
+    static readonly ROOT = 0;
 
-        const x = body.position.x;
-        const y = body.position.y;
+    thetaSquared: number;
+    epsilonSquared: number;
+    readonly nodes: QuadNode[] = [];
+    private readonly parents: number[] = [];
 
-        if (!hasContributor) {
-            minX = x;
-            maxX = x;
-            minY = y;
-            maxY = y;
-            hasContributor = true;
-            continue;
+    constructor(theta = 0.5, epsilon = 1) {
+        this.thetaSquared = theta * theta;
+        this.epsilonSquared = epsilon * epsilon;
+    }
+
+    static newContaining(bodies: readonly Body[]): Quad | null {
+        let minX = Number.POSITIVE_INFINITY;
+        let minY = Number.POSITIVE_INFINITY;
+        let maxX = Number.NEGATIVE_INFINITY;
+        let maxY = Number.NEGATIVE_INFINITY;
+
+        for (let i = 0; i < bodies.length; i++) {
+            const body = bodies[i];
+            if (body.mass === 0) continue;
+
+            const x = body.position.x;
+            const y = body.position.y;
+
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
         }
 
-        minX = Math.min(minX, x);
-        maxX = Math.max(maxX, x);
-        minY = Math.min(minY, y);
-        maxY = Math.max(maxY, y);
+        if (minX === Number.POSITIVE_INFINITY) {
+            return null;
+        }
+
+        return {
+            centerX: (minX + maxX) * 0.5,
+            centerY: (minY + maxY) * 0.5,
+            size: Math.max(maxX - minX, maxY - minY),
+        };
     }
 
-    if (!hasContributor) {
-        return null;
-    }
-
-    const centerX = (minX + maxX) * 0.5;
-    const centerY = (minY + maxY) * 0.5;
-    const halfSize = Math.max((maxX - minX) * 0.5, (maxY - minY) * 0.5, MIN_NODE_HALF_SIZE) + 1;
-
-    const root = createNode(centerX, centerY, halfSize);
-
-    for (let i = 0; i < bodies.length; i++) {
-        const body = bodies[i];
-        if (body.mass === 0) continue;
-        insertBody(root, body);
-    }
-
-    return root;
-}
-
-function createNode(centerX: number, centerY: number, halfSize: number): QuadNode {
-    return {
-        centerX,
-        centerY,
-        halfSize,
-        bodyCount: 0,
-        totalMass: 0,
-        centerOfMassX: 0,
-        centerOfMassY: 0,
-
-        bodies: [],
-        children: null,
-    };
-}
-
-function insertBody(node: QuadNode, body: Body): void {
-    node.bodyCount++;
-    updateAggregates(node, body);
-
-    if (node.children !== null) {
-        insertBody(node.children[getChildIndex(node, body)], body);
-        return;
-    }
-
-    if (node.bodies.length === 0) {
-        node.bodies.push(body);
-        return;
-    }
-
-    // Keep near-identical bodies together once the node becomes very small.
-    if (node.halfSize <= MIN_NODE_HALF_SIZE || allBodiesSharePosition(node.bodies, body)) {
-        node.bodies.push(body);
-        return;
-    }
-
-    subdivide(node);
-    const children = node.children!;
-
-    const bodiesToReinsert = node.bodies;
-    node.bodies = [];
-
-    for (let i = 0; i < bodiesToReinsert.length; i++) {
-        const current = bodiesToReinsert[i];
-        insertBody(children[getChildIndex(node, current)], current);
-    }
-
-    insertBody(children[getChildIndex(node, body)], body);
-}
-
-function updateAggregates(node: QuadNode, body: Body): void {
-    if (body.mass !== 0) {
-        const nextTotalMass = node.totalMass + body.mass;
-        node.centerOfMassX =
-            nextTotalMass === 0
-                ? 0
-                : (node.centerOfMassX * node.totalMass + body.position.x * body.mass) / nextTotalMass;
-        node.centerOfMassY =
-            nextTotalMass === 0
-                ? 0
-                : (node.centerOfMassY * node.totalMass + body.position.y * body.mass) / nextTotalMass;
-        node.totalMass = nextTotalMass;
-    }
-}
-
-function allBodiesSharePosition(bodies: readonly Body[], body: Body): boolean {
-    for (let i = 0; i < bodies.length; i++) {
-        const current = bodies[i];
-        if (current.position.x !== body.position.x || current.position.y !== body.position.y) {
+    build(bodies: readonly Body[]): boolean {
+        const quad = QuadTree.newContaining(bodies);
+        if (quad === null) {
+            this.nodes.length = 0;
+            this.parents.length = 0;
             return false;
         }
+
+        this.clear(quad);
+
+        for (let i = 0; i < bodies.length; i++) {
+            const body = bodies[i];
+            this.insert(body.position, body.mass);
+        }
+
+        this.propagate();
+        return true;
     }
 
-    return true;
+    clear(quad: Quad): void {
+        this.nodes.length = 0;
+        this.parents.length = 0;
+        this.nodes.push(createNode(0, quad));
+    }
+
+    insert(pos: Vec2, mass: number): void {
+        if (mass === 0) return;
+
+        let node = QuadTree.ROOT;
+
+        while (this.nodes[node].children !== 0) {
+            const quadrant = findQuadrant(this.nodes[node].quad, pos.x, pos.y);
+            node = this.nodes[node].children + quadrant;
+        }
+
+        if (this.nodes[node].mass === 0) {
+            this.nodes[node].posX = pos.x;
+            this.nodes[node].posY = pos.y;
+            this.nodes[node].mass = mass;
+            return;
+        }
+
+        const x = this.nodes[node].posX;
+        const y = this.nodes[node].posY;
+        const existingMass = this.nodes[node].mass;
+
+        if (pos.x === x && pos.y === y) {
+            this.nodes[node].mass += mass;
+            return;
+        }
+
+        for (;;) {
+            const children = this.subdivide(node);
+            const q1 = findQuadrant(this.nodes[node].quad, x, y);
+            const q2 = findQuadrant(this.nodes[node].quad, pos.x, pos.y);
+
+            if (q1 === q2) {
+                node = children + q1;
+                continue;
+            }
+
+            const n1 = this.nodes[children + q1];
+            n1.posX = x;
+            n1.posY = y;
+            n1.mass = existingMass;
+
+            const n2 = this.nodes[children + q2];
+            n2.posX = pos.x;
+            n2.posY = pos.y;
+            n2.mass = mass;
+            return;
+        }
+    }
+
+    propagate(): void {
+        for (let p = this.parents.length - 1; p >= 0; p--) {
+            const nodeIndex = this.parents[p];
+            const firstChild = this.nodes[nodeIndex].children;
+
+            let x = 0;
+            let y = 0;
+            let mass = 0;
+
+            for (let i = 0; i < 4; i++) {
+                const child = this.nodes[firstChild + i];
+                x += child.posX * child.mass;
+                y += child.posY * child.mass;
+                mass += child.mass;
+            }
+
+            const node = this.nodes[nodeIndex];
+            node.mass = mass;
+            node.posX = x / mass;
+            node.posY = y / mass;
+        }
+    }
+
+    accelerationAt(x: number, y: number, G: number, out = new Vec2(), thetaSquared = this.thetaSquared): Vec2 {
+        out.x = 0;
+        out.y = 0;
+
+        if (this.nodes.length === 0) {
+            return out;
+        }
+
+        let nodeIndex = QuadTree.ROOT;
+
+        for (;;) {
+            const node = this.nodes[nodeIndex];
+            const dx = node.posX - x;
+            const dy = node.posY - y;
+            const distanceSquared = dx * dx + dy * dy;
+
+            if (node.children === 0 || node.quad.size * node.quad.size < distanceSquared * thetaSquared) {
+                const denominator = (distanceSquared + this.epsilonSquared) * Math.sqrt(distanceSquared);
+
+                if (denominator !== 0) {
+                    const scale = Math.min((G * node.mass) / denominator, Number.MAX_VALUE);
+                    out.x += dx * scale;
+                    out.y += dy * scale;
+                }
+
+                if (node.next === 0) {
+                    break;
+                }
+
+                nodeIndex = node.next;
+            } else {
+                nodeIndex = node.children;
+            }
+        }
+
+        return out;
+    }
+
+    forceOn(body: Body, G: number, out = new Vec2(), thetaSquared = this.thetaSquared): Vec2 {
+        this.accelerationAt(body.position.x, body.position.y, G, out, thetaSquared);
+        out.x *= body.mass;
+        out.y *= body.mass;
+        return out;
+    }
+
+    private subdivide(nodeIndex: number): number {
+        this.parents.push(nodeIndex);
+
+        const node = this.nodes[nodeIndex];
+        const children = this.nodes.length;
+        node.children = children;
+
+        this.nodes.push(createNode(children + 1, intoQuadrant(node.quad, 0)));
+        this.nodes.push(createNode(children + 2, intoQuadrant(node.quad, 1)));
+        this.nodes.push(createNode(children + 3, intoQuadrant(node.quad, 2)));
+        this.nodes.push(createNode(node.next, intoQuadrant(node.quad, 3)));
+
+        return children;
+    }
 }
 
-function subdivide(node: QuadNode): void {
-    const childHalfSize = node.halfSize * 0.5;
-    node.children = [
-        createNode(node.centerX - childHalfSize, node.centerY - childHalfSize, childHalfSize),
-        createNode(node.centerX + childHalfSize, node.centerY - childHalfSize, childHalfSize),
-        createNode(node.centerX - childHalfSize, node.centerY + childHalfSize, childHalfSize),
-        createNode(node.centerX + childHalfSize, node.centerY + childHalfSize, childHalfSize),
-    ];
-}
-
-function getChildIndex(node: QuadNode, body: Body): number {
-    const east = body.position.x >= node.centerX ? 1 : 0;
-    const south = body.position.y >= node.centerY ? 2 : 0;
-    return east + south;
+export function buildQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1): QuadTree | null {
+    const tree = new QuadTree(theta, epsilon);
+    return tree.build(bodies) ? tree : null;
 }
 
 export function canApproximate(node: QuadNode, body: Body, theta: number): boolean {
-    if (theta <= 0 || bodyIsInsideNode(node, body)) {
-        return false;
-    }
-
-    const dx = node.centerX - body.position.x;
-    const dy = node.centerY - body.position.y;
+    const dx = node.posX - body.position.x;
+    const dy = node.posY - body.position.y;
     const distanceSquared = dx * dx + dy * dy;
 
-    if (distanceSquared === 0) {
-        return false;
-    }
-
-    const size = node.halfSize * 2;
-    return size * size < theta * theta * distanceSquared;
+    return theta > 0 && node.quad.size * node.quad.size < distanceSquared * theta * theta;
 }
 
-function bodyIsInsideNode(node: QuadNode, body: Body): boolean {
-    const x = body.position.x;
-    const y = body.position.y;
+function createNode(next: number, quad: Quad): QuadNode {
+    return {
+        children: 0,
+        next,
+        posX: 0,
+        posY: 0,
+        mass: 0,
+        quad,
+    };
+}
 
-    return (
-        x >= node.centerX - node.halfSize &&
-        x <= node.centerX + node.halfSize &&
-        y >= node.centerY - node.halfSize &&
-        y <= node.centerY + node.halfSize
-    );
+function findQuadrant(quad: Quad, x: number, y: number): number {
+    return ((y > quad.centerY ? 1 : 0) << 1) | (x > quad.centerX ? 1 : 0);
+}
+
+function intoQuadrant(quad: Quad, quadrant: number): Quad {
+    const size = quad.size * 0.5;
+
+    return {
+        centerX: quad.centerX + ((quadrant & 1) - 0.5) * size,
+        centerY: quad.centerY + (((quadrant >> 1) & 1) - 0.5) * size,
+        size,
+    };
 }

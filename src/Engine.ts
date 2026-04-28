@@ -9,8 +9,6 @@ import { Vec2 } from './Vec2';
 
 export class Engine {
     private bodies: Body[] = [];
-    /** Pairs are allocated in blocks of 2 */
-    private potentialPairs: Body[] = [];
 
     private forces: Vec2[] = [];
 
@@ -59,7 +57,7 @@ export class Engine {
         applyPackedBarnesHutGravitationalForces(this.bodies, G);
 
         // TODO: where is the right place to put broad phase?
-        // this.broadPhase();
+        this.broadPhase();
 
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];
@@ -106,8 +104,6 @@ export class Engine {
             bodies[j + 1] = current;
         }
 
-        this.potentialPairs.length = 0;
-
         // Broad phase check with prune & sweep algorithm
         for (let i = 0, len = bodies.length; i < len; i++) {
             const a = bodies[i];
@@ -123,14 +119,12 @@ export class Engine {
                     continue;
                 }
 
-                // Objects may be colliding
-                this.potentialPairs.push(a, b);
+                // Objects may be colliding: resolve collision
             }
         }
     }
 
     clear() {
-        this.potentialPairs.length = 0;
         this.bodies.length = 0;
         this.forces.length = 0;
     }

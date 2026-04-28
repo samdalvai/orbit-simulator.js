@@ -5,8 +5,8 @@ import { AU_KM, EARTH_RADIUS_KM, G } from './Constants';
 import { Engine } from './Engine';
 import { clamp, getOrbitPosition, getOrbitalSpeed, randomNumber } from './Math';
 
-const ASTEROID_BELT_OBJECTS = 2500;
-const KUIPER_BELT_OBJECTS = 2500;
+const ASTEROID_BELT_OBJECTS = 4000;
+const KUIPER_BELT_OBJECTS = 5000;
 
 type TextureName = keyof typeof TEXTURES;
 

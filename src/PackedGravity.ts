@@ -1,5 +1,5 @@
 import { Body } from './Body';
-import { PackedQuadTree, buildPackedQuadTree } from './PackedQuadTree';
+import { buildPackedQuadTree, getPackedThetaSquared, packedForceOn } from './PackedQuadTree';
 import { Vec2 } from './Vec2';
 
 const DEFAULT_THETA = 0.5;
@@ -54,24 +54,19 @@ export function applyGravitationalForces(bodies: readonly Body[], G: number): vo
 }
 
 /**
- * Computes the gravitational force on one body by traversing a packed Barnes-Hut quadtree.
+ * Computes force from the currently built packed quadtree.
  */
-export function generateBarnesHutGravitationalForce(
-    body: Body,
-    tree: PackedQuadTree | null,
-    G: number,
-    theta?: number,
-): Vec2 {
-    if (tree === null || body.mass === 0) {
+export function generateBarnesHutGravitationalForce(body: Body, G: number, theta?: number): Vec2 {
+    if (body.mass === 0) {
         return new Vec2();
     }
 
-    const thetaSquared = theta === undefined ? tree.thetaSquared : theta * theta;
-    return tree.forceOn(body, G, new Vec2(), thetaSquared);
+    const thetaSquared = theta === undefined ? getPackedThetaSquared() : theta * theta;
+    return packedForceOn(body, G, new Vec2(), thetaSquared);
 }
 
 /**
- * Convenience version that builds the packed tree once and applies one gravitational force per body.
+ * Rebuilds the global packed quadtree and applies one gravitational force per body.
  */
 export function applyBarnesHutGravitationalForces(
     bodies: readonly Body[],
@@ -79,9 +74,7 @@ export function applyBarnesHutGravitationalForces(
     theta = DEFAULT_THETA,
     epsilon = DEFAULT_EPSILON,
 ): void {
-    const tree = buildPackedQuadTree(bodies, theta, epsilon);
-
-    if (tree === null) {
+    if (!buildPackedQuadTree(bodies, theta, epsilon)) {
         return;
     }
 
@@ -92,7 +85,7 @@ export function applyBarnesHutGravitationalForces(
         const body = bodies[i];
         if (body.mass === 0) continue;
 
-        tree.forceOn(body, G, force, thetaSquared);
+        packedForceOn(body, G, force, thetaSquared);
         body.addForce(force);
     }
 }

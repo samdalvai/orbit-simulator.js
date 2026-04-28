@@ -1,11 +1,7 @@
 import { Body } from './Body';
-import { computeImpactEnergy, detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
-import { G, MAX_BODIES, SETTINGS } from './Constants';
-import {
-    applyBarnesHutGravitationalForces,
-    applyGravitationalForces,
-    applyPackedBarnesHutGravitationalForces,
-} from './Gravity';
+import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
+import { G, MAX_BODIES } from './Constants';
+import { applyPackedBarnesHutGravitationalForces } from './Gravity';
 import { Vec2 } from './Vec2';
 
 export class Engine {
@@ -53,28 +49,24 @@ export class Engine {
         }
 
         this.clearAllForces();
-        // applyGravitationalForces(this.bodies, G);
-        // applyBarnesHutGravitationalForces(this.bodies, G);
         applyPackedBarnesHutGravitationalForces(this.bodies, G);
-
-        // TODO: where is the right place to put broad phase?
-        this.broadPhase();
 
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];
             body.integrateVerletVelocity(dt);
         }
+
+        this.broadPhase();
     }
 
     initializeVerlet(): void {
         this.clearAllForces();
-        applyGravitationalForces(this.bodies, G);
-        // applyBarnesHutGravitationalForces(this.bodies, G);
+        applyPackedBarnesHutGravitationalForces(this.bodies, G);
 
         const bodies = this.bodies;
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];
-            body.initializeAccelleration();
+            body.initializeAcceleration();
         }
     }
 

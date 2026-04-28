@@ -1,5 +1,5 @@
 import { Body } from './Body';
-import { buildPackedQuadTree, getPackedThetaSquared, packedForceOn } from './PackedQuadTree';
+import { buildQuadTree, forceOn, getThetaSquared } from './PackedQuadTree';
 import { Vec2 } from './Vec2';
 
 const DEFAULT_THETA = 0.5;
@@ -54,19 +54,19 @@ export function applyGravitationalForces(bodies: readonly Body[], G: number): vo
 }
 
 /**
- * Computes force from the currently built packed quadtree.
+ * Computes force from the currently built quadtree.
  */
 export function generateBarnesHutGravitationalForce(body: Body, G: number, theta?: number): Vec2 {
     if (body.mass === 0) {
         return new Vec2();
     }
 
-    const thetaSquared = theta === undefined ? getPackedThetaSquared() : theta * theta;
-    return packedForceOn(body, G, new Vec2(), thetaSquared);
+    const thetaSquared = theta === undefined ? getThetaSquared() : theta * theta;
+    return forceOn(body, G, new Vec2(), thetaSquared);
 }
 
 /**
- * Rebuilds the global packed quadtree and applies one gravitational force per body.
+ * Rebuilds the global quadtree and applies one gravitational force per body.
  */
 export function applyBarnesHutGravitationalForces(
     bodies: readonly Body[],
@@ -74,7 +74,7 @@ export function applyBarnesHutGravitationalForces(
     theta = DEFAULT_THETA,
     epsilon = DEFAULT_EPSILON,
 ): void {
-    if (!buildPackedQuadTree(bodies, theta, epsilon)) {
+    if (!buildQuadTree(bodies, theta, epsilon)) {
         return;
     }
 
@@ -85,7 +85,7 @@ export function applyBarnesHutGravitationalForces(
         const body = bodies[i];
         if (body.mass === 0) continue;
 
-        packedForceOn(body, G, force, thetaSquared);
+        forceOn(body, G, force, thetaSquared);
         body.addForce(force);
     }
 }

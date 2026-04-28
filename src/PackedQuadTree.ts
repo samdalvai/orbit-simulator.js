@@ -2,40 +2,40 @@ import { Body } from './Body';
 import { MAX_BODIES } from './Constants';
 import { Vec2 } from './Vec2';
 
-export const PACKED_ROOT = 0;
-export const PACKED_PARENT_CAPACITY = MAX_BODIES;
-export const PACKED_NODE_CAPACITY = MAX_BODIES * 4;
+export const ROOT = 0;
+export const PARENT_CAPACITY = MAX_BODIES;
+export const NODE_CAPACITY = MAX_BODIES * 4;
 
-export const packedChildren = new Uint32Array(PACKED_NODE_CAPACITY);
-export const packedNext = new Uint32Array(PACKED_NODE_CAPACITY);
-export const packedPosX = new Float64Array(PACKED_NODE_CAPACITY);
-export const packedPosY = new Float64Array(PACKED_NODE_CAPACITY);
-export const packedMass = new Float64Array(PACKED_NODE_CAPACITY);
-export const packedCenterX = new Float64Array(PACKED_NODE_CAPACITY);
-export const packedCenterY = new Float64Array(PACKED_NODE_CAPACITY);
-export const packedSize = new Float64Array(PACKED_NODE_CAPACITY);
-export const packedParents = new Uint32Array(PACKED_PARENT_CAPACITY);
+export const children = new Uint32Array(NODE_CAPACITY);
+export const next = new Uint32Array(NODE_CAPACITY);
+export const posX = new Float64Array(NODE_CAPACITY);
+export const posY = new Float64Array(NODE_CAPACITY);
+export const mass = new Float64Array(NODE_CAPACITY);
+export const centerX = new Float64Array(NODE_CAPACITY);
+export const centerY = new Float64Array(NODE_CAPACITY);
+export const size = new Float64Array(NODE_CAPACITY);
+export const parents = new Uint32Array(PARENT_CAPACITY);
 
-let packedNodeCount = 0;
-let packedParentCount = 0;
-let packedThetaSquared = 0.5 * 0.5;
-let packedEpsilonSquared = 1;
+let nodeCount = 0;
+let parentCount = 0;
+let thetaSquared = 0.5 * 0.5;
+let epsilonSquared = 1;
 
-export function getPackedNodeCount(): number {
-    return packedNodeCount;
+export function getNodeCount(): number {
+    return nodeCount;
 }
 
-export function getPackedParentCount(): number {
-    return packedParentCount;
+export function getParentCount(): number {
+    return parentCount;
 }
 
-export function getPackedThetaSquared(): number {
-    return packedThetaSquared;
+export function getThetaSquared(): number {
+    return thetaSquared;
 }
 
-export function buildPackedQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1): boolean {
-    packedThetaSquared = theta * theta;
-    packedEpsilonSquared = epsilon * epsilon;
+export function buildQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1): boolean {
+    thetaSquared = theta * theta;
+    epsilonSquared = epsilon * epsilon;
 
     let minX = Number.POSITIVE_INFINITY;
     let minY = Number.POSITIVE_INFINITY;
@@ -56,199 +56,191 @@ export function buildPackedQuadTree(bodies: readonly Body[], theta = 0.5, epsilo
     }
 
     if (minX === Number.POSITIVE_INFINITY) {
-        packedNodeCount = 0;
-        packedParentCount = 0;
+        nodeCount = 0;
+        parentCount = 0;
         return false;
     }
 
-    clearPackedQuadTree((minX + maxX) * 0.5, (minY + maxY) * 0.5, Math.max(maxX - minX, maxY - minY));
+    clearQuadTree((minX + maxX) * 0.5, (minY + maxY) * 0.5, Math.max(maxX - minX, maxY - minY));
 
     for (let i = 0; i < bodies.length; i++) {
         const body = bodies[i];
-        insertPackedXYMass(body.position.x, body.position.y, body.mass);
+        insertXYMass(body.position.x, body.position.y, body.mass);
     }
 
-    propagatePackedQuadTree();
+    propagate();
     return true;
 }
 
-export function clearPackedQuadTree(centerX: number, centerY: number, size: number): void {
-    packedNodeCount = 0;
-    packedParentCount = 0;
-    pushPackedNode(0, centerX, centerY, size);
+export function clearQuadTree(rootCenterX: number, rootCenterY: number, rootSize: number): void {
+    nodeCount = 0;
+    parentCount = 0;
+    pushNode(0, rootCenterX, rootCenterY, rootSize);
 }
 
-export function insertPackedBody(pos: Vec2, mass: number): void {
-    insertPackedXYMass(pos.x, pos.y, mass);
+export function insertBody(pos: Vec2, bodyMass: number): void {
+    insertXYMass(pos.x, pos.y, bodyMass);
 }
 
-export function insertPackedXYMass(x: number, y: number, mass: number): void {
-    if (mass === 0) return;
+export function insertXYMass(x: number, y: number, bodyMass: number): void {
+    if (bodyMass === 0) return;
 
-    let node = PACKED_ROOT;
+    let node = ROOT;
 
-    while (packedChildren[node] !== 0) {
-        const quadrant = ((y > packedCenterY[node] ? 1 : 0) << 1) | (x > packedCenterX[node] ? 1 : 0);
-        node = packedChildren[node] + quadrant;
+    while (children[node] !== 0) {
+        const quadrant = ((y > centerY[node] ? 1 : 0) << 1) | (x > centerX[node] ? 1 : 0);
+        node = children[node] + quadrant;
     }
 
-    if (packedMass[node] === 0) {
-        packedPosX[node] = x;
-        packedPosY[node] = y;
-        packedMass[node] = mass;
+    if (mass[node] === 0) {
+        posX[node] = x;
+        posY[node] = y;
+        mass[node] = bodyMass;
         return;
     }
 
-    const existingX = packedPosX[node];
-    const existingY = packedPosY[node];
-    const existingMass = packedMass[node];
+    const existingX = posX[node];
+    const existingY = posY[node];
+    const existingMass = mass[node];
 
     if (x === existingX && y === existingY) {
-        packedMass[node] += mass;
+        mass[node] += bodyMass;
         return;
     }
 
     for (;;) {
-        const children = subdividePackedNode(node);
-        const q1 = ((existingY > packedCenterY[node] ? 1 : 0) << 1) | (existingX > packedCenterX[node] ? 1 : 0);
-        const q2 = ((y > packedCenterY[node] ? 1 : 0) << 1) | (x > packedCenterX[node] ? 1 : 0);
+        const firstChild = subdivideNode(node);
+        const q1 = ((existingY > centerY[node] ? 1 : 0) << 1) | (existingX > centerX[node] ? 1 : 0);
+        const q2 = ((y > centerY[node] ? 1 : 0) << 1) | (x > centerX[node] ? 1 : 0);
 
         if (q1 === q2) {
-            node = children + q1;
+            node = firstChild + q1;
             continue;
         }
 
-        const n1 = children + q1;
-        packedPosX[n1] = existingX;
-        packedPosY[n1] = existingY;
-        packedMass[n1] = existingMass;
+        const n1 = firstChild + q1;
+        posX[n1] = existingX;
+        posY[n1] = existingY;
+        mass[n1] = existingMass;
 
-        const n2 = children + q2;
-        packedPosX[n2] = x;
-        packedPosY[n2] = y;
-        packedMass[n2] = mass;
+        const n2 = firstChild + q2;
+        posX[n2] = x;
+        posY[n2] = y;
+        mass[n2] = bodyMass;
         return;
     }
 }
 
-export function propagatePackedQuadTree(): void {
-    for (let p = packedParentCount - 1; p >= 0; p--) {
-        const node = packedParents[p];
-        const firstChild = packedChildren[node];
+export function propagate(): void {
+    for (let p = parentCount - 1; p >= 0; p--) {
+        const node = parents[p];
+        const firstChild = children[node];
 
         const i0 = firstChild;
         const i1 = firstChild + 1;
         const i2 = firstChild + 2;
         const i3 = firstChild + 3;
 
-        const m0 = packedMass[i0];
-        const m1 = packedMass[i1];
-        const m2 = packedMass[i2];
-        const m3 = packedMass[i3];
+        const m0 = mass[i0];
+        const m1 = mass[i1];
+        const m2 = mass[i2];
+        const m3 = mass[i3];
         const totalMass = m0 + m1 + m2 + m3;
 
-        packedMass[node] = totalMass;
-        packedPosX[node] =
-            (packedPosX[i0] * m0 + packedPosX[i1] * m1 + packedPosX[i2] * m2 + packedPosX[i3] * m3) / totalMass;
-        packedPosY[node] =
-            (packedPosY[i0] * m0 + packedPosY[i1] * m1 + packedPosY[i2] * m2 + packedPosY[i3] * m3) / totalMass;
+        mass[node] = totalMass;
+        posX[node] = (posX[i0] * m0 + posX[i1] * m1 + posX[i2] * m2 + posX[i3] * m3) / totalMass;
+        posY[node] = (posY[i0] * m0 + posY[i1] * m1 + posY[i2] * m2 + posY[i3] * m3) / totalMass;
     }
 }
 
-export function packedAccelerationAt(
-    x: number,
-    y: number,
-    G: number,
-    out = new Vec2(),
-    thetaSquared = packedThetaSquared,
-): Vec2 {
+export function accelerationAt(x: number, y: number, G: number, out = new Vec2(), thetaSq = thetaSquared): Vec2 {
     out.x = 0;
     out.y = 0;
 
-    if (packedNodeCount === 0) {
+    if (nodeCount === 0) {
         return out;
     }
 
-    let node = PACKED_ROOT;
+    let node = ROOT;
 
     for (;;) {
-        const dx = packedPosX[node] - x;
-        const dy = packedPosY[node] - y;
+        const dx = posX[node] - x;
+        const dy = posY[node] - y;
         const distanceSquared = dx * dx + dy * dy;
 
-        if (packedChildren[node] === 0 || packedSize[node] * packedSize[node] < distanceSquared * thetaSquared) {
-            const denominator = (distanceSquared + packedEpsilonSquared) * Math.sqrt(distanceSquared);
+        if (children[node] === 0 || size[node] * size[node] < distanceSquared * thetaSq) {
+            const denominator = (distanceSquared + epsilonSquared) * Math.sqrt(distanceSquared);
 
             if (denominator !== 0) {
-                const scale = Math.min((G * packedMass[node]) / denominator, Number.MAX_VALUE);
+                const scale = Math.min((G * mass[node]) / denominator, Number.MAX_VALUE);
                 out.x += dx * scale;
                 out.y += dy * scale;
             }
 
-            if (packedNext[node] === 0) {
+            if (next[node] === 0) {
                 break;
             }
 
-            node = packedNext[node];
+            node = next[node];
         } else {
-            node = packedChildren[node];
+            node = children[node];
         }
     }
 
     return out;
 }
 
-export function packedForceOn(body: Body, G: number, out = new Vec2(), thetaSquared = packedThetaSquared): Vec2 {
-    packedAccelerationAt(body.position.x, body.position.y, G, out, thetaSquared);
+export function forceOn(body: Body, G: number, out = new Vec2(), thetaSq = thetaSquared): Vec2 {
+    accelerationAt(body.position.x, body.position.y, G, out, thetaSq);
     out.x *= body.mass;
     out.y *= body.mass;
     return out;
 }
 
-function subdividePackedNode(node: number): number {
-    if (packedParentCount >= PACKED_PARENT_CAPACITY) {
-        throw new Error('PackedQuadTree parent capacity exceeded');
+function subdivideNode(node: number): number {
+    if (parentCount >= PARENT_CAPACITY) {
+        throw new Error('QuadTree parent capacity exceeded');
     }
 
-    if (packedNodeCount + 4 > PACKED_NODE_CAPACITY) {
-        throw new Error('PackedQuadTree node capacity exceeded');
+    if (nodeCount + 4 > NODE_CAPACITY) {
+        throw new Error('QuadTree node capacity exceeded');
     }
 
-    packedParents[packedParentCount] = node;
-    packedParentCount++;
+    parents[parentCount] = node;
+    parentCount++;
 
-    const children = packedNodeCount;
-    packedChildren[node] = children;
+    const firstChild = nodeCount;
+    children[node] = firstChild;
 
-    const childSize = packedSize[node] * 0.5;
+    const childSize = size[node] * 0.5;
     const offset = childSize * 0.5;
-    const centerX = packedCenterX[node];
-    const centerY = packedCenterY[node];
+    const nodeCenterX = centerX[node];
+    const nodeCenterY = centerY[node];
 
-    pushPackedNode(children + 1, centerX - offset, centerY - offset, childSize);
-    pushPackedNode(children + 2, centerX + offset, centerY - offset, childSize);
-    pushPackedNode(children + 3, centerX - offset, centerY + offset, childSize);
-    pushPackedNode(packedNext[node], centerX + offset, centerY + offset, childSize);
+    pushNode(firstChild + 1, nodeCenterX - offset, nodeCenterY - offset, childSize);
+    pushNode(firstChild + 2, nodeCenterX + offset, nodeCenterY - offset, childSize);
+    pushNode(firstChild + 3, nodeCenterX - offset, nodeCenterY + offset, childSize);
+    pushNode(next[node], nodeCenterX + offset, nodeCenterY + offset, childSize);
 
-    return children;
+    return firstChild;
 }
 
-function pushPackedNode(next: number, centerX: number, centerY: number, size: number): number {
-    if (packedNodeCount >= PACKED_NODE_CAPACITY) {
-        throw new Error('PackedQuadTree node capacity exceeded');
+function pushNode(nextNode: number, nodeCenterX: number, nodeCenterY: number, nodeSize: number): number {
+    if (nodeCount >= NODE_CAPACITY) {
+        throw new Error('QuadTree node capacity exceeded');
     }
 
-    const node = packedNodeCount;
-    packedNodeCount++;
+    const node = nodeCount;
+    nodeCount++;
 
-    packedChildren[node] = 0;
-    packedNext[node] = next;
-    packedPosX[node] = 0;
-    packedPosY[node] = 0;
-    packedMass[node] = 0;
-    packedCenterX[node] = centerX;
-    packedCenterY[node] = centerY;
-    packedSize[node] = size;
+    children[node] = 0;
+    next[node] = nextNode;
+    posX[node] = 0;
+    posY[node] = 0;
+    mass[node] = 0;
+    centerX[node] = nodeCenterX;
+    centerY[node] = nodeCenterY;
+    size[node] = nodeSize;
 
     return node;
 }

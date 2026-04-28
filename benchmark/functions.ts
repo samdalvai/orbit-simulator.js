@@ -1,6 +1,7 @@
 import { Body, BodyType } from '../src/Body';
 import { G } from '../src/Constants';
 import { applyBarnesHutGravitationalForces, applyGravitationalForces } from '../src/Gravity';
+import { applyPackedBarnesHutGravitationalForces } from '../src/PackedGravity';
 import { randomNumber } from '../src/Math';
 
 declare const process: {
@@ -20,11 +21,13 @@ for (let i = 0; i < numBodies; i++) {
 }
 
 export function runOriginal() {
-    applyGravitationalForces(bodies, G);
+    // applyGravitationalForces(bodies, G);
+    applyBarnesHutGravitationalForces(bodies, G);
 }
 
 export function runModified() {
-    applyBarnesHutGravitationalForces(bodies, G);
+    // applyBarnesHutGravitationalForces(bodies, G);
+    applyPackedBarnesHutGravitationalForces(bodies, G);
 }
 
 process.on('exit', () => {

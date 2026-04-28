@@ -1,6 +1,7 @@
 export const TEXTURES = {
     // Base sprites
     transparent: 'assets/transparent.png',
+    blackHole: 'assets/black-hole.png',
 
     // Planet orbit sprites
     planetSun: 'assets/sun.png',

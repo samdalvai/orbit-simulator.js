@@ -1,4 +1,5 @@
 import AssetStore from './AssetStore';
+import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
 import { Engine } from './Engine';
@@ -7,9 +8,13 @@ import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
 import { createSolarSystem } from './SolarSystem';
 
+const BLACK_HOLE_RADIUS_KM = 220_000;
+const BLACK_HOLE_MASS_KG = 8e30;
+
 export default class Application {
     private engine: Engine;
     private bodyRenderStyles = new Map<number, BodyRenderStyle>();
+    private blackHole: Body | null = null;
     private running = false;
     private paused = false;
 
@@ -52,6 +57,7 @@ export default class Application {
 
     loadDemo() {
         this.engine.clear();
+        this.blackHole = null;
         Graphics.pan.x = 0;
         Graphics.pan.y = 0;
         Graphics.zoom = 0.5;
@@ -90,6 +96,14 @@ export default class Application {
 
                     if (inputEvent.key === 'p') {
                         this.paused = !this.paused;
+                    }
+
+                    if (key === 'b' && !inputEvent.repeat) {
+                        if (inputEvent.shiftKey) {
+                            this.removeBlackHole();
+                        } else {
+                            this.createBlackHoleAtMouse();
+                        }
                     }
 
                     if (inputEvent.key === '.') {
@@ -332,6 +346,39 @@ export default class Application {
     private stepSimulation(): void {
         this.engine.update(SETTINGS.dt);
         this.totalTime += SETTINGS.dt;
+    }
+
+    private createBlackHoleAtMouse(): void {
+        this.removeBlackHole();
+
+        if (this.engine.getBodies().length >= MAX_BODIES) {
+            return;
+        }
+
+        const x = InputManager.mousePosition.x / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const y = InputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const blackHole = new Body(x, y, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.STAR);
+
+        this.engine.addBody(blackHole);
+        this.bodyRenderStyles.set(blackHole.id, {
+            fillColor: '#030009',
+            texture: AssetStore.getTexture('blackHole'),
+            label: 'Black Hole',
+            labelColor: '#d9b8ff',
+            labelFontSize: 16,
+        });
+
+        this.blackHole = blackHole;
+    }
+
+    private removeBlackHole(): void {
+        if (!this.blackHole) {
+            return;
+        }
+
+        this.engine.removeBody(this.blackHole);
+        this.bodyRenderStyles.delete(this.blackHole.id);
+        this.blackHole = null;
     }
 
     private formatDuration(seconds: number): string {

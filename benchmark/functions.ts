@@ -1,7 +1,10 @@
 import { Body, BodyType } from '../src/Body';
 import { G } from '../src/Constants';
-import { applyBarnesHutGravitationalForces, applyGravitationalForces } from '../src/Gravity';
-import { applyPackedBarnesHutGravitationalForces } from '../src/PackedGravity';
+import {
+    applyBarnesHutGravitationalForces,
+    applyGravitationalForces,
+    applyPackedBarnesHutGravitationalForces,
+} from '../src/Gravity';
 import { randomNumber } from '../src/Math';
 
 declare const process: {

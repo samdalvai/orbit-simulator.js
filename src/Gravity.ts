@@ -1,5 +1,6 @@
 import { Body } from './Body';
-import { QuadTree, buildQuadTree } from './QuadTree';
+import { buildQuadTree } from './QuadTree';
+import { buildPackedQuadTree, forceOn } from './PackedQuadTree';
 import { Vec2 } from './Vec2';
 
 const DEFAULT_THETA = 0.5;
@@ -54,26 +55,7 @@ export function applyGravitationalForces(bodies: readonly Body[], G: number): vo
 }
 
 /**
- * Computes the gravitational force on one body by traversing a flat Barnes-Hut quadtree.
- *
- * Use `theta = 0` to disable approximation and recover the exact tree traversal.
- */
-export function generateBarnesHutGravitationalForce(
-    body: Body,
-    tree: QuadTree | null,
-    G: number,
-    theta?: number,
-): Vec2 {
-    if (tree === null || body.mass === 0) {
-        return new Vec2();
-    }
-
-    const thetaSquared = theta === undefined ? tree.thetaSquared : theta * theta;
-    return tree.forceOn(body, G, new Vec2(), thetaSquared);
-}
-
-/**
- * Convenience version that builds the tree once and applies one gravitational force per body.
+ * Builds the quadtree and applies one gravitational force per body.
  */
 export function applyBarnesHutGravitationalForces(
     bodies: readonly Body[],
@@ -95,6 +77,31 @@ export function applyBarnesHutGravitationalForces(
         if (body.mass === 0) continue;
 
         tree.forceOn(body, G, force, thetaSquared);
+        body.addForce(force);
+    }
+}
+
+/**
+ * Builds the global (packed) quadtree and applies one gravitational force per body.
+ */
+export function applyPackedBarnesHutGravitationalForces(
+    bodies: readonly Body[],
+    G: number,
+    theta = DEFAULT_THETA,
+    epsilon = DEFAULT_EPSILON,
+): void {
+    if (!buildPackedQuadTree(bodies, theta, epsilon)) {
+        return;
+    }
+
+    const force = new Vec2();
+    const thetaSquared = theta * theta;
+
+    for (let i = 0; i < bodies.length; i++) {
+        const body = bodies[i];
+        if (body.mass === 0) continue;
+
+        forceOn(body, G, force, thetaSquared);
         body.addForce(force);
     }
 }

@@ -33,7 +33,7 @@ export function getThetaSquared(): number {
     return thetaSquared;
 }
 
-export function buildQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1): boolean {
+export function buildPackedQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1): boolean {
     thetaSquared = theta * theta;
     epsilonSquared = epsilon * epsilon;
 

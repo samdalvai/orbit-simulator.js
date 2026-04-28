@@ -5,6 +5,9 @@ import { AU_KM, EARTH_RADIUS_KM, G } from './Constants';
 import { Engine } from './Engine';
 import { clamp, getOrbitPosition, getOrbitalSpeed, randomNumber } from './Math';
 
+const ASTEROID_BELT_OBJECTS = 500;
+const KUIPER_BELT_OBJECTS = 500;
+
 type TextureName = keyof typeof TEXTURES;
 
 type CelestialBodySpec = {
@@ -292,7 +295,7 @@ const BELTS: BeltSpec[] = [
         maxRadiusKm: 260,
         minMassKg: 1e14,
         maxMassKg: 8e18,
-        numBodies: 1500,
+        numBodies: ASTEROID_BELT_OBJECTS,
         colors: ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'],
     },
     {
@@ -302,7 +305,7 @@ const BELTS: BeltSpec[] = [
         maxRadiusKm: 420,
         minMassKg: 1e14,
         maxMassKg: 2e19,
-        numBodies: 3000,
+        numBodies: KUIPER_BELT_OBJECTS,
         colors: ['#c8d6df', '#9eb3c0', '#dfe8ec', '#8093a0'],
     },
 ];

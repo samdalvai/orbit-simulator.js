@@ -203,7 +203,7 @@ export default class Graphics {
         this.ctx.restore();
     }
 
-    private static getBodyRenderPosition(body: Body): Vec2 {
+    static getBodyRenderPosition(body: Body): Vec2 {
         if (body.bodyType !== BodyType.MOON || !body.parent) {
             return body.position;
         }
@@ -222,7 +222,7 @@ export default class Graphics {
         return parentPosition.addNew(moonOffset);
     }
 
-    private static getBodyRenderRadius(body: Body): number {
+    static getBodyRenderRadius(body: Body): number {
         const radius =
             Math.pow(body.radius / EARTH_RADIUS_KM, RADIUS_RENDERING_EXPONENT) *
             this.getBodyRadiusRenderingScale(body.bodyType);

@@ -10,6 +10,7 @@ import { createSolarSystem } from './SolarSystem';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
+const BODY_HOVER_TOLERANCE_PIXELS = 10;
 
 const SHORTCUTS: Array<[string, string]> = [
     ['L', 'Toggle labels'],
@@ -42,6 +43,7 @@ export default class Application {
     // Inputs
     private middleMousePressed = false;
     private controlPressed = false;
+    private hasMousePosition = false;
 
     // Debug related properties
     private debug = true;
@@ -275,6 +277,7 @@ export default class Application {
         Graphics.endWorld();
 
         if (!this.debug) {
+            this.drawHoveredBodyPopup();
             return;
         }
 
@@ -334,6 +337,8 @@ export default class Application {
             Graphics.drawText(label, labelX, rowY, 14, 'Arial', 'rgba(255, 255, 255, 0.72)', 'left', 'middle');
             Graphics.drawText(value, valueX, rowY, 14, 'Arial', '#ffffff', 'right', 'middle');
         }
+
+        this.drawHoveredBodyPopup();
     }
 
     // private applyGravitationalForce(): void {
@@ -356,6 +361,83 @@ export default class Application {
 
         InputManager.mousePosition.x = screenX / Graphics.zoom + Graphics.pan.x;
         InputManager.mousePosition.y = screenY / Graphics.zoom + Graphics.pan.y;
+        this.hasMousePosition = true;
+    }
+
+    private getHoveredBody(): Body | null {
+        if (!this.hasMousePosition) return null;
+
+        let hoveredBody: Body | null = null;
+        let bestDistanceSq = Number.POSITIVE_INFINITY;
+        const tolerance = BODY_HOVER_TOLERANCE_PIXELS / Graphics.zoom;
+
+        for (const body of this.engine.getBodies()) {
+            const renderPosition = Graphics.getBodyRenderPosition(body);
+            const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+            const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+            const dx = InputManager.mousePosition.x - x;
+            const dy = InputManager.mousePosition.y - y;
+            const hitRadius = Graphics.getBodyRenderRadius(body) + tolerance;
+            const distanceSq = dx * dx + dy * dy;
+
+            if (distanceSq <= hitRadius * hitRadius && distanceSq < bestDistanceSq) {
+                hoveredBody = body;
+                bestDistanceSq = distanceSq;
+            }
+        }
+
+        return hoveredBody;
+    }
+
+    private drawHoveredBodyPopup(): void {
+        const body = this.getHoveredBody();
+        if (!body) return;
+
+        const style = this.bodyRenderStyles.get(body.id);
+        const bodyType = BodyType[body.bodyType];
+        const type = bodyType[0] + bodyType.slice(1).toLowerCase();
+        const title = style?.label || type;
+        const rows: Array<[string, string]> = [
+            ['Orbital speed', `${body.velocity.magnitude().toFixed(2)} km/s`],
+            ['Mass', `${body.mass.toExponential(3)} kg`],
+            ['Radius', `${body.radius.toLocaleString(undefined, { maximumFractionDigits: 1 })} km`],
+            ['Type', type],
+        ];
+
+        const width = 300;
+        const height = 178;
+        const padding = 14;
+        const imageSize = 54;
+        const mouseScreenX = (InputManager.mousePosition.x - Graphics.pan.x) * Graphics.zoom + Graphics.width() / 2;
+        const mouseScreenY = Graphics.height() / 2 - (InputManager.mousePosition.y - Graphics.pan.y) * Graphics.zoom;
+        const x = Math.max(12, Math.min(mouseScreenX + 18, Graphics.width() - width - 12));
+        const y = Math.max(12, Math.min(mouseScreenY + 18, Graphics.height() - height - 12));
+
+        Graphics.drawFillRect(x, y, width, height, 'rgba(10, 12, 16, 0.88)');
+        Graphics.drawStrokeRect(x, y, width, height, 'rgba(255, 255, 255, 0.18)');
+        Graphics.drawFillRect(x, y, width, 3, style?.fillColor || '#ffffff');
+
+        if (style?.texture) {
+            Graphics.ctx.drawImage(style.texture, x + padding, y + padding + 4, imageSize, imageSize);
+        } else {
+            Graphics.drawFillCircle(
+                x + padding + imageSize / 2,
+                y + padding + imageSize / 2 + 4,
+                imageSize / 2,
+                style?.fillColor || '#ffffff',
+            );
+        }
+
+        Graphics.drawText(title, x + padding + imageSize + 12, y + 28, 16, 'Arial', '#ffffff', 'left', 'middle');
+
+        const rowsTop = y + padding + imageSize + 22;
+        for (let i = 0; i < rows.length; i++) {
+            const [label, value] = rows[i];
+            const rowY = rowsTop + i * 22;
+
+            Graphics.drawText(label, x + padding, rowY, 13, 'Arial', 'rgba(255, 255, 255, 0.72)', 'left', 'middle');
+            Graphics.drawText(value, x + width - padding, rowY, 13, 'Arial', '#ffffff', 'right', 'middle');
+        }
     }
 
     private setDebug(value: boolean): void {

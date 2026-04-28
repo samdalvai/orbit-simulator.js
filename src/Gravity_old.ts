@@ -1,5 +1,5 @@
 import { Body } from './Body';
-import { QuadNode, buildQuadTree, canApproximate } from './QuadTree';
+import { QuadNode, buildQuadTree, canApproximate } from './QuadTree_old';
 import { Vec2 } from './Vec2';
 
 // TODO: Check if clamping is still appropriate in this app

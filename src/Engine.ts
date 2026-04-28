@@ -1,6 +1,6 @@
 import { Body } from './Body';
 import { G, MAX_BODIES } from './Constants';
-import { applyBarnesHutGravitationalForces, applyGravitationalForces } from './Gravity_old';
+import { applyBarnesHutGravitationalForces, applyGravitationalForces } from './Gravity';
 import { Vec2 } from './Vec2';
 
 export class Engine {

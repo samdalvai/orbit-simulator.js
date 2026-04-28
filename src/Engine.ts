@@ -1,5 +1,6 @@
 import { Body } from './Body';
-import { G, MAX_BODIES } from './Constants';
+import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
+import { G, MAX_BODIES, SETTINGS } from './Constants';
 import {
     applyBarnesHutGravitationalForces,
     applyGravitationalForces,
@@ -120,13 +121,16 @@ export class Engine {
                 }
 
                 // Objects may be colliding: resolve collision
-                const dx = b.position.x - a.position.x;
-                const dy = b.position.y - a.position.y;
-                const radiusSum = a.radius + b.radius;
-                const distSq = dx * dx + dy * dy;
+                const collision = detectCircleCollision(a, b);
 
-                if (distSq <= radiusSum * radiusSum) {
-                    console.log('Collision');
+                if (collision) {
+                    const impulse = resolveCollision(a, b, collision, 0.2);
+
+                    positionalCorrection(a, b, collision);
+
+                    // Optional: compute impact force
+                    const impactForce = impulse / SETTINGS.dt;
+                    console.log('impact force: ', impactForce);
                 }
             }
         }

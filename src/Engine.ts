@@ -1,6 +1,7 @@
 import { Body } from './Body';
 import { G, MAX_BODIES } from './Constants';
 import { applyBarnesHutGravitationalForces, applyGravitationalForces } from './Gravity';
+import { applyPackedBarnesHutGravitationalForces } from './PackedGravity';
 import { Vec2 } from './Vec2';
 
 export class Engine {
@@ -51,7 +52,8 @@ export class Engine {
 
         this.clearAllForces();
         // applyGravitationalForces(this.bodies, G);
-        applyBarnesHutGravitationalForces(this.bodies, G);
+        // applyBarnesHutGravitationalForces(this.bodies, G);
+        applyPackedBarnesHutGravitationalForces(this.bodies, G);
 
         // TODO: where is the right place to put broad phase?
         // this.broadPhase();

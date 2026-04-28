@@ -8,7 +8,7 @@ declare const process: {
     on(event: 'exit', listener: () => void): void;
 };
 
-const numBodies = 1_000;
+const numBodies = 10_000;
 const bodies: Body[] = [];
 
 for (let i = 0; i < numBodies; i++) {

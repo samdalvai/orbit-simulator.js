@@ -127,8 +127,8 @@ export class Engine {
                     resolveCollision(a, b, collision, 0.2);
                     positionalCorrection(a, b, collision);
 
-                    const impact = computeImpactEnergy(a, b, collision.normal);
-                    console.log('impact: ', impact);
+                    // TODO: do something with impact energy, e.g. explode planets
+                    // const impact = computeImpactEnergy(a, b, collision.normal);
                 }
             }
         }

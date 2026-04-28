@@ -34,7 +34,7 @@ export function resolveCollision(
     b: Body,
     collision: Collision,
     restitution = 0.2, // 0 = inelastic, 1 = elastic
-): number {
+): void {
     const n = collision.normal;
 
     const rvx = b.velocity.x - a.velocity.x;
@@ -44,12 +44,12 @@ export function resolveCollision(
 
     // Already separating → do nothing
     if (velAlongNormal > 0) {
-        return 0;
+        return;
     }
 
     const invMassSum = a.invMass + b.invMass;
     if (invMassSum === 0) {
-        return 0;
+        return;
     }
 
     const j = (-(1 + restitution) * velAlongNormal) / invMassSum;
@@ -59,8 +59,6 @@ export function resolveCollision(
 
     a.applyImpulseLinear(new Vec2(-impulseX, -impulseY));
     b.applyImpulseLinear(new Vec2(impulseX, impulseY));
-
-    return j; // useful if you want impact force
 }
 
 export function positionalCorrection(a: Body, b: Body, collision: Collision): void {
@@ -83,4 +81,18 @@ export function positionalCorrection(a: Body, b: Body, collision: Collision): vo
 
     a.updateAABB();
     b.updateAABB();
+}
+
+/**
+ * Impact energy in kg * (km/s)^2
+ */
+export function computeImpactEnergy(a: Body, b: Body, normal: Vec2): number {
+    const rvx = b.velocity.x - a.velocity.x;
+    const rvy = b.velocity.y - a.velocity.y;
+
+    const impactSpeed = Math.abs(rvx * normal.x + rvy * normal.y);
+
+    const reducedMass = (a.mass * b.mass) / (a.mass + b.mass);
+
+    return 0.5 * reducedMass * impactSpeed * impactSpeed;
 }

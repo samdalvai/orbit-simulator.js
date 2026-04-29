@@ -27,6 +27,7 @@ const SHORTCUTS: Array<[string, string]> = [
     ['Shift + B', 'Remove black hole'],
     ['Mouse wheel', 'Zoom'],
     ['Middle drag / Cmd drag', 'Pan camera'],
+    ['Space', 'Pan to next planet/star'],
 ];
 
 export default class Application {
@@ -82,6 +83,7 @@ export default class Application {
         this.engine.clear();
         this.bodyRenderStyles.clear();
         this.blackHole = null;
+        this.selectedPlanet = null;
 
         Graphics.pan.x = 0;
         Graphics.pan.y = 0;
@@ -176,20 +178,7 @@ export default class Application {
                     }
 
                     if (inputEvent.code === 'Space') {
-                        for (const body of this.engine.getBodies()) {
-                            const isPlanetOrStar = body.bodyType === BodyType.PLANET || body.bodyType === BodyType.STAR;
-
-                            if (!isPlanetOrStar) continue;
-
-                            if (this.selectedPlanet === null || this.selectedPlanet.id !== body.id) {
-                                const pos = Graphics.getBodyRenderPosition(body).scaleNew(
-                                    KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-                                );
-                                Graphics.pan = pos;
-                                this.selectedPlanet = body;
-                                break;
-                            }
-                        }
+                        this.panToNextPlanetOrStar();
                     }
 
                     break;
@@ -486,6 +475,24 @@ export default class Application {
     private stepSimulation(): void {
         this.engine.update(SETTINGS.dt);
         this.totalTime += SETTINGS.dt;
+    }
+
+    private panToNextPlanetOrStar(): void {
+        const bodies = this.engine
+            .getBodies()
+            .filter(body => body.bodyType === BodyType.PLANET || body.bodyType === BodyType.STAR);
+
+        if (bodies.length === 0) {
+            this.selectedPlanet = null;
+            return;
+        }
+
+        const selectedIndex = this.selectedPlanet ? bodies.findIndex(body => body.id === this.selectedPlanet?.id) : -1;
+        const nextBody = bodies[(selectedIndex + 1) % bodies.length];
+        const pos = Graphics.getBodyRenderPosition(nextBody).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
+
+        Graphics.pan = pos;
+        this.selectedPlanet = nextBody;
     }
 
     private createBlackHoleAtMouse(): void {

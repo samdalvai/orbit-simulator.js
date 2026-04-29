@@ -173,6 +173,16 @@ export default class Application {
                         this.controlPressed = true;
                     }
 
+                    if (inputEvent.code === 'Space') {
+                        for (const body of this.engine.getBodies()) {
+                            if (body.bodyType === BodyType.PLANET) {
+                                const pos = body.position;
+                                Graphics.pan = pos.copy();
+                                break;
+                            }
+                        }
+                    }
+
                     break;
                 }
                 case 'keyup':

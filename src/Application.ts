@@ -38,7 +38,7 @@ export default class Application {
     private paused = false;
 
     // Demos
-    // private demoIndex = 1;
+    private demoIndex = 1;
 
     // Inputs
     private middleMousePressed = false;
@@ -78,13 +78,17 @@ export default class Application {
 
     loadDemo() {
         this.engine.clear();
+        this.bodyRenderStyles.clear();
         this.blackHole = null;
+
         Graphics.pan.x = 0;
         Graphics.pan.y = 0;
         Graphics.zoom = 0.5;
 
-        const solarSystem = createSolarSystem(this.engine);
-        this.bodyRenderStyles = solarSystem.renderStyles;
+        if (this.demoIndex === 1) {
+            const solarSystem = createSolarSystem(this.engine);
+            this.bodyRenderStyles = solarSystem.renderStyles;
+        }
 
         this.engine.initializeVerlet();
     }
@@ -117,6 +121,16 @@ export default class Application {
 
                     if (inputEvent.key === 'p') {
                         this.paused = !this.paused;
+                    }
+
+                    if (inputEvent.key === '1') {
+                        this.demoIndex = 1;
+                        this.loadDemo();
+                    }
+
+                    if (inputEvent.key === '2') {
+                        this.demoIndex = 2;
+                        this.loadDemo();
                     }
 
                     if (key === 'b' && !inputEvent.repeat) {

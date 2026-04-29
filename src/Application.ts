@@ -176,8 +176,10 @@ export default class Application {
                     if (inputEvent.code === 'Space') {
                         for (const body of this.engine.getBodies()) {
                             if (body.bodyType === BodyType.PLANET) {
-                                const pos = body.position;
-                                Graphics.pan = pos.copy();
+                                const pos = Graphics.getBodyRenderPosition(body).scaleNew(
+                                    KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+                                );
+                                Graphics.pan = pos;
                                 break;
                             }
                         }

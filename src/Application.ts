@@ -54,6 +54,8 @@ export default class Application {
     private showMoonLabels = false;
     private totalTime = 0;
 
+    private selectedPlanet: Body | null = null;
+
     constructor() {
         this.engine = new Engine();
     }
@@ -175,11 +177,16 @@ export default class Application {
 
                     if (inputEvent.code === 'Space') {
                         for (const body of this.engine.getBodies()) {
-                            if (body.bodyType === BodyType.PLANET) {
+                            const isPlanetOrStar = body.bodyType === BodyType.PLANET || body.bodyType === BodyType.STAR;
+
+                            if (!isPlanetOrStar) continue;
+
+                            if (this.selectedPlanet === null || this.selectedPlanet.id !== body.id) {
                                 const pos = Graphics.getBodyRenderPosition(body).scaleNew(
                                     KILOMETERS_TO_PIXELS_RENDERING_SCALE,
                                 );
                                 Graphics.pan = pos;
+                                this.selectedPlanet = body;
                                 break;
                             }
                         }

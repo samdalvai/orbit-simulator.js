@@ -1,7 +1,7 @@
 import { Body } from './Body';
 import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
 import { G, MAX_BODIES } from './Constants';
-import { applyPackedBarnesHutGravitationalForces } from './Gravity';
+import { applyBarnesHutGravitationalForces } from './Gravity';
 import { Vec2 } from './Vec2';
 
 export class Engine {
@@ -49,7 +49,7 @@ export class Engine {
         }
 
         this.clearAllForces();
-        applyPackedBarnesHutGravitationalForces(this.bodies, G);
+        applyBarnesHutGravitationalForces(this.bodies, G);
 
         for (let i = 0; i < bodies.length; i++) {
             const body = bodies[i];
@@ -61,7 +61,7 @@ export class Engine {
 
     initializeVerlet(): void {
         this.clearAllForces();
-        applyPackedBarnesHutGravitationalForces(this.bodies, G);
+        applyBarnesHutGravitationalForces(this.bodies, G);
 
         const bodies = this.bodies;
         for (let i = 0; i < bodies.length; i++) {

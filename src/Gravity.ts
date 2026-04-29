@@ -1,29 +1,13 @@
 import { Body } from './Body';
-import { buildQuadTree } from './QuadTree';
-import { buildPackedQuadTree, forceOn } from './PackedQuadTree';
+import { buildQuadTree, forceOn } from './QuadTree';
 import { Vec2 } from './Vec2';
 
 const DEFAULT_THETA = 0.5;
 const DEFAULT_EPSILON = 1;
 
 /**
- * Generates the gravitational force applied to `a` by `b`.
- */
-export function generateGravitationalForce(a: Body, b: Body, G: number): Vec2 {
-    const dx = b.position.x - a.position.x;
-    const dy = b.position.y - a.position.y;
-    const distanceSquared = dx * dx + dy * dy;
-
-    if (distanceSquared === 0) {
-        return new Vec2();
-    }
-
-    const scale = (G * a.mass * b.mass) / (distanceSquared * Math.sqrt(distanceSquared));
-    return new Vec2(dx * scale, dy * scale);
-}
-
-/**
  * Convenience version that applies all gravitational forces to all bodies.
+ * (Naive n^2 version)
  */
 export function applyGravitationalForces(bodies: readonly Body[], G: number): void {
     const force = new Vec2();
@@ -55,7 +39,7 @@ export function applyGravitationalForces(bodies: readonly Body[], G: number): vo
 }
 
 /**
- * Builds the quadtree and applies one gravitational force per body.
+ * Builds the global (packed) quadtree and applies one gravitational force per body.
  */
 export function applyBarnesHutGravitationalForces(
     bodies: readonly Body[],
@@ -63,34 +47,7 @@ export function applyBarnesHutGravitationalForces(
     theta = DEFAULT_THETA,
     epsilon = DEFAULT_EPSILON,
 ): void {
-    const tree = buildQuadTree(bodies, theta, epsilon);
-
-    if (tree === null) {
-        return;
-    }
-
-    const force = new Vec2();
-    const thetaSquared = theta * theta;
-
-    for (let i = 0; i < bodies.length; i++) {
-        const body = bodies[i];
-        if (body.mass === 0) continue;
-
-        tree.forceOn(body, G, force, thetaSquared);
-        body.addForce(force);
-    }
-}
-
-/**
- * Builds the global (packed) quadtree and applies one gravitational force per body.
- */
-export function applyPackedBarnesHutGravitationalForces(
-    bodies: readonly Body[],
-    G: number,
-    theta = DEFAULT_THETA,
-    epsilon = DEFAULT_EPSILON,
-): void {
-    if (!buildPackedQuadTree(bodies, theta, epsilon)) {
+    if (!buildQuadTree(bodies, theta, epsilon)) {
         return;
     }
 

@@ -1,256 +1,246 @@
 import { Body } from './Body';
+import { MAX_BODIES } from './Constants';
 import { Vec2 } from './Vec2';
 
-export type Quad = {
-    centerX: number;
-    centerY: number;
-    size: number;
-};
+export const ROOT = 0;
+export const PARENT_CAPACITY = MAX_BODIES;
+export const NODE_CAPACITY = MAX_BODIES * 4;
 
-export type QuadNode = {
-    children: number;
-    next: number;
-    posX: number;
-    posY: number;
-    mass: number;
-    quad: Quad;
-};
+export const children = new Uint32Array(NODE_CAPACITY);
+export const next = new Uint32Array(NODE_CAPACITY);
+export const posX = new Float64Array(NODE_CAPACITY);
+export const posY = new Float64Array(NODE_CAPACITY);
+export const mass = new Float64Array(NODE_CAPACITY);
+export const centerX = new Float64Array(NODE_CAPACITY);
+export const centerY = new Float64Array(NODE_CAPACITY);
+export const size = new Float64Array(NODE_CAPACITY);
+export const parents = new Uint32Array(PARENT_CAPACITY);
 
-export class QuadTree {
-    static readonly ROOT = 0;
+let nodeCount = 0;
+let parentCount = 0;
+let thetaSquared = 0.5 * 0.5;
+let epsilonSquared = 1;
 
-    thetaSquared: number;
-    epsilonSquared: number;
-    readonly nodes: QuadNode[] = [];
-    private readonly parents: number[] = [];
+export function getNodeCount(): number {
+    return nodeCount;
+}
 
-    constructor(theta = 0.5, epsilon = 1) {
-        this.thetaSquared = theta * theta;
-        this.epsilonSquared = epsilon * epsilon;
+export function getParentCount(): number {
+    return parentCount;
+}
+
+export function getThetaSquared(): number {
+    return thetaSquared;
+}
+
+export function buildQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1): boolean {
+    thetaSquared = theta * theta;
+    epsilonSquared = epsilon * epsilon;
+
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    for (let i = 0; i < bodies.length; i++) {
+        const body = bodies[i];
+        if (body.mass === 0) continue;
+
+        const x = body.position.x;
+        const y = body.position.y;
+
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
     }
 
-    static newContaining(bodies: readonly Body[]): Quad | null {
-        let minX = Number.POSITIVE_INFINITY;
-        let minY = Number.POSITIVE_INFINITY;
-        let maxX = Number.NEGATIVE_INFINITY;
-        let maxY = Number.NEGATIVE_INFINITY;
-
-        for (let i = 0; i < bodies.length; i++) {
-            const body = bodies[i];
-            if (body.mass === 0) continue;
-
-            const x = body.position.x;
-            const y = body.position.y;
-
-            minX = Math.min(minX, x);
-            minY = Math.min(minY, y);
-            maxX = Math.max(maxX, x);
-            maxY = Math.max(maxY, y);
-        }
-
-        if (minX === Number.POSITIVE_INFINITY) {
-            return null;
-        }
-
-        return {
-            centerX: (minX + maxX) * 0.5,
-            centerY: (minY + maxY) * 0.5,
-            size: Math.max(maxX - minX, maxY - minY),
-        };
+    if (minX === Number.POSITIVE_INFINITY) {
+        nodeCount = 0;
+        parentCount = 0;
+        return false;
     }
 
-    build(bodies: readonly Body[]): boolean {
-        const quad = QuadTree.newContaining(bodies);
-        if (quad === null) {
-            this.nodes.length = 0;
-            this.parents.length = 0;
-            return false;
-        }
+    clearQuadTree((minX + maxX) * 0.5, (minY + maxY) * 0.5, Math.max(maxX - minX, maxY - minY));
 
-        this.clear(quad);
-
-        for (let i = 0; i < bodies.length; i++) {
-            const body = bodies[i];
-            this.insert(body.position, body.mass);
-        }
-
-        this.propagate();
-        return true;
+    for (let i = 0; i < bodies.length; i++) {
+        const body = bodies[i];
+        insertXYMass(body.position.x, body.position.y, body.mass);
     }
 
-    clear(quad: Quad): void {
-        this.nodes.length = 0;
-        this.parents.length = 0;
-        this.nodes.push(createNode(0, quad));
+    propagate();
+    return true;
+}
+
+export function clearQuadTree(rootCenterX: number, rootCenterY: number, rootSize: number): void {
+    nodeCount = 0;
+    parentCount = 0;
+    pushNode(0, rootCenterX, rootCenterY, rootSize);
+}
+
+export function insertBody(pos: Vec2, bodyMass: number): void {
+    insertXYMass(pos.x, pos.y, bodyMass);
+}
+
+export function insertXYMass(x: number, y: number, bodyMass: number): void {
+    if (bodyMass === 0) return;
+
+    let node = ROOT;
+
+    while (children[node] !== 0) {
+        const quadrant = ((y > centerY[node] ? 1 : 0) << 1) | (x > centerX[node] ? 1 : 0);
+        node = children[node] + quadrant;
     }
 
-    insert(pos: Vec2, mass: number): void {
-        if (mass === 0) return;
-
-        let node = QuadTree.ROOT;
-
-        while (this.nodes[node].children !== 0) {
-            const quadrant = findQuadrant(this.nodes[node].quad, pos.x, pos.y);
-            node = this.nodes[node].children + quadrant;
-        }
-
-        if (this.nodes[node].mass === 0) {
-            this.nodes[node].posX = pos.x;
-            this.nodes[node].posY = pos.y;
-            this.nodes[node].mass = mass;
-            return;
-        }
-
-        const x = this.nodes[node].posX;
-        const y = this.nodes[node].posY;
-        const existingMass = this.nodes[node].mass;
-
-        if (pos.x === x && pos.y === y) {
-            this.nodes[node].mass += mass;
-            return;
-        }
-
-        for (;;) {
-            const children = this.subdivide(node);
-            const q1 = findQuadrant(this.nodes[node].quad, x, y);
-            const q2 = findQuadrant(this.nodes[node].quad, pos.x, pos.y);
-
-            if (q1 === q2) {
-                node = children + q1;
-                continue;
-            }
-
-            const n1 = this.nodes[children + q1];
-            n1.posX = x;
-            n1.posY = y;
-            n1.mass = existingMass;
-
-            const n2 = this.nodes[children + q2];
-            n2.posX = pos.x;
-            n2.posY = pos.y;
-            n2.mass = mass;
-            return;
-        }
+    if (mass[node] === 0) {
+        posX[node] = x;
+        posY[node] = y;
+        mass[node] = bodyMass;
+        return;
     }
 
-    propagate(): void {
-        for (let p = this.parents.length - 1; p >= 0; p--) {
-            const nodeIndex = this.parents[p];
-            const firstChild = this.nodes[nodeIndex].children;
+    const existingX = posX[node];
+    const existingY = posY[node];
+    const existingMass = mass[node];
 
-            let x = 0;
-            let y = 0;
-            let mass = 0;
-
-            for (let i = 0; i < 4; i++) {
-                const child = this.nodes[firstChild + i];
-                x += child.posX * child.mass;
-                y += child.posY * child.mass;
-                mass += child.mass;
-            }
-
-            const node = this.nodes[nodeIndex];
-            node.mass = mass;
-            node.posX = x / mass;
-            node.posY = y / mass;
-        }
+    if (x === existingX && y === existingY) {
+        mass[node] += bodyMass;
+        return;
     }
 
-    accelerationAt(x: number, y: number, G: number, out = new Vec2(), thetaSquared = this.thetaSquared): Vec2 {
-        out.x = 0;
-        out.y = 0;
+    for (;;) {
+        const firstChild = subdivideNode(node);
+        const q1 = ((existingY > centerY[node] ? 1 : 0) << 1) | (existingX > centerX[node] ? 1 : 0);
+        const q2 = ((y > centerY[node] ? 1 : 0) << 1) | (x > centerX[node] ? 1 : 0);
 
-        if (this.nodes.length === 0) {
-            return out;
+        if (q1 === q2) {
+            node = firstChild + q1;
+            continue;
         }
 
-        let nodeIndex = QuadTree.ROOT;
+        const n1 = firstChild + q1;
+        posX[n1] = existingX;
+        posY[n1] = existingY;
+        mass[n1] = existingMass;
 
-        for (;;) {
-            const node = this.nodes[nodeIndex];
-            const dx = node.posX - x;
-            const dy = node.posY - y;
-            const distanceSquared = dx * dx + dy * dy;
+        const n2 = firstChild + q2;
+        posX[n2] = x;
+        posY[n2] = y;
+        mass[n2] = bodyMass;
+        return;
+    }
+}
 
-            if (node.children === 0 || node.quad.size * node.quad.size < distanceSquared * thetaSquared) {
-                const denominator = (distanceSquared + this.epsilonSquared) * Math.sqrt(distanceSquared);
+export function propagate(): void {
+    for (let p = parentCount - 1; p >= 0; p--) {
+        const node = parents[p];
+        const firstChild = children[node];
 
-                if (denominator !== 0) {
-                    const scale = Math.min((G * node.mass) / denominator, Number.MAX_VALUE);
-                    out.x += dx * scale;
-                    out.y += dy * scale;
-                }
+        const i0 = firstChild;
+        const i1 = firstChild + 1;
+        const i2 = firstChild + 2;
+        const i3 = firstChild + 3;
 
-                if (node.next === 0) {
-                    break;
-                }
+        const m0 = mass[i0];
+        const m1 = mass[i1];
+        const m2 = mass[i2];
+        const m3 = mass[i3];
+        const totalMass = m0 + m1 + m2 + m3;
 
-                nodeIndex = node.next;
-            } else {
-                nodeIndex = node.children;
-            }
-        }
+        mass[node] = totalMass;
+        posX[node] = (posX[i0] * m0 + posX[i1] * m1 + posX[i2] * m2 + posX[i3] * m3) / totalMass;
+        posY[node] = (posY[i0] * m0 + posY[i1] * m1 + posY[i2] * m2 + posY[i3] * m3) / totalMass;
+    }
+}
 
+export function accelerationAt(x: number, y: number, G: number, out = new Vec2(), thetaSq = thetaSquared): Vec2 {
+    out.x = 0;
+    out.y = 0;
+
+    if (nodeCount === 0) {
         return out;
     }
 
-    forceOn(body: Body, G: number, out = new Vec2(), thetaSquared = this.thetaSquared): Vec2 {
-        this.accelerationAt(body.position.x, body.position.y, G, out, thetaSquared);
-        out.x *= body.mass;
-        out.y *= body.mass;
-        return out;
+    let node = ROOT;
+
+    for (;;) {
+        const dx = posX[node] - x;
+        const dy = posY[node] - y;
+        const distanceSquared = dx * dx + dy * dy;
+
+        if (children[node] === 0 || size[node] * size[node] < distanceSquared * thetaSq) {
+            const denominator = (distanceSquared + epsilonSquared) * Math.sqrt(distanceSquared);
+
+            if (denominator !== 0) {
+                const scale = Math.min((G * mass[node]) / denominator, Number.MAX_VALUE);
+                out.x += dx * scale;
+                out.y += dy * scale;
+            }
+
+            if (next[node] === 0) {
+                break;
+            }
+
+            node = next[node];
+        } else {
+            node = children[node];
+        }
     }
 
-    private subdivide(nodeIndex: number): number {
-        this.parents.push(nodeIndex);
+    return out;
+}
 
-        const node = this.nodes[nodeIndex];
-        const children = this.nodes.length;
-        node.children = children;
+export function forceOn(body: Body, G: number, out = new Vec2(), thetaSq = thetaSquared): Vec2 {
+    accelerationAt(body.position.x, body.position.y, G, out, thetaSq);
+    out.x *= body.mass;
+    out.y *= body.mass;
+    return out;
+}
 
-        this.nodes.push(createNode(children + 1, intoQuadrant(node.quad, 0)));
-        this.nodes.push(createNode(children + 2, intoQuadrant(node.quad, 1)));
-        this.nodes.push(createNode(children + 3, intoQuadrant(node.quad, 2)));
-        this.nodes.push(createNode(node.next, intoQuadrant(node.quad, 3)));
-
-        return children;
+function subdivideNode(node: number): number {
+    if (parentCount >= PARENT_CAPACITY) {
+        throw new Error('QuadTree parent capacity exceeded');
     }
+
+    if (nodeCount + 4 > NODE_CAPACITY) {
+        throw new Error('QuadTree node capacity exceeded');
+    }
+
+    parents[parentCount] = node;
+    parentCount++;
+
+    const firstChild = nodeCount;
+    children[node] = firstChild;
+
+    const childSize = size[node] * 0.5;
+    const offset = childSize * 0.5;
+    const nodeCenterX = centerX[node];
+    const nodeCenterY = centerY[node];
+
+    pushNode(firstChild + 1, nodeCenterX - offset, nodeCenterY - offset, childSize);
+    pushNode(firstChild + 2, nodeCenterX + offset, nodeCenterY - offset, childSize);
+    pushNode(firstChild + 3, nodeCenterX - offset, nodeCenterY + offset, childSize);
+    pushNode(next[node], nodeCenterX + offset, nodeCenterY + offset, childSize);
+
+    return firstChild;
 }
 
-export function buildQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1): QuadTree | null {
-    const tree = new QuadTree(theta, epsilon);
-    return tree.build(bodies) ? tree : null;
-}
+function pushNode(nextNode: number, nodeCenterX: number, nodeCenterY: number, nodeSize: number): number {
+    if (nodeCount >= NODE_CAPACITY) {
+        throw new Error('QuadTree node capacity exceeded');
+    }
 
-export function canApproximate(node: QuadNode, body: Body, theta: number): boolean {
-    const dx = node.posX - body.position.x;
-    const dy = node.posY - body.position.y;
-    const distanceSquared = dx * dx + dy * dy;
+    const node = nodeCount;
+    nodeCount++;
 
-    return theta > 0 && node.quad.size * node.quad.size < distanceSquared * theta * theta;
-}
+    children[node] = 0;
+    next[node] = nextNode;
+    posX[node] = 0;
+    posY[node] = 0;
+    mass[node] = 0;
+    centerX[node] = nodeCenterX;
+    centerY[node] = nodeCenterY;
+    size[node] = nodeSize;
 
-function createNode(next: number, quad: Quad): QuadNode {
-    return {
-        children: 0,
-        next,
-        posX: 0,
-        posY: 0,
-        mass: 0,
-        quad,
-    };
-}
-
-function findQuadrant(quad: Quad, x: number, y: number): number {
-    return ((y > quad.centerY ? 1 : 0) << 1) | (x > quad.centerX ? 1 : 0);
-}
-
-function intoQuadrant(quad: Quad, quadrant: number): Quad {
-    const size = quad.size * 0.5;
-
-    return {
-        centerX: quad.centerX + ((quadrant & 1) - 0.5) * size,
-        centerY: quad.centerY + (((quadrant >> 1) & 1) - 0.5) * size,
-        size,
-    };
+    return node;
 }

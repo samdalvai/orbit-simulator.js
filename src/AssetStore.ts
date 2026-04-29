@@ -13,6 +13,11 @@ export const TEXTURES = {
     planetSaturn: 'assets/saturn.png',
     planetUranus: 'assets/uranus.png',
     planetNeptune: 'assets/neptune.png',
+    alphaCentauriA: 'assets/alpha-centauri-a.png',
+    alphaCentauriB: 'assets/alpha-centauri-b.png',
+    proximaCentauri: 'assets/proxima-centauri.png',
+    proximaCentauriB: 'assets/proxima-centauri-b.png',
+    proximaCentauriD: 'assets/proxima-centauri-d.png',
 
     // Moon orbit sprites
     moonLuna: 'assets/moon-luna.png',

@@ -7,6 +7,9 @@ import { clamp, getOrbitPosition, getOrbitalSpeed, randomNumber } from './Math';
 
 const ASTEROID_BELT_OBJECTS = 4000;
 const KUIPER_BELT_OBJECTS = 5000;
+const SOLAR_RADIUS_KM = 695_700;
+const SOLAR_MASS_KG = 1.98847e30;
+const EARTH_MASS_KG = 5.972e24;
 
 type TextureName = keyof typeof TEXTURES;
 
@@ -41,11 +44,72 @@ export type SolarSystem = {
 
 const SUN: CelestialBodySpec = {
     name: 'Sun',
-    radiusKm: 695_700,
-    massKg: 1.98847e30,
+    radiusKm: SOLAR_RADIUS_KM,
+    massKg: SOLAR_MASS_KG,
     color: '#fff7b2',
     texture: 'planetSun',
 };
+
+const ALPHA_CENTAURI_A: CelestialBodySpec = {
+    name: 'Alpha Centauri A',
+    radiusKm: 1.2175 * SOLAR_RADIUS_KM,
+    massKg: 1.0788 * SOLAR_MASS_KG,
+    color: '#fff6bf',
+    labelFontSize: 18,
+    texture: 'alphaCentauriA',
+};
+
+const ALPHA_CENTAURI_B: CelestialBodySpec = {
+    name: 'Alpha Centauri B',
+    radiusKm: 0.8591 * SOLAR_RADIUS_KM,
+    massKg: 0.9092 * SOLAR_MASS_KG,
+    color: '#ffd28a',
+    labelFontSize: 18,
+    texture: 'alphaCentauriB',
+};
+
+const PROXIMA_CENTAURI: CelestialBodySpec = {
+    name: 'Proxima Centauri',
+    radiusKm: 0.1542 * SOLAR_RADIUS_KM,
+    massKg: 0.1221 * SOLAR_MASS_KG,
+    color: '#ff6f5e',
+    labelColor: '#ff9a8c',
+    labelFontSize: 16,
+    texture: 'proximaCentauri',
+};
+
+const ALPHA_CENTAURI_AB_ORBIT = {
+    semiMajorAxisKm: 23.2989267 * AU_KM,
+    eccentricity: 0.51947,
+};
+
+const PROXIMA_CENTAURI_ORBIT = {
+    semiMajorAxisKm: 8_700 * AU_KM,
+    eccentricity: 0.5,
+};
+
+const PROXIMA_CENTAURI_PLANETS: CelestialBodySpec[] = [
+    {
+        name: 'Proxima Centauri d',
+        radiusKm: 0.692 * EARTH_RADIUS_KM,
+        massKg: 0.26 * EARTH_MASS_KG,
+        orbitRadiusKm: 0.02881 * AU_KM,
+        orbitAngleDegrees: 35,
+        color: '#a78f7d',
+        labelColor: '#e0cbbb',
+        texture: 'proximaCentauriD',
+    },
+    {
+        name: 'Proxima Centauri b',
+        radiusKm: 1.02 * EARTH_RADIUS_KM,
+        massKg: 1.055 * EARTH_MASS_KG,
+        orbitRadiusKm: 0.04848 * AU_KM,
+        orbitAngleDegrees: 220,
+        color: '#74b7d7',
+        labelColor: '#a7def3',
+        texture: 'proximaCentauriB',
+    },
+];
 
 const PLANETS: CelestialBodySpec[] = [
     {
@@ -340,6 +404,45 @@ export function createSolarSystem(engine: Engine): SolarSystem {
     return { bodies, renderStyles };
 }
 
+export function createAlphaCentauriSystem(engine: Engine): SolarSystem {
+    const bodies: Body[] = [];
+    const renderStyles = new Map<number, BodyRenderStyle>();
+
+    const { primary: alphaCentauriA, secondary: alphaCentauriB } = createBinaryStarsAtApsis(
+        ALPHA_CENTAURI_A,
+        ALPHA_CENTAURI_B,
+        ALPHA_CENTAURI_AB_ORBIT.semiMajorAxisKm,
+        ALPHA_CENTAURI_AB_ORBIT.eccentricity,
+        'periapsis',
+    );
+    bodies.push(alphaCentauriA, alphaCentauriB);
+    renderStyles.set(alphaCentauriA.id, createRenderStyle(ALPHA_CENTAURI_A, BodyType.STAR));
+    renderStyles.set(alphaCentauriB.id, createRenderStyle(ALPHA_CENTAURI_B, BodyType.STAR));
+
+    const proximaCentauri = createOuterStarAtApsis(
+        PROXIMA_CENTAURI,
+        alphaCentauriA.mass + alphaCentauriB.mass,
+        PROXIMA_CENTAURI_ORBIT.semiMajorAxisKm,
+        PROXIMA_CENTAURI_ORBIT.eccentricity,
+        'apoapsis',
+        165,
+    );
+    bodies.push(proximaCentauri);
+    renderStyles.set(proximaCentauri.id, createRenderStyle(PROXIMA_CENTAURI, BodyType.STAR));
+
+    for (const planetSpec of PROXIMA_CENTAURI_PLANETS) {
+        const planet = createBody(planetSpec, BodyType.PLANET, proximaCentauri);
+        bodies.push(planet);
+        renderStyles.set(planet.id, createRenderStyle(planetSpec, BodyType.PLANET));
+    }
+
+    for (const body of bodies) {
+        engine.addBody(body);
+    }
+
+    return { bodies, renderStyles };
+}
+
 function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: Body | null = null): Body {
     const position = parent
         ? parent.position.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0))
@@ -353,6 +456,71 @@ function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: Body | 
     }
 
     return body;
+}
+
+function createBinaryStarsAtApsis(
+    primarySpec: CelestialBodySpec,
+    secondarySpec: CelestialBodySpec,
+    semiMajorAxisKm: number,
+    eccentricity: number,
+    apsis: 'periapsis' | 'apoapsis',
+): { primary: Body; secondary: Body } {
+    const totalMassKg = primarySpec.massKg + secondarySpec.massKg;
+    const separationKm = getApsisDistance(semiMajorAxisKm, eccentricity, apsis);
+    const relativeSpeedKmS = getApsisSpeed(totalMassKg, semiMajorAxisKm, eccentricity, apsis);
+    const primary = new Body(
+        (-separationKm * secondarySpec.massKg) / totalMassKg,
+        0,
+        primarySpec.radiusKm,
+        primarySpec.massKg,
+        BodyType.STAR,
+    );
+    const secondary = new Body(
+        (separationKm * primarySpec.massKg) / totalMassKg,
+        0,
+        secondarySpec.radiusKm,
+        secondarySpec.massKg,
+        BodyType.STAR,
+    );
+
+    primary.velocity.y = (relativeSpeedKmS * secondary.mass) / totalMassKg;
+    secondary.velocity.y = (-relativeSpeedKmS * primary.mass) / totalMassKg;
+
+    return { primary, secondary };
+}
+
+function createOuterStarAtApsis(
+    spec: CelestialBodySpec,
+    parentMassKg: number,
+    semiMajorAxisKm: number,
+    eccentricity: number,
+    apsis: 'periapsis' | 'apoapsis',
+    orbitAngleDegrees: number,
+): Body {
+    const separationKm = getApsisDistance(semiMajorAxisKm, eccentricity, apsis);
+    const position = getOrbitPosition(separationKm, orbitAngleDegrees);
+    const star = new Body(position.x, position.y, spec.radiusKm, spec.massKg, BodyType.STAR);
+    const speedKmS = getApsisSpeed(parentMassKg + star.mass, semiMajorAxisKm, eccentricity, apsis);
+
+    star.velocity = position.unitVector().perpNew().scaleNew(speedKmS);
+
+    return star;
+}
+
+function getApsisDistance(semiMajorAxisKm: number, eccentricity: number, apsis: 'periapsis' | 'apoapsis'): number {
+    return semiMajorAxisKm * (apsis === 'periapsis' ? 1 - eccentricity : 1 + eccentricity);
+}
+
+function getApsisSpeed(
+    totalMassKg: number,
+    semiMajorAxisKm: number,
+    eccentricity: number,
+    apsis: 'periapsis' | 'apoapsis',
+): number {
+    const distanceKm = getApsisDistance(semiMajorAxisKm, eccentricity, apsis);
+    const apsisFactor = apsis === 'periapsis' ? 1 + eccentricity : 1 - eccentricity;
+
+    return Math.sqrt((G * totalMassKg * apsisFactor) / distanceKm);
 }
 
 function createBelt(sun: Body, spec: BeltSpec, renderStyles: Map<number, BodyRenderStyle>): Body[] {

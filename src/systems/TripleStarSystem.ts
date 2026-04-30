@@ -7,36 +7,38 @@ import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';
 import { createBelt, createBody, createRenderStyle } from './SystemGeneration';
 
-const IMAGINARY_TRIPLE_STAR_ORBIT_RADIUS_KM = 0.32 * AU_KM;
+const STAR_A: CelestialBodySpec = {
+    name: 'Aureon',
+    radiusKm: 720_000,
+    massKg: 1.35e30,
+    color: '#fff0a6',
+    labelFontSize: 18,
+    texture: 'planetSun',
+};
 
-const IMAGINARY_TRIPLE_STARS: CelestialBodySpec[] = [
-    {
-        name: 'Aureon',
-        radiusKm: 720_000,
-        massKg: 1.35e30,
-        color: '#fff0a6',
-        labelFontSize: 18,
-        texture: 'planetSun',
-    },
-    {
-        name: 'Vesper',
-        radiusKm: 620_000,
-        massKg: 1.35e30,
-        color: '#ffb45f',
-        labelFontSize: 18,
-        texture: 'alphaCentauriB',
-    },
-    {
-        name: 'Sable',
-        radiusKm: 500_000,
-        massKg: 1.35e30,
-        color: '#ff7059',
-        labelFontSize: 18,
-        texture: 'proximaCentauri',
-    },
-];
+const STAR_B: CelestialBodySpec = {
+    name: 'Vesper',
+    radiusKm: 420_000,
+    massKg: 1.35e30,
+    orbitRadiusKm: 0.2 * AU_KM,
+    orbitAngleDegrees: 30,
+    color: '#ffb45f',
+    labelFontSize: 18,
+    texture: 'alphaCentauriB',
+};
 
-const IMAGINARY_TRIPLE_PLANETS: CelestialBodySpec[] = [
+const STAR_C: CelestialBodySpec = {
+    name: 'Sable',
+    radiusKm: 500_000,
+    massKg: 1.35e30,
+    orbitRadiusKm: 0.4 * AU_KM,
+    orbitAngleDegrees: 200,
+    color: '#ff7059',
+    labelFontSize: 18,
+    texture: 'proximaCentauri',
+};
+
+const PLANETS: CelestialBodySpec[] = [
     {
         name: 'Cinder',
         radiusKm: 3_180,
@@ -132,7 +134,7 @@ const BELTS: BeltSpec[] = [
         maxRadiusKm: 260,
         minMassKg: 1e14,
         maxMassKg: 8e18,
-        numBodies: 5000,
+        numBodies: 1500,
         colors: ['#8f7a66', '#6f6258', '#a08b72', '#5a514c', '#c8d6df', '#9eb3c0', '#dfe8ec', '#8093a0'],
     },
 ];
@@ -140,17 +142,21 @@ const BELTS: BeltSpec[] = [
 export function createTripleStarSystem(engine: Engine): SolarSystem {
     const bodies: Body[] = [];
     const renderStyles = new Map<number, BodyRenderStyle>();
-    const stars = createEquilateralTripleStars(IMAGINARY_TRIPLE_STARS, IMAGINARY_TRIPLE_STAR_ORBIT_RADIUS_KM);
-    const centralMassKg = stars.reduce((sum, star) => sum + star.mass, 0);
+    const sunA = createBody(STAR_A, BodyType.STAR);
+    bodies.push(sunA);
+    renderStyles.set(sunA.id, createRenderStyle(STAR_A, BodyType.STAR));
 
-    for (let i = 0; i < stars.length; i++) {
-        const star = stars[i];
-        const spec = IMAGINARY_TRIPLE_STARS[i];
-        bodies.push(star);
-        renderStyles.set(star.id, createRenderStyle(spec, BodyType.STAR));
-    }
+    const sunB = createBody(STAR_B, BodyType.STAR, sunA);
+    bodies.push(sunB);
+    renderStyles.set(sunB.id, createRenderStyle(STAR_B, BodyType.STAR));
 
-    for (const planetSpec of IMAGINARY_TRIPLE_PLANETS) {
+    const sunC = createBody(STAR_C, BodyType.STAR, sunA);
+    bodies.push(sunC);
+    renderStyles.set(sunC.id, createRenderStyle(STAR_C, BodyType.STAR));
+
+    const centralMassKg = sunA.mass + sunB.mass + sunC.mass;
+
+    for (const planetSpec of PLANETS) {
         const planet = createBarycentricOrbitBody(planetSpec, BodyType.PLANET, centralMassKg);
         bodies.push(planet);
         renderStyles.set(planet.id, createRenderStyle(planetSpec, BodyType.PLANET));
@@ -162,17 +168,10 @@ export function createTripleStarSystem(engine: Engine): SolarSystem {
         }
     }
 
-    let cumulativeStarsMass = 0;
-    const startsCenter = centroid(stars.map(s => s.position));
-
-    for (const s of stars) {
-        cumulativeStarsMass += s.mass;
-    }
-
-    console.log(startsCenter);
+    const startsCenter = centroid([sunA.position, sunB.position, sunC.position]);
 
     for (const beltSpec of BELTS) {
-        bodies.push(...createBelt(startsCenter, cumulativeStarsMass, beltSpec, renderStyles));
+        bodies.push(...createBelt(startsCenter, centralMassKg, beltSpec, renderStyles));
     }
 
     for (const body of bodies) {
@@ -196,23 +195,6 @@ function centroid(points: Vec2[]): Vec2 {
     const x = sumX / n;
     const y = sumY / n;
     return new Vec2(x, y);
-}
-
-function createEquilateralTripleStars(specs: CelestialBodySpec[], orbitRadiusKm: number): Body[] {
-    const bodies: Body[] = [];
-    const orbitAngles = [90, 210, 330];
-    const sharedMassKg = specs[0]?.massKg ?? 0;
-    const orbitalSpeedKmS = Math.sqrt((G * sharedMassKg) / (Math.sqrt(3) * orbitRadiusKm));
-
-    for (let i = 0; i < specs.length; i++) {
-        const spec = specs[i];
-        const position = getOrbitPosition(orbitRadiusKm, orbitAngles[i] ?? 0);
-        const body = new Body(position.x, position.y, spec.radiusKm, spec.massKg, BodyType.STAR);
-        body.velocity = position.unitVector().perpNew().scaleNew(orbitalSpeedKmS);
-        bodies.push(body);
-    }
-
-    return bodies;
 }
 
 function createBarycentricOrbitBody(spec: CelestialBodySpec, bodyType: BodyType, centralMassKg: number): Body {

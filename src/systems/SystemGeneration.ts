@@ -2,7 +2,7 @@ import AssetStore from '../AssetStore';
 import { Body, BodyType } from '../Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../BodyRenderStyle';
 import { EARTH_RADIUS_KM, G } from '../Constants';
-import { clamp, getOrbitPosition, getOrbitalSpeed, randomNumber } from '../Math';
+import { clamp, getOrbitPosition, getOrbitalSpeed, getOrbitalSpeedByParent, randomNumber } from '../Math';
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec } from './BodySpec';
 
@@ -15,13 +15,18 @@ export function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: 
     body.parent = parent;
 
     if (parent) {
-        body.velocity = parent.velocity.addNew(getOrbitalSpeed(parent.position, parent.mass, body, G));
+        body.velocity = parent.velocity.addNew(getOrbitalSpeedByParent(parent, body, G));
     }
 
     return body;
 }
 
-export function createBelt(centerPos: Vec2, centerMass: number, spec: BeltSpec, renderStyles: Map<number, BodyRenderStyle>): Body[] {
+export function createBelt(
+    centerPos: Vec2,
+    centerMass: number,
+    spec: BeltSpec,
+    renderStyles: Map<number, BodyRenderStyle>,
+): Body[] {
     const bodies: Body[] = [];
 
     for (let i = 0; i < spec.numBodies; i++) {

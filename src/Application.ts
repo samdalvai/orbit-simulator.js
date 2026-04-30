@@ -90,9 +90,9 @@ export default class Application {
 
         Graphics.pan.x = 0;
         Graphics.pan.y = 0;
-        Graphics.zoom = 0.5;
 
         if (this.demoIndex === 1) {
+            Graphics.zoom = 0.3;
             const solarSystem = createSolarSystem(this.engine);
             this.bodyRenderStyles = solarSystem.renderStyles;
         }

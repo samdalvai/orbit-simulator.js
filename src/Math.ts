@@ -21,8 +21,12 @@ export function getOrbitalSpeed(centerPos: Vec2, centerMass: number, planet: Bod
     return tangent.scaleNew(v);
 }
 
+export function getOrbitalSpeedByParent(parent: Body, planet: Body, G: number): Vec2 {
+    return getOrbitalSpeed(parent.position, parent.mass, planet, G);
+}
+
 /**
- * 
+ *
  * @param distance In km
  * @param angle In degrees
  * @returns Orbit distance with an angle

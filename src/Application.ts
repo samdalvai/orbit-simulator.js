@@ -6,9 +6,9 @@ import { Engine } from './Engine';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
+import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
 import { createSolarSystem } from './systems/SolarSystem';
 import { createTripleStarSystem } from './systems/TripleStarSystem';
-import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
@@ -142,21 +142,6 @@ export default class Application {
                         this.paused = !this.paused;
                     }
 
-                    if (inputEvent.key === '1') {
-                        this.demoIndex = 1;
-                        this.loadDemo();
-                    }
-
-                    if (inputEvent.key === '2') {
-                        this.demoIndex = 2;
-                        this.loadDemo();
-                    }
-
-                    if (inputEvent.key === '3') {
-                        this.demoIndex = 3;
-                        this.loadDemo();
-                    }
-
                     if (key === 'b' && !inputEvent.repeat) {
                         if (inputEvent.shiftKey) {
                             this.removeBlackHole();
@@ -193,6 +178,13 @@ export default class Application {
 
                     if (inputEvent.code === 'Space') {
                         this.panToNextPlanetOrStar();
+                    }
+
+                    const keyAsNum = Number(inputEvent.key);
+
+                    if (!Number.isNaN(key)) {
+                        this.demoIndex = keyAsNum;
+                        this.loadDemo();
                     }
 
                     break;

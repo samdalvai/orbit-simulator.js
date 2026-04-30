@@ -4,7 +4,7 @@ import { AU_KM, G } from '../Constants';
 import { Engine } from '../Engine';
 import { getOrbitPosition } from '../Math';
 import { CelestialBodySpec, SolarSystem } from './BodySpec';
-import { createBody, createRenderStyle } from './SystemGeneration';
+import { createBody, createRenderStyle } from './BodyGeneration';
 
 const ALPHA_CENTAURI_A: CelestialBodySpec = {
     name: 'Alpha Centauri A',

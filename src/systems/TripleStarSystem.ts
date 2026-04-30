@@ -5,7 +5,7 @@ import { Engine } from '../Engine';
 import { getOrbitPosition } from '../Math';
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';
-import { createBelt, createBody, createRenderStyle } from './SystemGeneration';
+import { createBelt, createBody, createRenderStyle } from './BodyGeneration';
 
 const STAR_A: CelestialBodySpec = {
     name: 'Aureon',

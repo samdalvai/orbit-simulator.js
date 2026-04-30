@@ -14,6 +14,8 @@ const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
 const BODY_HOVER_TOLERANCE_PIXELS = 10;
 
+const DEMO_LABELS = ['Solar system', 'Alpha centauri', 'Triple star system'];
+
 const SHORTCUTS: Array<[string, string]> = [
     ['L', 'Toggle labels'],
     ['D', 'Toggle debug panel'],
@@ -182,7 +184,7 @@ export default class Application {
 
                     const keyAsNum = Number(inputEvent.key);
 
-                    if (Number.isInteger(keyAsNum)) {
+                    if (Number.isInteger(keyAsNum) && keyAsNum > 0) {
                         this.demoIndex = keyAsNum;
                         this.loadDemo();
                     }
@@ -277,14 +279,6 @@ export default class Application {
         for (let i = 0; i < SETTINGS.subSteps; i++) {
             this.stepSimulation();
         }
-
-        // Debug for moon to earh distance
-        // const bodies = this.engine.getBodies();
-        // const earth = bodies[bodies.length - 2];
-        // const moon = bodies[bodies.length - 1];
-        // const distSq = earth.position.distanceSquared(moon.position);
-        // const dist = Math.sqrt(distSq);
-        // console.log('dist: ', dist);
     }
 
     render(): void {
@@ -305,9 +299,6 @@ export default class Application {
             );
         }
 
-        // Graphics.drawLine(-50, 0, 50, 0, 'rgba(200, 200, 200, 0.5');
-        // Graphics.drawLine(0, -50, 0, 50, 'rgba(200, 200, 200, 0.5');
-
         Graphics.endWorld();
 
         if (!this.debug) {
@@ -320,6 +311,7 @@ export default class Application {
         const simulationSecondsPerSecond = (SETTINGS.dt * SETTINGS.subSteps) / FIXED_DELTA_TIME;
 
         const stats: Array<[string, string]> = [
+            ['Demo', DEMO_LABELS[this.demoIndex - 1]],
             ['Paused', this.paused ? 'ON' : 'OFF'],
             ['Bodies', `${this.engine.getBodies().length}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
@@ -374,20 +366,6 @@ export default class Application {
 
         this.drawHoveredBodyPopup();
     }
-
-    // private applyGravitationalForce(): void {
-    //     const bodies = this.world.getBodies();
-
-    //     // Less efficient but more accurate method
-    //     // Force.gravity.applyGravitationalForces(bodies, GRAVITY, 0, BODY_REMOVAL_THRESHOLD * BODY_REMOVAL_THRESHOLD);
-
-    //     Force.gravity.applyBarnesHutGravitationalForces(
-    //         bodies,
-    //         GRAVITY,
-    //         0,
-    //         BODY_REMOVAL_THRESHOLD * BODY_REMOVAL_THRESHOLD,
-    //     );
-    // }
 
     private updateMouseWorldPosition(inputEvent: MouseEvent): void {
         const screenX = inputEvent.x - Graphics.width() / 2;

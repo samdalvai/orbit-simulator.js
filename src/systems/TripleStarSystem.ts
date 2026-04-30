@@ -4,7 +4,7 @@ import { AU_KM, G } from '../Constants';
 import { Engine } from '../Engine';
 import { getOrbitPosition } from '../Math';
 import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';
-import { createBody, createRenderStyle } from './SystemGeneration';
+import { createBelt, createBody, createRenderStyle } from './SystemGeneration';
 
 const IMAGINARY_TRIPLE_STAR_ORBIT_RADIUS_KM = 0.32 * AU_KM;
 
@@ -125,14 +125,14 @@ const IMAGINARY_TRIPLE_PLANETS: CelestialBodySpec[] = [
 
 const BELTS: BeltSpec[] = [
     {
-        innerOrbitRadiusKm: 2.15 * AU_KM,
+        innerOrbitRadiusKm: 2.95 * AU_KM,
         outerOrbitRadiusKm: 3.35 * AU_KM,
         minRadiusKm: 15,
         maxRadiusKm: 260,
         minMassKg: 1e14,
         maxMassKg: 8e18,
-        numBodies: 100,
-        colors: ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'],
+        numBodies: 5000,
+        colors: ['#8f7a66', '#6f6258', '#a08b72', '#5a514c', '#c8d6df', '#9eb3c0', '#dfe8ec', '#8093a0'],
     },
 ];
 
@@ -159,6 +159,10 @@ export function createTripleStarSystem(engine: Engine): SolarSystem {
             bodies.push(moon);
             renderStyles.set(moon.id, createRenderStyle(moonSpec, BodyType.MOON));
         }
+    }
+
+    for (const beltSpec of BELTS) {
+        bodies.push(...createBelt(stars[0], beltSpec, renderStyles));
     }
 
     for (const body of bodies) {

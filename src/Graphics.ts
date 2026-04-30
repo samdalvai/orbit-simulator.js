@@ -68,15 +68,11 @@ export default class Graphics {
     }
 
     static increaseZoom(): void {
-        this.zoom += 0.05;
+        this.zoom *= 1.1;
     }
 
     static decreaseZoom(): void {
-        this.zoom -= 0.05;
-
-        if (this.zoom < 0.05) {
-            this.zoom = 0.05;
-        }
+        this.zoom /= 1.1;
     }
 
     static resetView(): void {

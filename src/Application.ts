@@ -315,7 +315,7 @@ export default class Application {
             ['Paused', this.paused ? 'ON' : 'OFF'],
             ['Bodies', `${this.engine.getBodies().length}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
-            ['Zoom', Graphics.zoom.toFixed(2)],
+            ['Zoom', Graphics.zoom.toFixed(4)],
             ['Labels', this.showLabels ? 'ON' : 'OFF'],
             ['Moon labels', this.showMoonLabels ? 'ON' : 'OFF'],
             ['Mouse (x)', `${(x / KILOMETERS_TO_PIXELS_RENDERING_SCALE).toExponential(5)} km`],

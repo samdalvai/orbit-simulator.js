@@ -184,7 +184,7 @@ export default class Application {
 
                     const keyAsNum = Number(inputEvent.key);
 
-                    if (Number.isInteger(keyAsNum) && keyAsNum > 0) {
+                    if (Number.isInteger(keyAsNum) && keyAsNum > 0 && keyAsNum <= 3) {
                         this.demoIndex = keyAsNum;
                         this.loadDemo();
                     }

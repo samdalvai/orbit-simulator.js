@@ -75,6 +75,16 @@ export default class Graphics {
         this.zoom /= 1.1;
     }
 
+    static zoomAt(screenX: number, screenY: number, factor: number): void {
+        const worldXBeforeZoom = this.pan.x + (screenX - this.windowWidth / 2) / this.zoom;
+        const worldYBeforeZoom = this.pan.y - (screenY - this.windowHeight / 2) / this.zoom;
+
+        this.zoom *= factor;
+
+        this.pan.x = worldXBeforeZoom - (screenX - this.windowWidth / 2) / this.zoom;
+        this.pan.y = worldYBeforeZoom + (screenY - this.windowHeight / 2) / this.zoom;
+    }
+
     static resetView(): void {
         this.zoom = 1;
         this.pan.x = 0;

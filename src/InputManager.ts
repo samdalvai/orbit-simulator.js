@@ -10,7 +10,7 @@ export default class InputManager {
     static keyboardInputBuffer: KeyboardEvent[];
     static mouseInputBuffer: MouseEvent[];
     static mouseMoveBuffer: MouseEvent[];
-    static mouseWheelBuffer: MouseEvent[];
+    static mouseWheelBuffer: WheelEvent[];
     static mousePosition: Vec2;
 
     static lastWheelEventTime = 0;
@@ -48,7 +48,7 @@ export default class InputManager {
         this.mouseInputBuffer.push(event);
     };
 
-    static handleWheelEvent = (event: MouseEvent) => {
+    static handleWheelEvent = (event: WheelEvent) => {
         // Wheel events for mousepads are triggered much faster compared to mouse wheels
         // whith this logic we prevent scrolling too fast on mouse pads
         if (performance.now() - this.lastWheelEventTime < 25) {

@@ -255,14 +255,11 @@ export default class Application {
 
         // Handle wheel events
         while (InputManager.mouseWheelBuffer.length > 0) {
-            const inputEvent = InputManager.mouseWheelBuffer.shift() as WheelEvent;
+            const inputEvent = InputManager.mouseWheelBuffer.shift();
             if (!inputEvent) return;
 
-            if (inputEvent.deltaY > 0) {
-                Graphics.decreaseZoom();
-            } else {
-                Graphics.increaseZoom();
-            }
+            Graphics.zoomAt(inputEvent.x, inputEvent.y, inputEvent.deltaY > 0 ? 1 / 1.1 : 1.1);
+            this.updateMouseWorldPosition(inputEvent);
         }
     }
 

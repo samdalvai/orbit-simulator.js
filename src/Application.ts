@@ -7,6 +7,7 @@ import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
 import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
+import { createRandomSolarSystem } from './systems/RandomSolarSystem';
 import { createSolarSystem } from './systems/SolarSystem';
 import { createTripleStarSystem } from './systems/TripleStarSystem';
 
@@ -14,7 +15,7 @@ const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
 const BODY_HOVER_TOLERANCE_PIXELS = 10;
 
-const DEMO_LABELS = ['Solar system', 'Alpha centauri', 'Triple star system'];
+const DEMO_LABELS = ['Solar system', 'Alpha centauri', 'Triple star system', 'Random system'];
 
 const SHORTCUTS: Array<[string, string]> = [
     ['L', 'Toggle labels'],
@@ -111,6 +112,12 @@ export default class Application {
             this.bodyRenderStyles = solarSystem.renderStyles;
         }
 
+        if (this.demoIndex === 4) {
+            Graphics.zoom = 0.16;
+            const solarSystem = createRandomSolarSystem(this.engine);
+            this.bodyRenderStyles = solarSystem.renderStyles;
+        }
+
         this.engine.initializeVerlet();
     }
 
@@ -184,7 +191,7 @@ export default class Application {
 
                     const keyAsNum = Number(inputEvent.key);
 
-                    if (Number.isInteger(keyAsNum) && keyAsNum > 0 && keyAsNum <= 3) {
+                    if (Number.isInteger(keyAsNum) && keyAsNum > 0 && keyAsNum <= DEMO_LABELS.length) {
                         this.demoIndex = keyAsNum;
                         this.loadDemo();
                     }

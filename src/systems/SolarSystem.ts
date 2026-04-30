@@ -1,9 +1,9 @@
-import AssetStore, { TEXTURES } from './AssetStore';
-import { Body, BodyType } from './Body';
-import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
-import { AU_KM, EARTH_RADIUS_KM, G } from './Constants';
-import { Engine } from './Engine';
-import { clamp, getOrbitPosition, getOrbitalSpeed, randomNumber } from './Math';
+import AssetStore, { TEXTURES } from '../AssetStore';
+import { Body, BodyType } from '../Body';
+import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../BodyRenderStyle';
+import { AU_KM, EARTH_RADIUS_KM, G } from '../Constants';
+import { Engine } from '../Engine';
+import { clamp, getOrbitPosition, getOrbitalSpeed, randomNumber } from '../Math';
 
 const ASTEROID_BELT_OBJECTS = 4000;
 const KUIPER_BELT_OBJECTS = 5000;

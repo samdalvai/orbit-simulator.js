@@ -6,7 +6,7 @@ import { Engine } from './Engine';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
-import { createAlphaCentauriSystem, createImaginaryTripleStarSystem, createSolarSystem } from './SolarSystem';
+import { createAlphaCentauriSystem, createImaginaryTripleStarSystem, createSolarSystem } from './systems/SolarSystem';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
@@ -59,6 +59,7 @@ export default class Application {
 
     constructor() {
         this.engine = new Engine();
+        console.log(Number.MAX_VALUE);
     }
 
     isRunning(): boolean {

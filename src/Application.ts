@@ -182,7 +182,7 @@ export default class Application {
 
                     const keyAsNum = Number(inputEvent.key);
 
-                    if (!Number.isNaN(key)) {
+                    if (Number.isInteger(keyAsNum)) {
                         this.demoIndex = keyAsNum;
                         this.loadDemo();
                     }

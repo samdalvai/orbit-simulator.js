@@ -79,7 +79,7 @@ export function getLabelFontSize(spec: CelestialBodySpec, bodyType: BodyType): n
     }
 
     if (bodyType === BodyType.MOON) {
-        return 8;
+        return 12;
     }
 
     return Math.round(clamp(10 + Math.sqrt(spec.radiusKm / EARTH_RADIUS_KM) * 2, 11, 17));

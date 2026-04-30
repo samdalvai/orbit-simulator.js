@@ -1,7 +1,6 @@
 import { Body, BodyType } from './Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
 import {
-    ASTEROID_MIN_RENDERING_RADIUS,
     ASTEROID_RADIUS_RENDERING_SCALE,
     EARTH_RADIUS_KM,
     KILOMETERS_TO_PIXELS_RENDERING_SCALE,
@@ -233,7 +232,7 @@ export default class Graphics {
             Math.pow(body.radius / EARTH_RADIUS_KM, RADIUS_RENDERING_EXPONENT) *
             this.getBodyRadiusRenderingScale(body.bodyType);
 
-        return Math.max(this.getBodyMinRenderingRadius(body.bodyType), radius);
+        return Math.max(MIN_BODY_RENDERING_RADIUS, radius);
     }
 
     private static getBodyRadiusRenderingScale(bodyType: BodyType): number {
@@ -248,10 +247,6 @@ export default class Graphics {
             default:
                 return PLANET_RADIUS_RENDERING_SCALE;
         }
-    }
-
-    private static getBodyMinRenderingRadius(bodyType: BodyType): number {
-        return bodyType === BodyType.ASTEROID ? ASTEROID_MIN_RENDERING_RADIUS : MIN_BODY_RENDERING_RADIUS;
     }
 
     static drawBody(

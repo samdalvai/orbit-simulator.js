@@ -3,6 +3,7 @@ import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM, G } from '../Constants';
 import { Engine } from '../Engine';
 import { getOrbitPosition } from '../Math';
+import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';
 import { createBelt, createBody, createRenderStyle } from './SystemGeneration';
 
@@ -161,8 +162,17 @@ export function createTripleStarSystem(engine: Engine): SolarSystem {
         }
     }
 
+    let cumulativeStarsMass = 0;
+    const startsCenter = centroid(stars.map(s => s.position));
+
+    for (const s of stars) {
+        cumulativeStarsMass += s.mass;
+    }
+
+    console.log(startsCenter);
+
     for (const beltSpec of BELTS) {
-        bodies.push(...createBelt(stars[0], beltSpec, renderStyles));
+        bodies.push(...createBelt(startsCenter, cumulativeStarsMass, beltSpec, renderStyles));
     }
 
     for (const body of bodies) {
@@ -170,6 +180,22 @@ export function createTripleStarSystem(engine: Engine): SolarSystem {
     }
 
     return { bodies, renderStyles };
+}
+
+function centroid(points: Vec2[]): Vec2 {
+    const n = points.length;
+    if (n === 0) return new Vec2();
+
+    let sumX = 0;
+    let sumY = 0;
+
+    for (let i = 0; i < n; i++) {
+        sumX += points[i].x;
+        sumY += points[i].y;
+    }
+    const x = sumX / n;
+    const y = sumY / n;
+    return new Vec2(x, y);
 }
 
 function createEquilateralTripleStars(specs: CelestialBodySpec[], orbitRadiusKm: number): Body[] {

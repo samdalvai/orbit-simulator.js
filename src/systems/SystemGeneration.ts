@@ -3,6 +3,7 @@ import { Body, BodyType } from '../Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../BodyRenderStyle';
 import { EARTH_RADIUS_KM, G } from '../Constants';
 import { clamp, getOrbitPosition, getOrbitalSpeed, randomNumber } from '../Math';
+import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec } from './BodySpec';
 
 export function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: Body | null = null): Body {
@@ -14,13 +15,13 @@ export function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: 
     body.parent = parent;
 
     if (parent) {
-        body.velocity = parent.velocity.addNew(getOrbitalSpeed(parent, body, G));
+        body.velocity = parent.velocity.addNew(getOrbitalSpeed(parent.position, parent.mass, body, G));
     }
 
     return body;
 }
 
-export function createBelt(sun: Body, spec: BeltSpec, renderStyles: Map<number, BodyRenderStyle>): Body[] {
+export function createBelt(centerPos: Vec2, centerMass: number, spec: BeltSpec, renderStyles: Map<number, BodyRenderStyle>): Body[] {
     const bodies: Body[] = [];
 
     for (let i = 0; i < spec.numBodies; i++) {
@@ -38,7 +39,7 @@ export function createBelt(sun: Body, spec: BeltSpec, renderStyles: Map<number, 
 
         const fillColor = spec.colors[Math.floor(randomNumber(0, spec.colors.length))];
 
-        asteroid.velocity = getOrbitalSpeed(sun, asteroid, G);
+        asteroid.velocity = getOrbitalSpeed(centerPos, centerMass, asteroid, G);
         renderStyles.set(asteroid.id, {
             ...DEFAULT_BODY_RENDER_STYLE,
             fillColor,

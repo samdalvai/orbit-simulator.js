@@ -299,7 +299,7 @@ export function createSolarSystem(engine: Engine): SolarSystem {
     }
 
     for (const beltSpec of BELTS) {
-        bodies.push(...createBelt(sun, beltSpec, renderStyles));
+        bodies.push(...createBelt(sun.position, sun.mass, beltSpec, renderStyles));
     }
 
     for (const body of bodies) {

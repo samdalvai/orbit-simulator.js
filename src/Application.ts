@@ -6,7 +6,9 @@ import { Engine } from './Engine';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
-import { createAlphaCentauriSystem, createImaginaryTripleStarSystem, createSolarSystem } from './systems/SolarSystem';
+import { createSolarSystem } from './systems/SolarSystem';
+import { createTripleStarSystem } from './systems/TripleStarSystem';
+import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
@@ -103,7 +105,7 @@ export default class Application {
 
         if (this.demoIndex === 3) {
             Graphics.zoom = 0.12;
-            const solarSystem = createImaginaryTripleStarSystem(this.engine);
+            const solarSystem = createTripleStarSystem(this.engine);
             this.bodyRenderStyles = solarSystem.renderStyles;
         }
 

@@ -299,10 +299,10 @@ export default class Application {
         const viewport = Graphics.getRenderViewport();
 
         for (const body of this.engine.getBodies()) {
-            Graphics.drawStarLight(body, this.bodyRenderStyles.get(body.id), viewport);
-        }
+            if (body.bodyType === BodyType.STAR) {
+                Graphics.drawStarLight(body, this.bodyRenderStyles.get(body.id), viewport);
+            }
 
-        for (const body of this.engine.getBodies()) {
             Graphics.drawBody(
                 body,
                 this.bodyRenderStyles.get(body.id),

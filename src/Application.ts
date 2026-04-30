@@ -7,6 +7,7 @@ import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
 import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
+import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
 import { createSolarSystem } from './systems/SolarSystem';
 import { createTripleStarSystem } from './systems/TripleStarSystem';
@@ -15,7 +16,7 @@ const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
 const BODY_HOVER_TOLERANCE_PIXELS = 10;
 
-const DEMO_LABELS = ['Solar system', 'Alpha centauri', 'Triple star system', 'Random system'];
+const DEMO_LABELS = ['Solar system', 'Alpha centauri', 'Triple star system', 'Random system', 'Random galaxy'];
 
 const SHORTCUTS: Array<[string, string]> = [
     ['L', 'Toggle labels'],
@@ -115,6 +116,12 @@ export default class Application {
         if (this.demoIndex === 4) {
             Graphics.zoom = 0.16;
             const solarSystem = createRandomSolarSystem(this.engine);
+            this.bodyRenderStyles = solarSystem.renderStyles;
+        }
+
+        if (this.demoIndex === 5) {
+            Graphics.zoom = 0.01;
+            const solarSystem = createRandomGalaxy(this.engine);
             this.bodyRenderStyles = solarSystem.renderStyles;
         }
 
@@ -480,7 +487,6 @@ export default class Application {
         const pos = Graphics.getBodyRenderPosition(nextBody).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
 
         Graphics.pan = pos;
-        Graphics.zoom = 1.5;
         this.selectedPlanet = nextBody;
     }
 

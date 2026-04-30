@@ -4,6 +4,7 @@ import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM, EARTH_RADIUS_KM } from '../Constants';
 import { Engine } from '../Engine';
 import { randomNumber } from '../Math';
+import { Vec2 } from '../Vec2';
 import { CelestialBodySpec, SolarSystem } from './BodySpec';
 import { createBody, createRenderStyle } from './BodyGeneration';
 
@@ -17,6 +18,8 @@ export type RandomSolarSystemProbabilities = {
 
 export type RandomSolarSystemConfig = {
     probabilities?: RandomSolarSystemProbabilities;
+    positionKm?: Vec2;
+    velocityKmS?: Vec2;
 };
 
 export const DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES: Required<RandomSolarSystemProbabilities> = {
@@ -143,6 +146,15 @@ export function createRandomSolarSystem(engine: Engine, config: RandomSolarSyste
     }
 
     for (const body of bodies) {
+        if (config.positionKm) {
+            body.position.addAssign(config.positionKm);
+            body.updateAABB();
+        }
+
+        if (config.velocityKmS) {
+            body.velocity.addAssign(config.velocityKmS);
+        }
+
         engine.addBody(body);
     }
 

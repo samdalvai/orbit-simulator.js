@@ -7,11 +7,11 @@ import { getOrbitPosition, randomNumber } from '../Math';
 import { SolarSystem } from './BodySpec';
 import { createRandomSolarSystem } from './RandomSolarSystem';
 
-const SOLAR_SYSTEM_COUNT = 400;
+const SOLAR_SYSTEM_COUNT = 900;
 const SUPERMASSIVE_BLACK_HOLE_RADIUS_KM = 80_000_000;
 const SUPERMASSIVE_BLACK_HOLE_MASS_KG = 8e32;
 const GALAXY_INNER_ORBIT_RADIUS_AU = 25;
-const GALAXY_OUTER_ORBIT_RADIUS_AU = 120;
+const GALAXY_OUTER_ORBIT_RADIUS_AU = 10_000;
 
 export function createRandomGalaxy(engine: Engine): SolarSystem {
     const bodies: Body[] = [];

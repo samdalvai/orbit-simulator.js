@@ -3,8 +3,8 @@ import { MAX_BODIES } from './Constants';
 import { Vec2 } from './Vec2';
 
 export const ROOT = 0;
-export const PARENT_CAPACITY = MAX_BODIES;
-export const NODE_CAPACITY = MAX_BODIES * 4;
+export const NODE_CAPACITY = MAX_BODIES * 32;
+export const PARENT_CAPACITY = NODE_CAPACITY / 4;
 
 export const children = new Uint32Array(NODE_CAPACITY);
 export const next = new Uint32Array(NODE_CAPACITY);

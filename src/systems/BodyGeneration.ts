@@ -78,6 +78,10 @@ export function getLabelFontSize(spec: CelestialBodySpec, bodyType: BodyType): n
         return 20;
     }
 
+    if (bodyType === BodyType.PLANET) {
+        return 16;
+    }
+
     if (bodyType === BodyType.MOON) {
         return 12;
     }

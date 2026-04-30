@@ -22,7 +22,7 @@ export const ASTEROID_MIN_RENDERING_RADIUS = 5;
 export const STAR_RADIUS_RENDERING_SCALE = 6;
 export const PLANET_RADIUS_RENDERING_SCALE = 6;
 export const MOON_RADIUS_RENDERING_SCALE = 6;
-export const ASTEROID_RADIUS_RENDERING_SCALE = 15;
+export const ASTEROID_RADIUS_RENDERING_SCALE = 8;
 
 export const SETTINGS = {
     subSteps: 1,

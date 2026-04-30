@@ -22,6 +22,8 @@ export type RenderViewport = {
     labelMargin: number;
 };
 
+const SOLAR_MASS_KG = 1.98847e30;
+
 export default class Graphics {
     static windowWidth: number;
     static windowHeight: number;
@@ -247,6 +249,43 @@ export default class Graphics {
             default:
                 return PLANET_RADIUS_RENDERING_SCALE;
         }
+    }
+
+    static drawStarLight(body: Body, style: BodyRenderStyle | undefined, viewport: RenderViewport): void {
+        if (body.bodyType !== BodyType.STAR) {
+            return;
+        }
+
+        const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
+        const renderPosition = this.getBodyRenderPosition(body);
+        const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const radius = this.getBodyRenderRadius(body);
+        const massFactor = Math.max(0.5, Math.min(4, Math.pow(body.mass / SOLAR_MASS_KG, 0.2)));
+        const lightRadius = radius * (5 + massFactor * 0.1);
+
+        if (
+            x + lightRadius < viewport.minX ||
+            x - lightRadius > viewport.maxX ||
+            y + lightRadius < viewport.minY ||
+            y - lightRadius > viewport.maxY
+        ) {
+            return;
+        }
+
+        const gradient = this.ctx.createRadialGradient(x, y, radius, x, y, lightRadius);
+        gradient.addColorStop(0, renderStyle.fillColor);
+        gradient.addColorStop(0.2, renderStyle.fillColor);
+        gradient.addColorStop(1, 'transparent');
+
+        this.ctx.save();
+        this.ctx.globalCompositeOperation = 'lighter';
+        this.ctx.globalAlpha = Math.max(0.25, Math.min(0.75, 0.28 + massFactor * 0.12));
+        this.ctx.fillStyle = gradient;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, lightRadius, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
     }
 
     static drawBody(

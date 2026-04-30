@@ -473,6 +473,7 @@ export default class Application {
         const pos = Graphics.getBodyRenderPosition(nextBody).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
 
         Graphics.pan = pos;
+        Graphics.zoom = 1.5;
         this.selectedPlanet = nextBody;
     }
 

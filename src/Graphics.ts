@@ -262,7 +262,7 @@ export default class Graphics {
         const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const radius = this.getBodyRenderRadius(body);
         const massFactor = Math.max(0.5, Math.min(4, Math.pow(body.mass / SOLAR_MASS_KG, 0.2)));
-        const lightRadius = radius * (5 + massFactor * 0.1);
+        const lightRadius = radius * (10 + massFactor * 0.1);
 
         if (
             x + lightRadius < viewport.minX ||
@@ -275,7 +275,7 @@ export default class Graphics {
 
         const gradient = this.ctx.createRadialGradient(x, y, radius, x, y, lightRadius);
         gradient.addColorStop(0, renderStyle.fillColor);
-        gradient.addColorStop(0.2, renderStyle.fillColor);
+        gradient.addColorStop(0.15, renderStyle.fillColor);
         gradient.addColorStop(1, 'transparent');
 
         this.ctx.save();

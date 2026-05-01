@@ -4,9 +4,10 @@ import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM, EARTH_RADIUS_KM } from '../Constants';
 import { Engine } from '../Engine';
 import { randomNumber } from '../Math';
+import { assert } from '../Utils';
 import { Vec2 } from '../Vec2';
-import { CelestialBodySpec, SolarSystem } from './BodySpec';
 import { createBody, createRenderStyle } from './BodyGeneration';
+import { CelestialBodySpec, SolarSystem } from './BodySpec';
 
 type TextureName = keyof typeof TEXTURES;
 
@@ -28,7 +29,7 @@ export const DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES: Required<RandomSolarSyst
     moonCount: [0.62, 0.18, 0.1, 0.06, 0.03, 0.01],
 };
 
-const STAR_TEXTURES: TextureName[] = ['planetSun', 'alphaCentauriA', 'alphaCentauriB', 'proximaCentauri'];
+const STAR_TEXTURES: TextureName[] = ['planetSun', 'alphaCentauriA', 'alphaCentauriB', 'proximaCentauri', 'blueStar'];
 const PLANET_TEXTURES: TextureName[] = [
     'planetMercury',
     'planetVenus',
@@ -60,7 +61,8 @@ const MOON_TEXTURES: TextureName[] = [
     'moonOberon',
     'moonTriton',
 ];
-const STAR_COLORS = ['#fff7b2', '#fff6bf', '#ffd28a', '#ff6f5e'];
+
+const STAR_COLORS = ['#fff7b2', '#fff6bf', '#ffd28a', '#ff6f5e', '#9fc8ff'];
 const PLANET_COLORS = ['#b7ada5', '#d8b16f', '#4a9fe8', '#c76245', '#d1a06f', '#d7c28b', '#9fe1df', '#5279e8'];
 const MOON_COLORS = ['#b8b8b1', '#8f7a69', '#d7cab6', '#9a8b7a', '#d0b48a', '#a8a097', '#d6e0dd'];
 const NAME_CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -72,13 +74,15 @@ export function createRandomSolarSystem(engine: Engine, config: RandomSolarSyste
         weightedCount(config.probabilities?.starCount ?? DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.starCount) + 1;
     const planetCount =
         weightedCount(config.probabilities?.planetCount ?? DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.planetCount) + 1;
+    const randomStarColor = Math.floor(randomNumber(0, STAR_COLORS.length));
+    assert(STAR_COLORS.length === STAR_TEXTURES.length);
     const primaryStarSpec: CelestialBodySpec = {
         name: randomName(),
-        radiusKm: randomNumber(320_000, 760_000),
-        massKg: randomNumber(8e29, 2.1e30),
-        color: STAR_COLORS[Math.floor(randomNumber(0, STAR_COLORS.length))],
+        radiusKm: randomNumber(120_000, 1_060_000),
+        massKg: randomNumber(8e29, 40e30),
+        color: STAR_COLORS[randomStarColor],
         labelFontSize: 20,
-        texture: STAR_TEXTURES[Math.floor(randomNumber(0, STAR_TEXTURES.length))],
+        texture: STAR_TEXTURES[randomStarColor],
     };
     const primaryStar = createBody(primaryStarSpec, BodyType.STAR);
 
@@ -122,7 +126,9 @@ export function createRandomSolarSystem(engine: Engine, config: RandomSolarSyste
         renderStyles.set(planet.id, createRenderStyle(planetSpec, BodyType.PLANET));
 
         let moonOrbitRadiusKm = Math.max(80_000, radiusKm * randomNumber(8, 18));
-        const moonCount = weightedCount(config.probabilities?.moonCount ?? DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.moonCount);
+        const moonCount = weightedCount(
+            config.probabilities?.moonCount ?? DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.moonCount,
+        );
 
         for (let j = 0; j < moonCount; j++) {
             const moonRadiusKm = randomNumber(90, Math.min(2_900, radiusKm * 0.45));

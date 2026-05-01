@@ -5,6 +5,7 @@ export const TEXTURES = {
 
     // Planet orbit sprites
     planetSun: 'assets/sun.png',
+    blueStar: 'assets/blue-star.png',
     planetMercury: 'assets/mercury.png',
     planetVenus: 'assets/venus.png',
     planetEarth: 'assets/earth.png',

@@ -108,7 +108,7 @@ export default class Application {
         }
 
         if (this.demoIndex === 3) {
-            Graphics.zoom = 0.12;
+            Graphics.zoom = 0.2;
             const solarSystem = createTripleStarSystem(this.engine);
             this.bodyRenderStyles = solarSystem.renderStyles;
         }
@@ -298,11 +298,13 @@ export default class Application {
 
         const viewport = Graphics.getRenderViewport();
 
-        for (const body of this.engine.getBodies()) {
-            if (this.showTextures && body.bodyType === BodyType.STAR) {
+        if (this.showTextures) {
+            for (const body of this.engine.getBodies()) {
                 Graphics.drawStarLight(body, this.bodyRenderStyles.get(body.id), viewport);
             }
+        }
 
+        for (const body of this.engine.getBodies()) {
             Graphics.drawBody(
                 body,
                 this.bodyRenderStyles.get(body.id),

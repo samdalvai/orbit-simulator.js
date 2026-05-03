@@ -25,8 +25,18 @@ type CircleProgram = {
     zoomUniform: WebGLUniformLocation;
 };
 
+type CircleBatch = {
+    unitPositionBuffer: WebGLBuffer;
+    instanceBuffer: WebGLBuffer;
+    vertexCount: number;
+    drawMode: number;
+    instances: Float32Array;
+    count: number;
+};
+
 const FLOATS_PER_CIRCLE_INSTANCE = 7;
 const CIRCLE_SEGMENTS = 96;
+const INITIAL_CIRCLE_BATCH_CAPACITY = 1024;
 
 const NAMED_COLORS: Record<string, Color> = {
     black: [0, 0, 0, 1],
@@ -70,13 +80,10 @@ export default class WebGLRenderer {
     private readonly gl: WebGLContext;
     private readonly instancing: InstancingApi;
     private readonly circleProgram: CircleProgram;
-    private readonly circleUnitPositionBuffer: WebGLBuffer;
-    private readonly circleInstanceBuffer: WebGLBuffer;
-    private readonly circleVertexCount: number;
+    private readonly emptyCircleBatch: CircleBatch;
+    private readonly filledCircleBatch: CircleBatch;
     private readonly colorCache = new Map<string, Color>();
 
-    private circleInstances = new Float32Array(1024 * FLOATS_PER_CIRCLE_INSTANCE);
-    private circleCount = 0;
     private camera: WebGLCamera = {
         width: 1,
         height: 1,
@@ -126,9 +133,8 @@ export default class WebGLRenderer {
         this.gl = gl;
         this.instancing = instancing;
         this.circleProgram = this.createCircleProgram();
-        this.circleUnitPositionBuffer = this.createBuffer();
-        this.circleInstanceBuffer = this.createBuffer();
-        this.circleVertexCount = this.uploadCircleUnitPositions();
+        this.emptyCircleBatch = this.createCircleBatch(this.createEmptyCircleUnitPositions(), gl.LINES);
+        this.filledCircleBatch = this.createCircleBatch(this.createFilledCircleUnitPositions(), gl.TRIANGLES);
 
         gl.disable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
@@ -142,44 +148,54 @@ export default class WebGLRenderer {
 
     beginFrame(camera: WebGLCamera): void {
         this.camera = camera;
-        this.circleCount = 0;
+        this.emptyCircleBatch.count = 0;
+        this.filledCircleBatch.count = 0;
 
         this.gl.viewport(0, 0, camera.width, camera.height);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     }
 
     drawCircle(x: number, y: number, radius: number, color = 'white'): void {
+        this.queueCircle(this.emptyCircleBatch, x, y, radius, color);
+    }
+
+    drawFilledCircle(x: number, y: number, radius: number, color = 'white'): void {
+        this.queueCircle(this.filledCircleBatch, x, y, radius, color);
+    }
+
+    flush(): void {
+        this.flushCircleBatch(this.filledCircleBatch);
+        this.flushCircleBatch(this.emptyCircleBatch);
+    }
+
+    private queueCircle(batch: CircleBatch, x: number, y: number, radius: number, color: string): void {
         if (radius <= 0) {
             return;
         }
 
-        this.ensureCircleCapacity(this.circleCount + 1);
+        this.ensureCircleCapacity(batch, batch.count + 1);
 
         const parsedColor = this.parseColor(color);
-        let offset = this.circleCount * FLOATS_PER_CIRCLE_INSTANCE;
+        let offset = batch.count * FLOATS_PER_CIRCLE_INSTANCE;
 
-        this.circleInstances[offset++] = x;
-        this.circleInstances[offset++] = y;
-        this.circleInstances[offset++] = radius;
-        this.circleInstances[offset++] = parsedColor[0];
-        this.circleInstances[offset++] = parsedColor[1];
-        this.circleInstances[offset++] = parsedColor[2];
-        this.circleInstances[offset] = parsedColor[3];
+        batch.instances[offset++] = x;
+        batch.instances[offset++] = y;
+        batch.instances[offset++] = radius;
+        batch.instances[offset++] = parsedColor[0];
+        batch.instances[offset++] = parsedColor[1];
+        batch.instances[offset++] = parsedColor[2];
+        batch.instances[offset] = parsedColor[3];
 
-        this.circleCount += 1;
+        batch.count += 1;
     }
 
-    flush(): void {
-        this.flushCircles();
-    }
-
-    private flushCircles(): void {
-        if (this.circleCount === 0) {
+    private flushCircleBatch(batch: CircleBatch): void {
+        if (batch.count === 0) {
             return;
         }
 
         const gl = this.gl;
-        const instanceData = this.circleInstances.subarray(0, this.circleCount * FLOATS_PER_CIRCLE_INSTANCE);
+        const instanceData = batch.instances.subarray(0, batch.count * FLOATS_PER_CIRCLE_INSTANCE);
         const stride = FLOATS_PER_CIRCLE_INSTANCE * Float32Array.BYTES_PER_ELEMENT;
 
         gl.useProgram(this.circleProgram.program);
@@ -187,12 +203,12 @@ export default class WebGLRenderer {
         gl.uniform2f(this.circleProgram.panUniform, this.camera.panX, this.camera.panY);
         gl.uniform1f(this.circleProgram.zoomUniform, this.camera.zoom);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.circleUnitPositionBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, batch.unitPositionBuffer);
         gl.enableVertexAttribArray(this.circleProgram.unitPositionAttribute);
         gl.vertexAttribPointer(this.circleProgram.unitPositionAttribute, 2, gl.FLOAT, false, 0, 0);
         this.instancing.vertexAttribDivisor(this.circleProgram.unitPositionAttribute, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.circleInstanceBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, batch.instanceBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, instanceData, gl.DYNAMIC_DRAW);
 
         gl.enableVertexAttribArray(this.circleProgram.centerRadiusAttribute);
@@ -211,7 +227,7 @@ export default class WebGLRenderer {
         this.instancing.vertexAttribDivisor(this.circleProgram.colorAttribute, 1);
 
         gl.lineWidth(1);
-        this.instancing.drawArraysInstanced(gl.LINES, 0, this.circleVertexCount, this.circleCount);
+        this.instancing.drawArraysInstanced(batch.drawMode, 0, batch.vertexCount, batch.count);
     }
 
     private createCircleProgram(): CircleProgram {
@@ -234,7 +250,24 @@ export default class WebGLRenderer {
         };
     }
 
-    private uploadCircleUnitPositions(): number {
+    private createCircleBatch(unitPositions: Float32Array, drawMode: number): CircleBatch {
+        const unitPositionBuffer = this.createBuffer();
+        const instanceBuffer = this.createBuffer();
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, unitPositionBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, unitPositions, this.gl.STATIC_DRAW);
+
+        return {
+            unitPositionBuffer,
+            instanceBuffer,
+            vertexCount: unitPositions.length / 2,
+            drawMode,
+            instances: new Float32Array(INITIAL_CIRCLE_BATCH_CAPACITY * FLOATS_PER_CIRCLE_INSTANCE),
+            count: 0,
+        };
+    }
+
+    private createEmptyCircleUnitPositions(): Float32Array {
         const vertices = new Float32Array(CIRCLE_SEGMENTS * 2 * 2);
         let offset = 0;
 
@@ -248,27 +281,43 @@ export default class WebGLRenderer {
             vertices[offset++] = Math.sin(endAngle);
         }
 
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.circleUnitPositionBuffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
-
-        return vertices.length / 2;
+        return vertices;
     }
 
-    private ensureCircleCapacity(circleCapacity: number): void {
+    private createFilledCircleUnitPositions(): Float32Array {
+        const vertices = new Float32Array(CIRCLE_SEGMENTS * 3 * 2);
+        let offset = 0;
+
+        for (let i = 0; i < CIRCLE_SEGMENTS; i++) {
+            const startAngle = (i / CIRCLE_SEGMENTS) * Math.PI * 2;
+            const endAngle = ((i + 1) / CIRCLE_SEGMENTS) * Math.PI * 2;
+
+            vertices[offset++] = 0;
+            vertices[offset++] = 0;
+            vertices[offset++] = Math.cos(startAngle);
+            vertices[offset++] = Math.sin(startAngle);
+            vertices[offset++] = Math.cos(endAngle);
+            vertices[offset++] = Math.sin(endAngle);
+        }
+
+        return vertices;
+    }
+
+    private ensureCircleCapacity(batch: CircleBatch, circleCapacity: number): void {
         const floatCapacity = circleCapacity * FLOATS_PER_CIRCLE_INSTANCE;
 
-        if (floatCapacity <= this.circleInstances.length) {
+        if (floatCapacity <= batch.instances.length) {
             return;
         }
 
-        let nextCapacity = this.circleInstances.length;
+        let nextCapacity = batch.instances.length;
         while (nextCapacity < floatCapacity) {
             nextCapacity *= 2;
         }
 
         const nextInstances = new Float32Array(nextCapacity);
-        nextInstances.set(this.circleInstances);
-        this.circleInstances = nextInstances;
+        nextInstances.set(batch.instances);
+        batch.instances = nextInstances;
     }
 
     private createBuffer(): WebGLBuffer {

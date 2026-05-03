@@ -365,16 +365,13 @@ export default class Graphics {
 
         if (!showTextures) {
             this.webglRenderer.drawCircle(x, y, radius, strokeColor);
+        } else if (!texture) {
+            this.webglRenderer.drawFilledCircle(x, y, radius, fillColor);
         } else {
             this.ctx.save();
             this.ctx.translate(x, y);
 
-            if (texture) {
-                this.drawTexture(radius * 2, radius * 2, texture, 0, 0, 1.2);
-            } else {
-                this.drawFillCircle(0, 0, radius, fillColor);
-            }
-
+            this.drawTexture(radius * 2, radius * 2, texture, 0, 0, 1.2);
             this.ctx.restore();
         }
 

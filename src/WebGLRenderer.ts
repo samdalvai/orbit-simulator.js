@@ -52,12 +52,30 @@ type TextureBatch = {
     count: number;
 };
 
+type GlowProgram = {
+    program: WebGLProgram;
+    unitPositionAttribute: number;
+    centerInnerOuterAttribute: number;
+    colorAttribute: number;
+    resolutionUniform: WebGLUniformLocation;
+    panUniform: WebGLUniformLocation;
+    zoomUniform: WebGLUniformLocation;
+};
+
+type GlowBatch = {
+    instanceBuffer: WebGLBuffer;
+    instances: Float32Array;
+    count: number;
+};
+
 const FLOATS_PER_CIRCLE_INSTANCE = 7;
 const FLOATS_PER_TEXTURE_VERTEX = 4;
 const FLOATS_PER_TEXTURE_INSTANCE = 4;
+const FLOATS_PER_GLOW_INSTANCE = 8;
 const CIRCLE_SEGMENTS = 96;
 const INITIAL_CIRCLE_BATCH_CAPACITY = 1024;
 const INITIAL_TEXTURE_BATCH_CAPACITY = 256;
+const INITIAL_GLOW_BATCH_CAPACITY = 64;
 
 const NAMED_COLORS: Record<string, Color> = {
     black: [0, 0, 0, 1],
@@ -131,13 +149,64 @@ void main() {
 }
 `;
 
+const GLOW_VERTEX_SHADER_SOURCE = `
+precision highp float;
+
+attribute vec2 a_unitPosition;
+attribute vec4 a_centerInnerOuter;
+attribute vec4 a_color;
+
+uniform vec2 u_resolution;
+uniform vec2 u_pan;
+uniform float u_zoom;
+
+varying vec2 v_unitPosition;
+varying vec2 v_innerOuterRadius;
+varying vec4 v_color;
+
+void main() {
+    vec2 worldPosition = a_centerInnerOuter.xy + a_unitPosition * a_centerInnerOuter.w;
+    vec2 clipPosition = ((worldPosition - u_pan) * u_zoom) / (u_resolution * 0.5);
+
+    gl_Position = vec4(clipPosition, 0.0, 1.0);
+    v_unitPosition = a_unitPosition;
+    v_innerOuterRadius = a_centerInnerOuter.zw;
+    v_color = a_color;
+}
+`;
+
+const GLOW_FRAGMENT_SHADER_SOURCE = `
+precision mediump float;
+
+varying vec2 v_unitPosition;
+varying vec2 v_innerOuterRadius;
+varying vec4 v_color;
+
+void main() {
+    float distanceFromCenter = length(v_unitPosition);
+
+    if (distanceFromCenter > 1.0) {
+        discard;
+    }
+
+    float innerRatio = clamp(v_innerOuterRadius.x / v_innerOuterRadius.y, 0.0, 1.0);
+    float fadeStart = innerRatio + (1.0 - innerRatio) * 0.15;
+    float fadeRange = max(0.0001, 1.0 - fadeStart);
+    float alpha = 1.0 - clamp((distanceFromCenter - fadeStart) / fadeRange, 0.0, 1.0);
+
+    gl_FragColor = vec4(v_color.rgb, v_color.a * alpha);
+}
+`;
+
 export default class WebGLRenderer {
     private readonly gl: WebGLContext;
     private readonly instancing: InstancingApi;
     private readonly circleProgram: CircleProgram;
     private readonly textureProgram: TextureProgram;
+    private readonly glowProgram: GlowProgram;
     private readonly emptyCircleBatch: CircleBatch;
     private readonly filledCircleBatch: CircleBatch;
+    private readonly glowBatch: GlowBatch;
     private readonly textureQuadBuffer: WebGLBuffer;
     private readonly textureBatches = new Map<ImageBitmap, TextureBatch>();
     private readonly colorCache = new Map<string, Color>();
@@ -192,8 +261,10 @@ export default class WebGLRenderer {
         this.instancing = instancing;
         this.circleProgram = this.createCircleProgram();
         this.textureProgram = this.createTextureProgram();
+        this.glowProgram = this.createGlowProgram();
         this.emptyCircleBatch = this.createCircleBatch(this.createEmptyCircleUnitPositions(), gl.LINES);
         this.filledCircleBatch = this.createCircleBatch(this.createFilledCircleUnitPositions(), gl.TRIANGLES);
+        this.glowBatch = this.createGlowBatch();
         this.textureQuadBuffer = this.createTextureQuadBuffer();
 
         gl.disable(gl.DEPTH_TEST);
@@ -210,6 +281,7 @@ export default class WebGLRenderer {
         this.camera = camera;
         this.emptyCircleBatch.count = 0;
         this.filledCircleBatch.count = 0;
+        this.glowBatch.count = 0;
         this.textureBatches.forEach(batch => {
             batch.count = 0;
         });
@@ -251,7 +323,30 @@ export default class WebGLRenderer {
         batch.count += 1;
     }
 
+    drawGlow(x: number, y: number, innerRadius: number, outerRadius: number, color = 'white', alpha = 1): void {
+        if (innerRadius < 0 || outerRadius <= 0 || outerRadius < innerRadius || alpha <= 0) {
+            return;
+        }
+
+        this.ensureGlowCapacity(this.glowBatch.count + 1);
+
+        const parsedColor = this.parseColor(color);
+        let offset = this.glowBatch.count * FLOATS_PER_GLOW_INSTANCE;
+
+        this.glowBatch.instances[offset++] = x;
+        this.glowBatch.instances[offset++] = y;
+        this.glowBatch.instances[offset++] = innerRadius;
+        this.glowBatch.instances[offset++] = outerRadius;
+        this.glowBatch.instances[offset++] = parsedColor[0];
+        this.glowBatch.instances[offset++] = parsedColor[1];
+        this.glowBatch.instances[offset++] = parsedColor[2];
+        this.glowBatch.instances[offset] = parsedColor[3] * alpha;
+
+        this.glowBatch.count += 1;
+    }
+
     flush(): void {
+        this.flushGlowBatch();
         this.flushCircleBatch(this.filledCircleBatch);
         this.flushTextureBatches();
         this.flushCircleBatch(this.emptyCircleBatch);
@@ -317,6 +412,55 @@ export default class WebGLRenderer {
 
         gl.lineWidth(1);
         this.instancing.drawArraysInstanced(batch.drawMode, 0, batch.vertexCount, batch.count);
+    }
+
+    private flushGlowBatch(): void {
+        if (this.glowBatch.count === 0) {
+            return;
+        }
+
+        const gl = this.gl;
+        const instanceData = this.glowBatch.instances.subarray(0, this.glowBatch.count * FLOATS_PER_GLOW_INSTANCE);
+        const instanceStride = FLOATS_PER_GLOW_INSTANCE * Float32Array.BYTES_PER_ELEMENT;
+
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+        gl.useProgram(this.glowProgram.program);
+        gl.uniform2f(this.glowProgram.resolutionUniform, this.camera.width, this.camera.height);
+        gl.uniform2f(this.glowProgram.panUniform, this.camera.panX, this.camera.panY);
+        gl.uniform1f(this.glowProgram.zoomUniform, this.camera.zoom);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.textureQuadBuffer);
+        gl.enableVertexAttribArray(this.glowProgram.unitPositionAttribute);
+        gl.vertexAttribPointer(
+            this.glowProgram.unitPositionAttribute,
+            2,
+            gl.FLOAT,
+            false,
+            FLOATS_PER_TEXTURE_VERTEX * Float32Array.BYTES_PER_ELEMENT,
+            0,
+        );
+        this.instancing.vertexAttribDivisor(this.glowProgram.unitPositionAttribute, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.glowBatch.instanceBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, instanceData, gl.DYNAMIC_DRAW);
+
+        gl.enableVertexAttribArray(this.glowProgram.centerInnerOuterAttribute);
+        gl.vertexAttribPointer(this.glowProgram.centerInnerOuterAttribute, 4, gl.FLOAT, false, instanceStride, 0);
+        this.instancing.vertexAttribDivisor(this.glowProgram.centerInnerOuterAttribute, 1);
+
+        gl.enableVertexAttribArray(this.glowProgram.colorAttribute);
+        gl.vertexAttribPointer(
+            this.glowProgram.colorAttribute,
+            4,
+            gl.FLOAT,
+            false,
+            instanceStride,
+            4 * Float32Array.BYTES_PER_ELEMENT,
+        );
+        this.instancing.vertexAttribDivisor(this.glowProgram.colorAttribute, 1);
+
+        this.instancing.drawArraysInstanced(gl.TRIANGLES, 0, 6, this.glowBatch.count);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     }
 
     private flushTextureBatches(): void {
@@ -416,6 +560,26 @@ export default class WebGLRenderer {
         };
     }
 
+    private createGlowProgram(): GlowProgram {
+        const program = this.createProgram(GLOW_VERTEX_SHADER_SOURCE, GLOW_FRAGMENT_SHADER_SOURCE);
+        const unitPositionAttribute = this.getAttributeLocation(program, 'a_unitPosition');
+        const centerInnerOuterAttribute = this.getAttributeLocation(program, 'a_centerInnerOuter');
+        const colorAttribute = this.getAttributeLocation(program, 'a_color');
+        const resolutionUniform = this.getUniformLocation(program, 'u_resolution');
+        const panUniform = this.getUniformLocation(program, 'u_pan');
+        const zoomUniform = this.getUniformLocation(program, 'u_zoom');
+
+        return {
+            program,
+            unitPositionAttribute,
+            centerInnerOuterAttribute,
+            colorAttribute,
+            resolutionUniform,
+            panUniform,
+            zoomUniform,
+        };
+    }
+
     private createCircleBatch(unitPositions: Float32Array, drawMode: number): CircleBatch {
         const unitPositionBuffer = this.createBuffer();
         const instanceBuffer = this.createBuffer();
@@ -429,6 +593,14 @@ export default class WebGLRenderer {
             vertexCount: unitPositions.length / 2,
             drawMode,
             instances: new Float32Array(INITIAL_CIRCLE_BATCH_CAPACITY * FLOATS_PER_CIRCLE_INSTANCE),
+            count: 0,
+        };
+    }
+
+    private createGlowBatch(): GlowBatch {
+        return {
+            instanceBuffer: this.createBuffer(),
+            instances: new Float32Array(INITIAL_GLOW_BATCH_CAPACITY * FLOATS_PER_GLOW_INSTANCE),
             count: 0,
         };
     }
@@ -513,6 +685,23 @@ export default class WebGLRenderer {
         const nextInstances = new Float32Array(nextCapacity);
         nextInstances.set(batch.instances);
         batch.instances = nextInstances;
+    }
+
+    private ensureGlowCapacity(glowCapacity: number): void {
+        const floatCapacity = glowCapacity * FLOATS_PER_GLOW_INSTANCE;
+
+        if (floatCapacity <= this.glowBatch.instances.length) {
+            return;
+        }
+
+        let nextCapacity = this.glowBatch.instances.length;
+        while (nextCapacity < floatCapacity) {
+            nextCapacity *= 2;
+        }
+
+        const nextInstances = new Float32Array(nextCapacity);
+        nextInstances.set(this.glowBatch.instances);
+        this.glowBatch.instances = nextInstances;
     }
 
     private getTextureBatch(textureSource: ImageBitmap): TextureBatch {

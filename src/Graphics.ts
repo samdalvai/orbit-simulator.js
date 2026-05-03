@@ -306,19 +306,14 @@ export default class Graphics {
             return;
         }
 
-        const gradient = this.ctx.createRadialGradient(x, y, radius, x, y, lightRadius);
-        gradient.addColorStop(0, renderStyle.fillColor);
-        gradient.addColorStop(0.15, renderStyle.fillColor);
-        gradient.addColorStop(1, 'transparent');
-
-        this.ctx.save();
-        this.ctx.globalCompositeOperation = 'lighter';
-        this.ctx.globalAlpha = Math.max(0.25, Math.min(0.75, 0.28 + massFactor * 0.12));
-        this.ctx.fillStyle = gradient;
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, lightRadius, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.restore();
+        this.webglRenderer.drawGlow(
+            x,
+            y,
+            radius,
+            lightRadius,
+            renderStyle.fillColor,
+            Math.max(0.25, Math.min(0.75, 0.28 + massFactor * 0.12)),
+        );
     }
 
     static drawBody(

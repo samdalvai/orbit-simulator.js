@@ -9,7 +9,23 @@ body {
 
 canvas {
   display: block;
+}
+
+#webglCanvas,
+#renderCanvas {
+  position: fixed;
+  inset: 0;
   width: 100vw;
   height: 100vh;
+}
+
+#webglCanvas {
+  z-index: 0;
   background-color: black;
+}
+
+#renderCanvas {
+  z-index: 1;
+  background-color: transparent;
+  pointer-events: none;
 }

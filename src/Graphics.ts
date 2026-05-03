@@ -13,6 +13,7 @@ import {
     STAR_RADIUS_RENDERING_SCALE,
 } from './Constants';
 import { Vec2 } from './Vec2';
+import WebGLRenderer from './WebGLRenderer';
 
 export type RenderViewport = {
     minX: number;
@@ -27,37 +28,57 @@ const SOLAR_MASS_KG = 1.98847e30;
 export default class Graphics {
     static windowWidth: number;
     static windowHeight: number;
+    static webglCanvas: HTMLCanvasElement;
     static canvas: HTMLCanvasElement;
     static ctx: CanvasRenderingContext2D;
+    static webglRenderer: WebGLRenderer;
 
     static zoom = 1;
     static pan = new Vec2(0, 0);
 
     static openWindow(): boolean {
-        const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
+        const canvas = document.getElementById('renderCanvas');
+        const webglCanvas = document.getElementById('webglCanvas');
+
+        if (!(canvas instanceof HTMLCanvasElement) || !(webglCanvas instanceof HTMLCanvasElement)) {
+            console.error('Failed to find the render canvases.');
+            return false;
+        }
+
         const ctx = canvas.getContext('2d');
+        const webglRenderer = WebGLRenderer.create(webglCanvas);
 
         if (!ctx) {
             console.error('Failed to get 2D context for the canvas.');
             return false;
         }
 
+        if (!webglRenderer) {
+            console.error('Failed to initialize WebGL renderer.');
+            return false;
+        }
+
         this.canvas = canvas;
+        this.webglCanvas = webglCanvas;
         this.ctx = ctx;
-        this.resize(canvas);
+        this.webglRenderer = webglRenderer;
+        this.resize();
 
         window.addEventListener('resize', () => {
-            this.resize(canvas);
+            this.resize();
         });
 
         return true;
     }
 
-    static resize(canvas: HTMLCanvasElement): void {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+    static resize(): void {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        this.webglCanvas.width = window.innerWidth;
+        this.webglCanvas.height = window.innerHeight;
         this.windowWidth = window.innerWidth;
         this.windowHeight = window.innerHeight;
+        this.webglRenderer.resize(this.windowWidth, this.windowHeight);
     }
 
     static width(): number {
@@ -93,7 +114,19 @@ export default class Graphics {
     }
 
     static clearScreen(): void {
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.webglRenderer.beginFrame({
+            width: this.windowWidth,
+            height: this.windowHeight,
+            panX: this.pan.x,
+            panY: this.pan.y,
+            zoom: this.zoom,
+        });
+    }
+
+    static flush(): void {
+        this.webglRenderer.flush();
     }
 
     static getRenderViewport(): RenderViewport {
@@ -330,18 +363,20 @@ export default class Graphics {
             return;
         }
 
-        this.ctx.save();
-        this.ctx.translate(x, y);
-
         if (!showTextures) {
-            this.drawCircle(radius, strokeColor);
-        } else if (texture) {
-            this.drawTexture(radius * 2, radius * 2, texture, 0, 0, 1.2);
+            this.webglRenderer.drawCircle(x, y, radius, strokeColor);
         } else {
-            this.drawFillCircle(0, 0, radius, fillColor);
-        }
+            this.ctx.save();
+            this.ctx.translate(x, y);
 
-        this.ctx.restore();
+            if (texture) {
+                this.drawTexture(radius * 2, radius * 2, texture, 0, 0, 1.2);
+            } else {
+                this.drawFillCircle(0, 0, radius, fillColor);
+            }
+
+            this.ctx.restore();
+        }
 
         if (drawLabel) {
             const labelColor = renderStyle.labelColor;

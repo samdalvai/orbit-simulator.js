@@ -297,14 +297,15 @@ export default class Application {
         Graphics.beginWorld();
 
         const viewport = Graphics.getRenderViewport();
+        const bodies = this.engine.getBodies();
 
         if (this.showTextures) {
-            for (const body of this.engine.getBodies()) {
+            for (const body of bodies) {
                 Graphics.drawStarLight(body, this.bodyRenderStyles.get(body.id), viewport);
             }
         }
 
-        for (const body of this.engine.getBodies()) {
+        for (const body of bodies) {
             Graphics.drawBody(
                 body,
                 this.bodyRenderStyles.get(body.id),
@@ -315,6 +316,7 @@ export default class Application {
             );
         }
 
+        Graphics.flush();
         Graphics.endWorld();
 
         if (!this.debug) {
@@ -329,7 +331,7 @@ export default class Application {
         const stats: Array<[string, string]> = [
             ['Demo', DEMO_LABELS[this.demoIndex - 1]],
             ['Paused', this.paused ? 'ON' : 'OFF'],
-            ['Bodies', `${this.engine.getBodies().length}/${MAX_BODIES}`],
+            ['Bodies', `${bodies.length}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
             ['Zoom', Graphics.zoom.toFixed(4)],
             ['Labels', this.showLabels ? 'ON' : 'OFF'],

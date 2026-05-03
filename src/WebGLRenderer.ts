@@ -34,9 +34,30 @@ type CircleBatch = {
     count: number;
 };
 
+type TextureProgram = {
+    program: WebGLProgram;
+    unitPositionAttribute: number;
+    textureCoordAttribute: number;
+    centerSizeAttribute: number;
+    resolutionUniform: WebGLUniformLocation;
+    panUniform: WebGLUniformLocation;
+    zoomUniform: WebGLUniformLocation;
+    textureUniform: WebGLUniformLocation;
+};
+
+type TextureBatch = {
+    texture: WebGLTexture;
+    instanceBuffer: WebGLBuffer;
+    instances: Float32Array;
+    count: number;
+};
+
 const FLOATS_PER_CIRCLE_INSTANCE = 7;
+const FLOATS_PER_TEXTURE_VERTEX = 4;
+const FLOATS_PER_TEXTURE_INSTANCE = 4;
 const CIRCLE_SEGMENTS = 96;
 const INITIAL_CIRCLE_BATCH_CAPACITY = 1024;
+const INITIAL_TEXTURE_BATCH_CAPACITY = 256;
 
 const NAMED_COLORS: Record<string, Color> = {
     black: [0, 0, 0, 1],
@@ -76,12 +97,49 @@ void main() {
 }
 `;
 
+const TEXTURE_VERTEX_SHADER_SOURCE = `
+precision highp float;
+
+attribute vec2 a_unitPosition;
+attribute vec2 a_textureCoord;
+attribute vec4 a_centerSize;
+
+uniform vec2 u_resolution;
+uniform vec2 u_pan;
+uniform float u_zoom;
+
+varying vec2 v_textureCoord;
+
+void main() {
+    vec2 worldPosition = a_centerSize.xy + a_unitPosition * a_centerSize.zw;
+    vec2 clipPosition = ((worldPosition - u_pan) * u_zoom) / (u_resolution * 0.5);
+
+    gl_Position = vec4(clipPosition, 0.0, 1.0);
+    v_textureCoord = a_textureCoord;
+}
+`;
+
+const TEXTURE_FRAGMENT_SHADER_SOURCE = `
+precision mediump float;
+
+uniform sampler2D u_texture;
+
+varying vec2 v_textureCoord;
+
+void main() {
+    gl_FragColor = texture2D(u_texture, v_textureCoord);
+}
+`;
+
 export default class WebGLRenderer {
     private readonly gl: WebGLContext;
     private readonly instancing: InstancingApi;
     private readonly circleProgram: CircleProgram;
+    private readonly textureProgram: TextureProgram;
     private readonly emptyCircleBatch: CircleBatch;
     private readonly filledCircleBatch: CircleBatch;
+    private readonly textureQuadBuffer: WebGLBuffer;
+    private readonly textureBatches = new Map<ImageBitmap, TextureBatch>();
     private readonly colorCache = new Map<string, Color>();
 
     private camera: WebGLCamera = {
@@ -133,8 +191,10 @@ export default class WebGLRenderer {
         this.gl = gl;
         this.instancing = instancing;
         this.circleProgram = this.createCircleProgram();
+        this.textureProgram = this.createTextureProgram();
         this.emptyCircleBatch = this.createCircleBatch(this.createEmptyCircleUnitPositions(), gl.LINES);
         this.filledCircleBatch = this.createCircleBatch(this.createFilledCircleUnitPositions(), gl.TRIANGLES);
+        this.textureQuadBuffer = this.createTextureQuadBuffer();
 
         gl.disable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
@@ -150,6 +210,9 @@ export default class WebGLRenderer {
         this.camera = camera;
         this.emptyCircleBatch.count = 0;
         this.filledCircleBatch.count = 0;
+        this.textureBatches.forEach(batch => {
+            batch.count = 0;
+        });
 
         this.gl.viewport(0, 0, camera.width, camera.height);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -163,8 +226,34 @@ export default class WebGLRenderer {
         this.queueCircle(this.filledCircleBatch, x, y, radius, color);
     }
 
+    drawTexture(
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        textureSource: ImageBitmap,
+        textureScale = 1,
+    ): void {
+        if (width <= 0 || height <= 0 || textureScale <= 0) {
+            return;
+        }
+
+        const batch = this.getTextureBatch(textureSource);
+        this.ensureTextureCapacity(batch, batch.count + 1);
+
+        let offset = batch.count * FLOATS_PER_TEXTURE_INSTANCE;
+
+        batch.instances[offset++] = x;
+        batch.instances[offset++] = y;
+        batch.instances[offset++] = (width * textureScale) / 2;
+        batch.instances[offset] = (height * textureScale) / 2;
+
+        batch.count += 1;
+    }
+
     flush(): void {
         this.flushCircleBatch(this.filledCircleBatch);
+        this.flushTextureBatches();
         this.flushCircleBatch(this.emptyCircleBatch);
     }
 
@@ -230,6 +319,61 @@ export default class WebGLRenderer {
         this.instancing.drawArraysInstanced(batch.drawMode, 0, batch.vertexCount, batch.count);
     }
 
+    private flushTextureBatches(): void {
+        const gl = this.gl;
+        const stride = FLOATS_PER_TEXTURE_INSTANCE * Float32Array.BYTES_PER_ELEMENT;
+
+        gl.useProgram(this.textureProgram.program);
+        gl.uniform2f(this.textureProgram.resolutionUniform, this.camera.width, this.camera.height);
+        gl.uniform2f(this.textureProgram.panUniform, this.camera.panX, this.camera.panY);
+        gl.uniform1f(this.textureProgram.zoomUniform, this.camera.zoom);
+        gl.uniform1i(this.textureProgram.textureUniform, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.textureQuadBuffer);
+
+        gl.enableVertexAttribArray(this.textureProgram.unitPositionAttribute);
+        gl.vertexAttribPointer(
+            this.textureProgram.unitPositionAttribute,
+            2,
+            gl.FLOAT,
+            false,
+            FLOATS_PER_TEXTURE_VERTEX * Float32Array.BYTES_PER_ELEMENT,
+            0,
+        );
+        this.instancing.vertexAttribDivisor(this.textureProgram.unitPositionAttribute, 0);
+
+        gl.enableVertexAttribArray(this.textureProgram.textureCoordAttribute);
+        gl.vertexAttribPointer(
+            this.textureProgram.textureCoordAttribute,
+            2,
+            gl.FLOAT,
+            false,
+            FLOATS_PER_TEXTURE_VERTEX * Float32Array.BYTES_PER_ELEMENT,
+            2 * Float32Array.BYTES_PER_ELEMENT,
+        );
+        this.instancing.vertexAttribDivisor(this.textureProgram.textureCoordAttribute, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+
+        this.textureBatches.forEach(batch => {
+            if (batch.count === 0) {
+                return;
+            }
+
+            const instanceData = batch.instances.subarray(0, batch.count * FLOATS_PER_TEXTURE_INSTANCE);
+
+            gl.bindTexture(gl.TEXTURE_2D, batch.texture);
+            gl.bindBuffer(gl.ARRAY_BUFFER, batch.instanceBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, instanceData, gl.DYNAMIC_DRAW);
+
+            gl.enableVertexAttribArray(this.textureProgram.centerSizeAttribute);
+            gl.vertexAttribPointer(this.textureProgram.centerSizeAttribute, 4, gl.FLOAT, false, stride, 0);
+            this.instancing.vertexAttribDivisor(this.textureProgram.centerSizeAttribute, 1);
+
+            this.instancing.drawArraysInstanced(gl.TRIANGLES, 0, 6, batch.count);
+        });
+    }
+
     private createCircleProgram(): CircleProgram {
         const program = this.createProgram(CIRCLE_VERTEX_SHADER_SOURCE, CIRCLE_FRAGMENT_SHADER_SOURCE);
         const unitPositionAttribute = this.getAttributeLocation(program, 'a_unitPosition');
@@ -247,6 +391,28 @@ export default class WebGLRenderer {
             resolutionUniform,
             panUniform,
             zoomUniform,
+        };
+    }
+
+    private createTextureProgram(): TextureProgram {
+        const program = this.createProgram(TEXTURE_VERTEX_SHADER_SOURCE, TEXTURE_FRAGMENT_SHADER_SOURCE);
+        const unitPositionAttribute = this.getAttributeLocation(program, 'a_unitPosition');
+        const textureCoordAttribute = this.getAttributeLocation(program, 'a_textureCoord');
+        const centerSizeAttribute = this.getAttributeLocation(program, 'a_centerSize');
+        const resolutionUniform = this.getUniformLocation(program, 'u_resolution');
+        const panUniform = this.getUniformLocation(program, 'u_pan');
+        const zoomUniform = this.getUniformLocation(program, 'u_zoom');
+        const textureUniform = this.getUniformLocation(program, 'u_texture');
+
+        return {
+            program,
+            unitPositionAttribute,
+            textureCoordAttribute,
+            centerSizeAttribute,
+            resolutionUniform,
+            panUniform,
+            zoomUniform,
+            textureUniform,
         };
     }
 
@@ -303,6 +469,18 @@ export default class WebGLRenderer {
         return vertices;
     }
 
+    private createTextureQuadBuffer(): WebGLBuffer {
+        const buffer = this.createBuffer();
+        const vertices = new Float32Array([
+            -1, -1, 0, 1, 1, -1, 1, 1, 1, 1, 1, 0, -1, -1, 0, 1, 1, 1, 1, 0, -1, 1, 0, 0,
+        ]);
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
+
+        return buffer;
+    }
+
     private ensureCircleCapacity(batch: CircleBatch, circleCapacity: number): void {
         const floatCapacity = circleCapacity * FLOATS_PER_CIRCLE_INSTANCE;
 
@@ -318,6 +496,60 @@ export default class WebGLRenderer {
         const nextInstances = new Float32Array(nextCapacity);
         nextInstances.set(batch.instances);
         batch.instances = nextInstances;
+    }
+
+    private ensureTextureCapacity(batch: TextureBatch, textureCapacity: number): void {
+        const floatCapacity = textureCapacity * FLOATS_PER_TEXTURE_INSTANCE;
+
+        if (floatCapacity <= batch.instances.length) {
+            return;
+        }
+
+        let nextCapacity = batch.instances.length;
+        while (nextCapacity < floatCapacity) {
+            nextCapacity *= 2;
+        }
+
+        const nextInstances = new Float32Array(nextCapacity);
+        nextInstances.set(batch.instances);
+        batch.instances = nextInstances;
+    }
+
+    private getTextureBatch(textureSource: ImageBitmap): TextureBatch {
+        const existingBatch = this.textureBatches.get(textureSource);
+
+        if (existingBatch) {
+            return existingBatch;
+        }
+
+        const batch: TextureBatch = {
+            texture: this.createTexture(textureSource),
+            instanceBuffer: this.createBuffer(),
+            instances: new Float32Array(INITIAL_TEXTURE_BATCH_CAPACITY * FLOATS_PER_TEXTURE_INSTANCE),
+            count: 0,
+        };
+
+        this.textureBatches.set(textureSource, batch);
+        return batch;
+    }
+
+    private createTexture(textureSource: ImageBitmap): WebGLTexture {
+        const texture = this.gl.createTexture();
+
+        if (!texture) {
+            throw new Error('Failed to create WebGL texture.');
+        }
+
+        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+        this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, false);
+        this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, textureSource);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+
+        return texture;
     }
 
     private createBuffer(): WebGLBuffer {

@@ -1,5 +1,4 @@
 import createEngineModule from '../wasm/out/engine.js';
-
 import AssetStore from './AssetStore';
 import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
@@ -95,6 +94,7 @@ export default class Application {
             const err = wasmEngine._update(FIXED_DELTA_TIME);
 
             console.log('Wasm engine update result:', err);
+            console.log('Body count: ', wasmEngine._getBodyCount());
         } catch (err) {
             console.warn('Unable to run wasm engine example. Build it with `make -C wasm wasm` first.', err);
         }

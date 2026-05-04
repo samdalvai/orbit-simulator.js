@@ -3,7 +3,7 @@
 
 #define NO_PARENT -1
 
-int parents[MAX_BODIES];
+uint32_t parents[MAX_BODIES];
 uint32_t bodyTypes[MAX_BODIES];
 
 double radiuses[MAX_BODIES];
@@ -44,7 +44,7 @@ int addNewBody(
     uint32_t bodyType,
     double vX,
     double vY,
-    int parent)
+    uint32_t parent)
 {
 
     // TODO: check we don't go out of bounds and that mass is > 0

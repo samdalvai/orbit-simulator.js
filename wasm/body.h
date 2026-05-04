@@ -12,7 +12,7 @@ enum BodyType
     ASTEROID
 };
 
-extern int parents[MAX_BODIES];
+extern uint32_t parents[MAX_BODIES];
 extern uint32_t bodyTypes[MAX_BODIES];
 
 extern double radiuses[MAX_BODIES];
@@ -45,7 +45,7 @@ int addNewBody(
     uint32_t bodyType,
     double velX,
     double velY,
-    int parent);
+    uint32_t parent);
 int removeBody(int index);
 void addForceXY(int id, double x, double y);
 void clearForces(int id);

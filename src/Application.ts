@@ -241,6 +241,10 @@ export default class Application {
             switch (inputEvent.type) {
                 case 'mousedown':
                     {
+                        if (this.selectedPlanet) {
+                            this.selectedPlanet = null;
+                        }
+
                         switch (inputEvent.button) {
                             case MouseButton.LEFT:
                                 {
@@ -249,9 +253,12 @@ export default class Application {
                                     const pos = Graphics.getBodyRenderPosition(hoveredBody).scaleNew(
                                         KILOMETERS_TO_PIXELS_RENDERING_SCALE,
                                     );
+                                    this.selectedPlanet = hoveredBody;
 
                                     Graphics.pan = pos;
-                                    Graphics.zoom = 1;
+                                    if (Graphics.zoom < 1) {
+                                        Graphics.zoom = 1;
+                                    }
                                     this.selectedPlanet = hoveredBody;
                                 }
                                 break;
@@ -303,6 +310,13 @@ export default class Application {
     render(): void {
         Graphics.clearScreen();
         Graphics.beginWorld();
+
+        if (this.selectedPlanet) {
+            const pos = Graphics.getBodyRenderPosition(this.selectedPlanet).scaleNew(
+                KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+            );
+            Graphics.pan = pos;
+        }
 
         const viewport = Graphics.getRenderViewport();
 
@@ -500,7 +514,9 @@ export default class Application {
         const pos = Graphics.getBodyRenderPosition(nextBody).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
 
         Graphics.pan = pos;
-        Graphics.zoom = 1;
+        if (Graphics.zoom < 1) {
+            Graphics.zoom = 1;
+        }
         this.selectedPlanet = nextBody;
     }
 

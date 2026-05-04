@@ -33,7 +33,11 @@ int main(void)
 
     for (int i = 0; i < 10000; i++)
     {
-        update(simulation_dt());
+        int err = update(simulation_dt());
+
+        if (err != ENGINE_OK) {
+            return 1;
+        }
     }
     clock_t end = clock();
 

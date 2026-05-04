@@ -1,11 +1,9 @@
 #include "engine.h"
 #include "body.h"
 #include "gravity.h"
+#include "quad_tree.h"
 
-#define MAX_BODIES 10000
-#define G 6.6743e-20
-
-void update(double dt)
+int update(double dt)
 {
     int bodyCount = getBodyCount();
 
@@ -15,23 +13,37 @@ void update(double dt)
     }
 
     clearAllForces();
-    applyBarnesHutGravitationalForces(G, DEFAULT_THETA, DEFAULT_EPSILON);
+    int err = applyBarnesHutGravitationalForces(G, DEFAULT_THETA, DEFAULT_EPSILON);
+
+    if (err != QUAD_TREE_OK)
+    {
+        return err;
+    }
 
     for (int i = 0; i < bodyCount; i++)
     {
         integrateVerletVelocity(i, dt);
     }
+
+    return ENGINE_OK;
 }
 
-void initializeVerlet()
-{
+int initializeVerlet()
+{   
     clearAllForces();
-    applyBarnesHutGravitationalForces(G, DEFAULT_THETA, DEFAULT_EPSILON);
+    int err = applyBarnesHutGravitationalForces(G, DEFAULT_THETA, DEFAULT_EPSILON);
+
+    if (err != QUAD_TREE_OK)
+    {
+        return err;
+    }
 
     for (int i = 0; i < getBodyCount(); i++)
     {
         initializeAcceleration(i);
     }
+
+    return ENGINE_OK;
 }
 
 void clearAllForces()

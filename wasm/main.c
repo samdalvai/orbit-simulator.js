@@ -1,7 +1,8 @@
 #include <stdio.h>
+#include "engine.h"
 
 int main(void)
 {
-    printf("Hello world");
+    printf("Testing engine\n");
     return 0;
 }

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "engine.h"
+#include "constants.h"
 #include "body.h"
 
 int main(void)
@@ -11,5 +12,6 @@ int main(void)
     printf("Body count: %d\n", getBodyCount());
     removeBody(0);
     printf("Body count: %d\n", getBodyCount());
+    printf("DT: %f", simulation_dt());
     return 0;
 }

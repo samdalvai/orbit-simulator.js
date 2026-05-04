@@ -1,7 +1,7 @@
 import AssetStore from './AssetStore';
 import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
-import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
+import { FIXED_DELTA_TIME, G, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
 import { Engine } from './Engine';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
@@ -251,6 +251,7 @@ export default class Application {
                                     );
 
                                     Graphics.pan = pos;
+                                    Graphics.zoom = 1;
                                     this.selectedPlanet = hoveredBody;
                                 }
                                 break;
@@ -499,6 +500,7 @@ export default class Application {
         const pos = Graphics.getBodyRenderPosition(nextBody).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
 
         Graphics.pan = pos;
+        Graphics.zoom = 1;
         this.selectedPlanet = nextBody;
     }
 

@@ -241,11 +241,18 @@ export default class Application {
             switch (inputEvent.type) {
                 case 'mousedown':
                     {
-                        // const x = InputManager.mousePosition.x;
-                        // const y = InputManager.mousePosition.y;
-
                         switch (inputEvent.button) {
                             case MouseButton.LEFT:
+                                {
+                                    const hoveredBody = this.getHoveredBody();
+                                    if (!hoveredBody) return;
+                                    const pos = Graphics.getBodyRenderPosition(hoveredBody).scaleNew(
+                                        KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+                                    );
+
+                                    Graphics.pan = pos;
+                                    this.selectedPlanet = hoveredBody;
+                                }
                                 break;
                             case MouseButton.RIGHT:
                                 break;

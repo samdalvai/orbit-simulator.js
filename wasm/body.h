@@ -33,11 +33,11 @@ extern double sumForcesY[MAX_BODIES];
 extern double masses[MAX_BODIES];
 extern double invMasses[MAX_BODIES];
 
-extern int bodyCount;
+extern uint32_t bodyCount;
 
-int getBodyCount();
+uint32_t getBodyCount();
 void clearBodies();
-int addNewBody(
+uint32_t addNewBody(
     double x,
     double y,
     double radius,
@@ -46,7 +46,7 @@ int addNewBody(
     double velX,
     double velY,
     uint32_t parent);
-int removeBody(int index);
+uint32_t removeBody(int index);
 void addForceXY(int id, double x, double y);
 void clearForces(int id);
 void initializeAcceleration(int id);

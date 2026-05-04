@@ -24,9 +24,9 @@ double sumForcesY[MAX_BODIES];
 double masses[MAX_BODIES];
 double invMasses[MAX_BODIES];
 
-int bodyCount = 0;
+uint32_t bodyCount = 0;
 
-int getBodyCount()
+uint32_t getBodyCount()
 {
     return bodyCount;
 }
@@ -36,7 +36,7 @@ void clearBodies()
     bodyCount = 0;
 }
 
-int addNewBody(
+uint32_t addNewBody(
     double x,
     double y,
     double radius,
@@ -70,7 +70,7 @@ int addNewBody(
     return bodyCount++;
 }
 
-int removeBody(int index)
+uint32_t removeBody(int index)
 {
     // Utils.assert(id >= 0 && id < bodyCount, 'Body id out of bounds');
 

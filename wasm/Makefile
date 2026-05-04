@@ -67,4 +67,5 @@ $(OUT_DIR):
 	mkdir -p $(OUT_DIR)
 
 clean:
-	rm -rf $(OUT_DIR) build app
+	rm -rf build app
+	rm -f $(NATIVE_TARGET) $(WASM_JS_TARGET) $(OUT_DIR)/engine.wasm

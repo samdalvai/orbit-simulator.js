@@ -1,3 +1,5 @@
+import createEngineModule from '../wasm/out/engine.js';
+
 import AssetStore from './AssetStore';
 import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
@@ -84,6 +86,18 @@ export default class Application {
         this.running = Graphics.openWindow();
         this.createShortcutsButton();
         this.loadDemo();
+        await this.runWasmEngineExample();
+    }
+
+    private async runWasmEngineExample(): Promise<void> {
+        try {
+            const wasmEngine = await createEngineModule();
+            const err = wasmEngine._update(FIXED_DELTA_TIME);
+
+            console.log('Wasm engine update result:', err);
+        } catch (err) {
+            console.warn('Unable to run wasm engine example. Build it with `make -C wasm wasm` first.', err);
+        }
     }
 
     loadDemo() {

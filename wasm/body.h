@@ -46,5 +46,6 @@ int addNewBody(
     double velX,
     double velY,
     int parent);
+int removeBody(int index);
 
 #endif

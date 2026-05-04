@@ -9,5 +9,7 @@ int main(void)
 
     addNewBody(0, 0, 10, 10, 1, 1, 1, -1);
     printf("Body count: %d\n", getBodyCount());
+    removeBody(0);
+    printf("Body count: %d\n", getBodyCount());
     return 0;
 }

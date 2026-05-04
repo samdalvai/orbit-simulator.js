@@ -69,3 +69,30 @@ int addNewBody(
     // Body index === id
     return bodyCount++;
 }
+
+int removeBody(int index)
+{
+    // Utils.assert(id >= 0 && id < bodyCount, 'Body id out of bounds');
+
+    int lastIndex = bodyCount - 1;
+
+    parents[index] = parents[lastIndex];
+    bodyTypes[index] = bodyTypes[lastIndex];
+    radiuses[index] = radiuses[lastIndex];
+
+    posX[index] = posX[lastIndex];
+    posY[index] = posY[lastIndex];
+    velX[index] = velX[lastIndex];
+    velY[index] = velY[lastIndex];
+    accX[index] = accX[lastIndex];
+    accY[index] = accY[lastIndex];
+
+    sumForcesX[index] = sumForcesX[lastIndex];
+    sumForcesY[index] = sumForcesY[lastIndex];
+
+    masses[index] = masses[lastIndex];
+    invMasses[index] = invMasses[lastIndex];
+
+    bodyCount--;
+    return index;
+}

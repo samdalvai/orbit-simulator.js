@@ -21,18 +21,6 @@ let parentCount = 0;
 let thetaSquared = 0.5 * 0.5;
 let epsilonSquared = 1;
 
-export function getNodeCount(): number {
-    return nodeCount;
-}
-
-export function getParentCount(): number {
-    return parentCount;
-}
-
-export function getThetaSquared(): number {
-    return thetaSquared;
-}
-
 export function buildQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1): boolean {
     thetaSquared = theta * theta;
     epsilonSquared = epsilon * epsilon;

@@ -1,7 +1,7 @@
 import AssetStore from './AssetStore';
 import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
-import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
+import { FIXED_DELTA_TIME, G, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
 import { Engine } from './Engine';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
@@ -241,11 +241,26 @@ export default class Application {
             switch (inputEvent.type) {
                 case 'mousedown':
                     {
-                        // const x = InputManager.mousePosition.x;
-                        // const y = InputManager.mousePosition.y;
+                        if (this.selectedPlanet) {
+                            this.selectedPlanet = null;
+                        }
 
                         switch (inputEvent.button) {
                             case MouseButton.LEFT:
+                                {
+                                    const hoveredBody = this.getHoveredBody();
+                                    if (!hoveredBody) return;
+                                    const pos = Graphics.getBodyRenderPosition(hoveredBody).scaleNew(
+                                        KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+                                    );
+                                    this.selectedPlanet = hoveredBody;
+
+                                    Graphics.pan = pos;
+                                    if (Graphics.zoom < 1) {
+                                        Graphics.zoom = 1;
+                                    }
+                                    this.selectedPlanet = hoveredBody;
+                                }
                                 break;
                             case MouseButton.RIGHT:
                                 break;
@@ -295,6 +310,13 @@ export default class Application {
     render(): void {
         Graphics.clearScreen();
         Graphics.beginWorld();
+
+        if (this.selectedPlanet) {
+            const pos = Graphics.getBodyRenderPosition(this.selectedPlanet).scaleNew(
+                KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+            );
+            Graphics.pan = pos;
+        }
 
         const viewport = Graphics.getRenderViewport();
         const bodies = this.engine.getBodies();
@@ -494,6 +516,9 @@ export default class Application {
         const pos = Graphics.getBodyRenderPosition(nextBody).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
 
         Graphics.pan = pos;
+        if (Graphics.zoom < 1) {
+            Graphics.zoom = 1;
+        }
         this.selectedPlanet = nextBody;
     }
 

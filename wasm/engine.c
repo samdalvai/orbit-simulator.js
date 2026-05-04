@@ -1,5 +1,6 @@
 #include "engine.h"
 #include "body.h"
+#include "gravity.h"
 
 #define MAX_BODIES 10000
 #define G 6.6743e-20
@@ -14,7 +15,7 @@ void update(double dt)
     }
 
     clearAllForces();
-    // applyPackedBarnesHutGravitationalForces(G);
+    applyBarnesHutGravitationalForces(G, DEFAULT_THETA, DEFAULT_EPSILON);
 
     for (int i = 0; i < bodyCount; i++)
     {
@@ -25,7 +26,7 @@ void update(double dt)
 void initializeVerlet()
 {
     clearAllForces();
-    // applyPackedBarnesHutGravitationalForces(G);
+    applyBarnesHutGravitationalForces(G, DEFAULT_THETA, DEFAULT_EPSILON);
 
     for (int i = 0; i < getBodyCount(); i++)
     {

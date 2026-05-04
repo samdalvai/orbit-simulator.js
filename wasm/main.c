@@ -13,18 +13,6 @@ double random_double(double min, double max)
 int main(void)
 {
     printf("Testing engine\n");
-    // printf("Body count: %d\n", getBodyCount());
-
-    // addNewBody(0, 0, 10, 10, 1, 1, 1, -1);
-    // printf("Body count: %d\n", getBodyCount());
-    // removeBody(0);
-    // printf("Body count: %d\n", getBodyCount());
-    // printf("DT: %f\n", simulation_dt());
-    // addNewBody(0, 0, 10, 10, 1, 1, 1, -1);
-    // addNewBody(100, 0, 10, 10, 1, 1, 1, -1);
-    // addNewBody(0, 100, 10, 10, 1, 1, 1, -1);
-    // addNewBody(100, 100, 10, 10, 1, 1, 1, -1);
-    // printf("Body count: %d\n", getBodyCount());
 
     srand((unsigned int)time(NULL));
 

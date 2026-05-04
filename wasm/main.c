@@ -2,30 +2,52 @@
 #include "engine.h"
 #include "constants.h"
 #include "body.h"
-#include <time.h>
+#include <stdlib.h> // rand
+#include <time.h>   // time
+
+double random_double(double min, double max)
+{
+    return min + (max - min) * ((double)rand() / RAND_MAX);
+}
 
 int main(void)
 {
     printf("Testing engine\n");
-    printf("Body count: %d\n", getBodyCount());
+    // printf("Body count: %d\n", getBodyCount());
 
-    addNewBody(0, 0, 10, 10, 1, 1, 1, -1);
-    printf("Body count: %d\n", getBodyCount());
-    removeBody(0);
-    printf("Body count: %d\n", getBodyCount());
-    printf("DT: %f\n", simulation_dt());
-    addNewBody(0, 0, 10, 10, 1, 1, 1, -1);
-    addNewBody(100, 0, 10, 10, 1, 1, 1, -1);
-    addNewBody(0, 100, 10, 10, 1, 1, 1, -1);
-    addNewBody(100, 100, 10, 10, 1, 1, 1, -1);
+    // addNewBody(0, 0, 10, 10, 1, 1, 1, -1);
+    // printf("Body count: %d\n", getBodyCount());
+    // removeBody(0);
+    // printf("Body count: %d\n", getBodyCount());
+    // printf("DT: %f\n", simulation_dt());
+    // addNewBody(0, 0, 10, 10, 1, 1, 1, -1);
+    // addNewBody(100, 0, 10, 10, 1, 1, 1, -1);
+    // addNewBody(0, 100, 10, 10, 1, 1, 1, -1);
+    // addNewBody(100, 100, 10, 10, 1, 1, 1, -1);
+    // printf("Body count: %d\n", getBodyCount());
+
+    srand((unsigned int)time(NULL));
+
+    for (int i = 0; i < 1000; i++)
+    {
+        double x = random_double(-1000.0, 1000.0);
+        double y = random_double(-1000.0, 1000.0);
+        double vx = random_double(-100.0, 100.0);
+        double vy = random_double(-100.0, 100.0);
+
+        addNewBody(x, y, vx, vy, 1, 1, 1, -1);
+    }
+
     printf("Body count: %d\n", getBodyCount());
 
     // Benchmarking
     clock_t start = clock();
 
+    for (int i = 0; i < 10000; i++)
+    {
+        update(simulation_dt());
+    }
     clock_t end = clock();
-
-    update(simulation_dt());
 
     double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
 

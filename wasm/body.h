@@ -35,4 +35,16 @@ extern double invMasses[MAX_BODIES];
 
 extern int bodyCount;
 
+int getBodyCount();
+void clearBodies();
+int addNewBody(
+    double x,
+    double y,
+    double radius,
+    double mass,
+    uint32_t bodyType,
+    double velX,
+    double velY,
+    int parent);
+
 #endif

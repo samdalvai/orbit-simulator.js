@@ -18,7 +18,7 @@ double centerX[NODE_CAPACITY];
 double centerY[NODE_CAPACITY];
 double size[NODE_CAPACITY];
 
-uint32_t parents[PARENT_CAPACITY];
+uint32_t parentNodes[PARENT_CAPACITY];
 
 uint32_t nodeCount = 0;
 uint32_t parentCount = 0;
@@ -203,7 +203,7 @@ void propagate(void)
 {
     for (int32_t p = (int32_t)parentCount - 1; p >= 0; p--)
     {
-        uint32_t node = parents[p];
+        uint32_t node = parentNodes[p];
         uint32_t firstChild = children[node];
 
         uint32_t i0 = firstChild;
@@ -308,7 +308,7 @@ int subdivideNode(uint32_t node, uint32_t *outFirstChild)
         return QUAD_TREE_ERR_NODE_CAPACITY;
     }
 
-    parents[parentCount] = node;
+    parentNodes[parentCount] = node;
     parentCount++;
 
     uint32_t firstChild = nodeCount;

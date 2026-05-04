@@ -24,7 +24,7 @@ extern double centerX[NODE_CAPACITY];
 extern double centerY[NODE_CAPACITY];
 extern double size[NODE_CAPACITY];
 
-extern uint32_t parents[PARENT_CAPACITY];
+extern uint32_t parentNodes[PARENT_CAPACITY];
 
 extern uint32_t nodeCount;
 extern uint32_t parentCount;

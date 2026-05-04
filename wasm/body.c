@@ -96,3 +96,54 @@ int removeBody(int index)
     bodyCount--;
     return index;
 }
+
+void addForceXY(int id, double x, double y)
+{
+    sumForcesX[id] += x;
+    sumForcesY[id] += y;
+}
+
+void clearForces(int id)
+{
+    sumForcesX[id] = 0;
+    sumForcesY[id] = 0;
+}
+
+void initializeAcceleration(int id)
+{
+    // Find the acceleration based on the forces that are being applied and the mass
+    double invM = invMasses[id];
+    accX[id] = sumForcesX[id] * invM;
+    accY[id] = sumForcesY[id] * invM;
+
+    // Clear all the forces and torque acting on the object before the next physics step
+    clearForces(id);
+}
+
+void integrateVerletPosition(int id, double dt)
+{
+    double ax = accX[id];
+    double ay = accY[id];
+
+    posX[id] += velX[id] * dt + 0.5 * ax * dt * dt;
+    posY[id] += velY[id] * dt + 0.5 * ay * dt * dt;
+}
+
+void integrateVerletVelocity(int id, double dt)
+{
+    double oldAx = accX[id];
+    double oldAy = accY[id];
+
+    double invM = invMasses[id];
+    double newAx = sumForcesX[id] * invM;
+    double newAy = sumForcesY[id] * invM;
+
+    velX[id] += 0.5 * (oldAx + newAx) * dt;
+    velY[id] += 0.5 * (oldAy + newAy) * dt;
+
+    // store for next step
+    accX[id] = newAx;
+    accY[id] = newAy;
+
+    clearForces(id);
+}

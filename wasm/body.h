@@ -47,5 +47,10 @@ int addNewBody(
     double velY,
     int parent);
 int removeBody(int index);
+void addForceXY(int id, double x, double y);
+void clearForces(int id);
+void initializeAcceleration(int id);
+void integrateVerletPosition(int id, double dt);
+void integrateVerletVelocity(int id, double dt);
 
 #endif

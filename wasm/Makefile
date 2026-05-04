@@ -10,7 +10,7 @@ ENGINE_SOURCES := body.c engine.c gravity.c quad_tree.c
 NATIVE_SOURCES := $(ENGINE_SOURCES) main.c
 
 NATIVE_TARGET := $(OUT_DIR)/engine-test
-WASM_TARGET := $(OUT_DIR)/engine.wasm
+WASM_JS_TARGET := $(OUT_DIR)/engine.js
 
 WASM_EXPORTED_FUNCTIONS := \
 	_update \
@@ -40,7 +40,7 @@ empty :=
 space := $(empty) $(empty)
 WASM_EXPORT_LIST := $(subst $(space),$(comma),$(strip $(WASM_EXPORTED_FUNCTIONS)))
 WASM_EXPORT_FLAGS := -sEXPORTED_FUNCTIONS=$(WASM_EXPORT_LIST)
-WASM_FLAGS ?= -O3 --no-entry -sSTANDALONE_WASM=1
+WASM_FLAGS ?= -O3 --no-entry -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createEngineModule -sNO_FILESYSTEM=1
 
 .PHONY: build native test wasm run run-native clean
 
@@ -53,9 +53,9 @@ test: native
 $(NATIVE_TARGET): $(NATIVE_SOURCES) *.h | $(OUT_DIR)
 	$(CC) $(CFLAGS) $(NATIVE_SOURCES) -o $@ $(LDLIBS)
 
-wasm: $(WASM_TARGET)
+wasm: $(WASM_JS_TARGET)
 
-$(WASM_TARGET): $(ENGINE_SOURCES) *.h | $(OUT_DIR)
+$(WASM_JS_TARGET): $(ENGINE_SOURCES) *.h | $(OUT_DIR)
 	$(EMCC) $(WASM_FLAGS) $(WASM_EXPORT_FLAGS) $(ENGINE_SOURCES) -o $@ $(LDLIBS)
 
 run: run-native

@@ -16,7 +16,7 @@ int main(void)
 
     srand((unsigned int)time(NULL));
 
-    for (int i = 0; i < 1000; i++)
+    for (int i = 0; i < 10000; i++)
     {
         double x = random_double(-1000.0, 1000.0);
         double y = random_double(-1000.0, 1000.0);
@@ -31,7 +31,7 @@ int main(void)
     // Benchmarking
     clock_t start = clock();
 
-    for (int i = 0; i < 10000; i++)
+    for (int i = 0; i < 1000; i++)
     {
         int err = update(simulation_dt());
 

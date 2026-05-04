@@ -40,6 +40,7 @@ quad_tree.c
 Output:
 
 ```text
+out/engine.js
 out/engine.wasm
 ```
 

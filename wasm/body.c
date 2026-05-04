@@ -1,33 +1,25 @@
-#include <stdint.h>
-
 #include "body.h"
 #include "constants.h"
 
-enum BodyType
-{
-    STAR,
-    PLANET,
-    MOON,
-    ASTEROID
-};
+int parents[MAX_BODIES];
+uint32_t bodyTypes[MAX_BODIES];
 
-extern int parents[MAX_BODIES];
-extern uint32_t bodyTypes[MAX_BODIES];
-
-extern double radiuses[MAX_BODIES];
+double radiuses[MAX_BODIES];
 
 // Linear motion
-extern double posX[MAX_BODIES];
-extern double posY[MAX_BODIES];
-extern double velX[MAX_BODIES];
-extern double velY[MAX_BODIES];
-extern double accX[MAX_BODIES];
-extern double accY[MAX_BODIES];
+double posX[MAX_BODIES];
+double posY[MAX_BODIES];
+double velX[MAX_BODIES];
+double velY[MAX_BODIES];
+double accX[MAX_BODIES];
+double accY[MAX_BODIES];
 
 // Forces
-extern double sumForcesX[MAX_BODIES];
-extern double sumForcesY[MAX_BODIES];
+double sumForcesX[MAX_BODIES];
+double sumForcesY[MAX_BODIES];
 
 // Mass
-extern double masses[MAX_BODIES];
-extern double invMasses[MAX_BODIES];
+double masses[MAX_BODIES];
+double invMasses[MAX_BODIES];
+
+int bodyCount = 0;

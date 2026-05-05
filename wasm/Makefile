@@ -33,14 +33,41 @@ WASM_EXPORTED_FUNCTIONS := \
 	_clearQuadTree \
 	_insertXYMass \
 	_propagate \
-	_applyForceOn
+	_applyForceOn \
+	_parents \
+	_bodyTypes \
+	_radiuses \
+	_posX \
+	_posY \
+	_velX \
+	_velY \
+	_accX \
+	_accY \
+	_sumForcesX \
+	_sumForcesY \
+	_masses \
+	_invMasses \
+	_bodyCount \
+	_children \
+	_next \
+	_nodePosX \
+	_nodePosY \
+	_mass \
+	_centerX \
+	_centerY \
+	_size \
+	_parentNodes \
+	_nodeCount \
+	_parentCount \
+	_thetaSquared \
+	_epsilonSquared
 
 comma := ,
 empty :=
 space := $(empty) $(empty)
 WASM_EXPORT_LIST := $(subst $(space),$(comma),$(strip $(WASM_EXPORTED_FUNCTIONS)))
 WASM_EXPORT_FLAGS := -sEXPORTED_FUNCTIONS=$(WASM_EXPORT_LIST)
-WASM_FLAGS ?= -O3 --no-entry -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createEngineModule -sNO_FILESYSTEM=1
+WASM_FLAGS ?= -O3 --no-entry -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createEngineModule -sNO_FILESYSTEM=1 -sEXPORTED_RUNTIME_METHODS=HEAPU8,HEAP32,HEAPU32,HEAPF64
 
 .PHONY: build native test wasm run run-native clean
 

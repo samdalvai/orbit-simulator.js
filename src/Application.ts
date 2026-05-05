@@ -439,7 +439,7 @@ export default class Application {
         const stats: Array<[string, string]> = [
             ['Demo', DEMO_LABELS[this.demoIndex - 1]],
             ['Paused', this.paused ? 'ON' : 'OFF'],
-            ['Bodies', `${this.engine.getBodies().length}/${MAX_BODIES}`],
+            ['Bodies', `${this.wasmEngine._getBodyCount()}/${this.wasmEngine._getMaxBodies()}`],
             ['FPS', this.FPS.toFixed(2)],
             ['Zoom', Graphics.zoom.toFixed(4)],
             ['Labels', this.showLabels ? 'ON' : 'OFF'],

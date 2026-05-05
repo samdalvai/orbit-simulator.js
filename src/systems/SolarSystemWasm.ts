@@ -285,7 +285,17 @@ export function createSolarSystemWasm(engine: EngineModule): SolarSystem {
     const renderStyles = new Map<number, BodyRenderStyle>();
     const sun = createBody(SUN, BodyType.STAR);
     bodies.push(sun);
-    renderStyles.set(sun.id, createRenderStyle(SUN, BodyType.STAR));
+    const id = engine._addNewBody(
+        sun.position.x,
+        sun.position.y,
+        sun.radius,
+        sun.mass,
+        sun.bodyType,
+        sun.velocity.x,
+        sun.velocity.y,
+        -1, // TODO: to be update with real parent id
+    );
+    renderStyles.set(id, createRenderStyle(SUN, BodyType.STAR));
 
     for (const planetSpec of PLANETS) {
         const planet = createBody(planetSpec, BodyType.PLANET, sun);

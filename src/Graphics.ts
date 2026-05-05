@@ -166,6 +166,14 @@ export default class Graphics {
         this.ctx.stroke();
     }
 
+    static drawCircleAt(x: number, y: number, radius: number, color = 'white'): void {
+        // Draw the circle
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+        this.ctx.strokeStyle = color;
+        this.ctx.stroke();
+    }
+
     static drawFillCircle(x: number, y: number, radius: number, color = 'white'): void {
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, Math.PI * 2);
@@ -237,7 +245,14 @@ export default class Graphics {
         return Math.max(MIN_BODY_RENDERING_RADIUS, radius);
     }
 
-    private static getBodyRadiusRenderingScale(bodyType: BodyType): number {
+    static getBodyRenderRadiusWasm(radius: number, bodyType: BodyType): number {
+        const scaledRadius =
+            Math.pow(radius / EARTH_RADIUS_KM, RADIUS_RENDERING_EXPONENT) * this.getBodyRadiusRenderingScale(bodyType);
+
+        return Math.max(MIN_BODY_RENDERING_RADIUS, scaledRadius);
+    }
+
+    static getBodyRadiusRenderingScale(bodyType: BodyType): number {
         switch (bodyType) {
             case BodyType.STAR:
                 return STAR_RADIUS_RENDERING_SCALE;
@@ -358,5 +373,74 @@ export default class Graphics {
             this.ctx.fillText(label, labelGap, -labelGap);
             this.ctx.restore();
         }
+    }
+
+    static drawBodyWasm(
+        x: number,
+        y: number,
+        radius: number,
+        bodyType: BodyType,
+        style: BodyRenderStyle | undefined,
+        // body: Body,
+        // style: BodyRenderStyle | undefined,
+        showTextures: boolean,
+        // showLabels: boolean,
+        // showMoonLabels: boolean,
+        // viewport: RenderViewport,
+    ): void {
+        const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
+        // const renderPosition = this.getBodyRenderPosition(body);
+        const scaledX = x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const scaledY = y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const scaledRadius = this.getBodyRenderRadiusWasm(radius, bodyType);
+        const strokeColor = 'white';
+        const fillColor = renderStyle.fillColor;
+        const texture = renderStyle.texture;
+        //     const label = renderStyle.label;
+        //     // Viewport culling for objects outside viewport
+        //     const drawLabel = showLabels && label && (showMoonLabels || body.bodyType !== BodyType.MOON);
+        //     const labelMargin = drawLabel ? viewport.labelMargin : 0;
+        //     const renderOffsetX = renderPosition.x - body.position.x;
+        //     const renderOffsetY = renderPosition.y - body.position.y;
+        //     const minX = (body.minX + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        //     const minY = (body.minY + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        //     const maxX = (body.maxX + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        //     const maxY = (body.maxY + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        //     const aabbHalfWidth = (maxX - minX) * 0.5;
+        //     const aabbHalfHeight = (maxY - minY) * 0.5;
+        //     const paddingX = Math.max(0, radius - aabbHalfWidth) + labelMargin;
+        //     const paddingY = Math.max(0, radius - aabbHalfHeight) + labelMargin;
+        //     if (
+        //         maxX + paddingX < viewport.minX ||
+        //         minX - paddingX > viewport.maxX ||
+        //         maxY + paddingY < viewport.minY ||
+        //         minY - paddingY > viewport.maxY
+        //     ) {
+        //         return;
+        //     }
+        this.ctx.save();
+        this.ctx.translate(scaledX, scaledY);
+        if (!showTextures) {
+            this.drawCircle(scaledRadius, strokeColor);
+        } else if (texture) {
+            this.drawTexture(scaledRadius * 2, scaledRadius * 2, texture, 0, 0, 1.2);
+        } else {
+            this.drawFillCircle(0, 0, scaledRadius, fillColor);
+        }
+        this.ctx.restore();
+        //     if (drawLabel) {
+        //         const labelColor = renderStyle.labelColor;
+        //         const labelFontSize = renderStyle.labelFontSize;
+        //         const labelGap = Math.max(8, labelFontSize * 0.6);
+        //         this.ctx.save();
+        //         this.ctx.translate(x + radius, y + radius);
+        //         this.ctx.scale(1 / this.zoom, -1 / this.zoom);
+        //         this.ctx.fillStyle = labelColor;
+        //         this.ctx.font = `${labelFontSize}px Arial`;
+        //         this.ctx.textAlign = 'left';
+        //         this.ctx.textBaseline = 'bottom';
+        //         this.ctx.fillText(label, labelGap, -labelGap);
+        //         this.ctx.restore();
+        //     }
     }
 }

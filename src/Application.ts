@@ -1,10 +1,19 @@
-import type { EngineModule, EngineModuleOptions } from '../wasm/out/engine.js';
-import wasmEngineBinaryUrl from 'url:../wasm/out/engine.wasm';
 import wasmEngineModuleSource from 'bundle-text:../wasm/out/engine.js.txt';
+import wasmEngineBinaryUrl from 'url:../wasm/out/engine.wasm';
+
+import type { EngineModule, EngineModuleOptions } from '../wasm/out/engine.js';
 import AssetStore from './AssetStore';
 import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
-import { FIXED_DELTA_TIME, G, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
+import {
+    EARTH_RADIUS_KM,
+    FIXED_DELTA_TIME,
+    G,
+    KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+    MAX_BODIES,
+    RADIUS_RENDERING_EXPONENT,
+    SETTINGS,
+} from './Constants';
 import { Engine } from './Engine';
 import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
@@ -13,6 +22,7 @@ import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
 import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
 import { createSolarSystem } from './systems/SolarSystem';
+import { createSolarSystemWasm } from './systems/SolarSystemWasm.js';
 import { createTripleStarSystem } from './systems/TripleStarSystem';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
@@ -44,7 +54,7 @@ const SHORTCUTS: Array<[string, string]> = [
 
 export default class Application {
     private engine: Engine;
-    private wasmEngine: EngineModule | null = null;
+    private wasmEngine!: EngineModule;
     private bodyRenderStyles = new Map<number, BodyRenderStyle>();
     private blackHole: Body | null = null;
     private shortcutsOverlay: HTMLDivElement | null = null;
@@ -89,29 +99,24 @@ export default class Application {
 
         this.running = Graphics.openWindow();
         this.createShortcutsButton();
-        this.loadDemo();
         await this.initializeWasmEngine();
-        await this.runWasmEngineExample();
+        // await this.runWasmEngineExample();
+        this.loadDemo();
     }
 
     private async initializeWasmEngine(): Promise<void> {
-        try {
-            const dynamicImport = new Function('specifier', 'return import(specifier)') as (
-                specifier: string,
-            ) => Promise<EngineModuleImport>;
-            const wasmEngineModuleUrl = URL.createObjectURL(
-                new Blob([wasmEngineModuleSource], { type: 'text/javascript' }),
-            );
-            const { default: createEngineModule } = await dynamicImport(wasmEngineModuleUrl);
+        const dynamicImport = new Function('specifier', 'return import(specifier)') as (
+            specifier: string,
+        ) => Promise<EngineModuleImport>;
+        const wasmEngineModuleUrl = URL.createObjectURL(
+            new Blob([wasmEngineModuleSource], { type: 'text/javascript' }),
+        );
+        const { default: createEngineModule } = await dynamicImport(wasmEngineModuleUrl);
 
-            this.wasmEngine = await createEngineModule({
-                locateFile: path => (path.endsWith('.wasm') ? wasmEngineBinaryUrl : path),
-                mainScriptUrlOrBlob: wasmEngineModuleUrl,
-            });
-        } catch (err) {
-            this.wasmEngine = null;
-            console.warn('Unable to initialize wasm engine. Build it with `make -C wasm wasm` first.', err);
-        }
+        this.wasmEngine = await createEngineModule({
+            locateFile: path => (path.endsWith('.wasm') ? wasmEngineBinaryUrl : path),
+            mainScriptUrlOrBlob: wasmEngineModuleUrl,
+        });
     }
 
     private async runWasmEngineExample(): Promise<void> {
@@ -124,6 +129,8 @@ export default class Application {
         try {
             engine._clearBodies();
             const posXStart = engine._posX / Float64Array.BYTES_PER_ELEMENT;
+            const posYStart = engine._posY / Float64Array.BYTES_PER_ELEMENT;
+            const radiusesStart = engine._radiuses / Float64Array.BYTES_PER_ELEMENT;
             engine._addNewBody(0, 0, 10, 1, 1, 0, 0, -1);
             engine._addNewBody(10, 10, 10, 1, 1, 0, 0, -1);
             const bodyCount = engine._getBodyCount();
@@ -133,9 +140,12 @@ export default class Application {
             }
 
             const posX = engine.HEAPF64.subarray(posXStart, posXStart + bodyCount);
+            const posY = engine.HEAPF64.subarray(posYStart, posYStart + bodyCount);
+            const radius = engine.HEAPF64.subarray(radiusesStart, radiusesStart + bodyCount);
 
             console.log('posX[0]: ', posX[0]);
-            console.log('posX[1]: ', posX[1]);
+            console.log('posY[0]: ', posY[0]);
+            console.log('radius[0]: ', radius[0]);
         } catch (err) {
             console.warn('Unable to run wasm engine example. Build it with `make -C wasm wasm` first.', err);
         }
@@ -150,37 +160,42 @@ export default class Application {
         Graphics.pan.x = 0;
         Graphics.pan.y = 0;
 
-        if (this.demoIndex === 1) {
-            Graphics.zoom = 0.3;
-            const solarSystem = createSolarSystem(this.engine);
-            this.bodyRenderStyles = solarSystem.renderStyles;
-        }
+        const solarSystem = createSolarSystemWasm(this.wasmEngine);
+        this.bodyRenderStyles = solarSystem.renderStyles;
+        Graphics.zoom = 0.3;
 
-        if (this.demoIndex === 2) {
-            Graphics.zoom = 0.2;
-            const solarSystem = createAlphaCentauriSystem(this.engine);
-            this.bodyRenderStyles = solarSystem.renderStyles;
-        }
+        // if (this.demoIndex === 1) {
+        //     Graphics.zoom = 0.3;
+        //     const solarSystem = createSolarSystem(this.engine);
+        //     this.bodyRenderStyles = solarSystem.renderStyles;
+        // }
 
-        if (this.demoIndex === 3) {
-            Graphics.zoom = 0.2;
-            const solarSystem = createTripleStarSystem(this.engine);
-            this.bodyRenderStyles = solarSystem.renderStyles;
-        }
+        // if (this.demoIndex === 2) {
+        //     Graphics.zoom = 0.2;
+        //     const solarSystem = createAlphaCentauriSystem(this.engine);
+        //     this.bodyRenderStyles = solarSystem.renderStyles;
+        // }
 
-        if (this.demoIndex === 4) {
-            Graphics.zoom = 0.16;
-            const solarSystem = createRandomSolarSystem(this.engine);
-            this.bodyRenderStyles = solarSystem.renderStyles;
-        }
+        // if (this.demoIndex === 3) {
+        //     Graphics.zoom = 0.2;
+        //     const solarSystem = createTripleStarSystem(this.engine);
+        //     this.bodyRenderStyles = solarSystem.renderStyles;
+        // }
 
-        if (this.demoIndex === 5) {
-            Graphics.zoom = 0.01;
-            const solarSystem = createRandomGalaxy(this.engine);
-            this.bodyRenderStyles = solarSystem.renderStyles;
-        }
+        // if (this.demoIndex === 4) {
+        //     Graphics.zoom = 0.16;
+        //     const solarSystem = createRandomSolarSystem(this.engine);
+        //     this.bodyRenderStyles = solarSystem.renderStyles;
+        // }
 
-        this.engine.initializeVerlet();
+        // if (this.demoIndex === 5) {
+        //     Graphics.zoom = 0.01;
+        //     const solarSystem = createRandomGalaxy(this.engine);
+        //     this.bodyRenderStyles = solarSystem.renderStyles;
+        // }
+
+        // this.engine.initializeVerlet();
+        this.wasmEngine._initializeVerlet();
     }
 
     input(): void {
@@ -375,21 +390,39 @@ export default class Application {
 
         const viewport = Graphics.getRenderViewport();
 
-        if (this.showTextures) {
-            for (const body of this.engine.getBodies()) {
-                Graphics.drawStarLight(body, this.bodyRenderStyles.get(body.id), viewport);
-            }
-        }
+        // if (this.showTextures) {
+        //     for (const body of this.engine.getBodies()) {
+        //         Graphics.drawStarLight(body, this.bodyRenderStyles.get(body.id), viewport);
+        //     }
+        // }
 
-        for (const body of this.engine.getBodies()) {
-            Graphics.drawBody(
-                body,
-                this.bodyRenderStyles.get(body.id),
-                this.showTextures,
-                this.showLabels,
-                this.showMoonLabels,
-                viewport,
-            );
+        // for (const body of this.engine.getBodies()) {
+        //     Graphics.drawBody(
+        //         body,
+        //         this.bodyRenderStyles.get(body.id),
+        //         this.showTextures,
+        //         this.showLabels,
+        //         this.showMoonLabels,
+        //         viewport,
+        //     );
+        // }
+        const bodyCount = this.wasmEngine._getBodyCount();
+        const posXStart = this.wasmEngine._posX / Float64Array.BYTES_PER_ELEMENT;
+        const posYStart = this.wasmEngine._posY / Float64Array.BYTES_PER_ELEMENT;
+        const radiusesStart = this.wasmEngine._radiuses / Float64Array.BYTES_PER_ELEMENT;
+        const bodyTypeStart = this.wasmEngine._bodyTypes / Uint8Array.BYTES_PER_ELEMENT;
+
+        const posX = this.wasmEngine.HEAPF64.subarray(posXStart, posXStart + bodyCount);
+        const posY = this.wasmEngine.HEAPF64.subarray(posYStart, posYStart + bodyCount);
+        const radiuses = this.wasmEngine.HEAPF64.subarray(radiusesStart, radiusesStart + bodyCount);
+        const bodyTypes = this.wasmEngine.HEAPU8.subarray(bodyTypeStart, bodyTypeStart + bodyCount);
+
+        for (let i = 0; i < bodyCount; i++) {
+            const x = posX[i];
+            const y = posY[i];
+            const radius = radiuses[i];
+            const bodyType = bodyTypes[i];
+            Graphics.drawBodyWasm(x, y, radius, bodyType, this.bodyRenderStyles.get(i), this.showTextures);
         }
 
         Graphics.endWorld();
@@ -550,7 +583,8 @@ export default class Application {
     }
 
     private stepSimulation(): void {
-        this.engine.update(SETTINGS.dt);
+        // this.engine.update(SETTINGS.dt);
+        this.wasmEngine._update(SETTINGS.dt);
         this.totalTime += SETTINGS.dt;
     }
 

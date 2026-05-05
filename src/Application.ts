@@ -411,19 +411,18 @@ export default class Application {
         const posXStart = this.wasmEngine._posX / Float64Array.BYTES_PER_ELEMENT;
         const posYStart = this.wasmEngine._posY / Float64Array.BYTES_PER_ELEMENT;
         const radiusesStart = this.wasmEngine._radiuses / Float64Array.BYTES_PER_ELEMENT;
-        const bodyTypeStart = this.wasmEngine._bodyTypes / Uint8Array.BYTES_PER_ELEMENT;
+        const bodyTypeStart = this.wasmEngine._bodyTypes / Uint32Array.BYTES_PER_ELEMENT;
+        const parentsStart = this.wasmEngine._parents / Uint32Array.BYTES_PER_ELEMENT;
 
         const posX = this.wasmEngine.HEAPF64.subarray(posXStart, posXStart + bodyCount);
         const posY = this.wasmEngine.HEAPF64.subarray(posYStart, posYStart + bodyCount);
         const radiuses = this.wasmEngine.HEAPF64.subarray(radiusesStart, radiusesStart + bodyCount);
-        const bodyTypes = this.wasmEngine.HEAPU8.subarray(bodyTypeStart, bodyTypeStart + bodyCount);
+        const bodyTypes = this.wasmEngine.HEAPU32.subarray(bodyTypeStart, bodyTypeStart + bodyCount);
+        const parents = this.wasmEngine.HEAPU32.subarray(parentsStart, parentsStart + bodyCount);
+        const bodies = { posX, posY, radiuses, bodyTypes, parents };
 
         for (let i = 0; i < bodyCount; i++) {
-            const x = posX[i];
-            const y = posY[i];
-            const radius = radiuses[i];
-            const bodyType = bodyTypes[i];
-            Graphics.drawBodyWasm(x, y, radius, bodyType, this.bodyRenderStyles.get(i), this.showTextures, viewport);
+            Graphics.drawBodyWasm(i, bodies, this.bodyRenderStyles.get(i), this.showTextures, viewport);
         }
 
         Graphics.endWorld();

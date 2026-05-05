@@ -22,6 +22,14 @@ export type RenderViewport = {
     labelMargin: number;
 };
 
+export type WasmBodyRenderBuffers = {
+    posX: ArrayLike<number>;
+    posY: ArrayLike<number>;
+    radiuses: ArrayLike<number>;
+    bodyTypes: ArrayLike<number>;
+    parents: ArrayLike<number>;
+};
+
 const SOLAR_MASS_KG = 1.98847e30;
 
 export default class Graphics {
@@ -237,6 +245,34 @@ export default class Graphics {
         return parentPosition.addNew(moonOffset);
     }
 
+    static getBodyRenderPositionWasm(bodyIndex: number, bodies: WasmBodyRenderBuffers): Vec2 {
+        const x = bodies.posX[bodyIndex];
+        const y = bodies.posY[bodyIndex];
+        const bodyType = bodies.bodyTypes[bodyIndex] as BodyType;
+        const parentIndex = bodies.parents[bodyIndex];
+
+        if (bodyType !== BodyType.MOON || parentIndex < 0 || parentIndex >= bodies.posX.length) {
+            return new Vec2(x, y);
+        }
+
+        const parentPosition = this.getBodyRenderPositionWasm(parentIndex, bodies);
+        const moonOffset = new Vec2(x - bodies.posX[parentIndex], y - bodies.posY[parentIndex]).scaleNew(
+            MOON_ORBIT_RENDERING_SCALE,
+        );
+        const moonOffsetMagnitude = moonOffset.magnitude();
+        const minMoonOrbitDistance =
+            (this.getBodyRenderRadiusWasm(bodies.radiuses[parentIndex], bodies.bodyTypes[parentIndex] as BodyType) +
+                this.getBodyRenderRadiusWasm(bodies.radiuses[bodyIndex], bodyType) +
+                MIN_MOON_ORBIT_RENDERING_GAP) /
+            KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+
+        if (moonOffsetMagnitude > 0 && moonOffsetMagnitude < minMoonOrbitDistance) {
+            moonOffset.scaleAssign(minMoonOrbitDistance / moonOffsetMagnitude);
+        }
+
+        return parentPosition.addNew(moonOffset);
+    }
+
     static getBodyRenderRadius(body: Body): number {
         const radius =
             Math.pow(body.radius / EARTH_RADIUS_KM, RADIUS_RENDERING_EXPONENT) *
@@ -376,10 +412,8 @@ export default class Graphics {
     }
 
     static drawBodyWasm(
-        x: number,
-        y: number,
-        radius: number,
-        bodyType: BodyType,
+        bodyIndex: number,
+        bodies: WasmBodyRenderBuffers,
         style: BodyRenderStyle | undefined,
         // body: Body,
         // style: BodyRenderStyle | undefined,
@@ -389,14 +423,16 @@ export default class Graphics {
         viewport: RenderViewport,
     ): void {
         const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
-        // const renderPosition = this.getBodyRenderPosition(body);
-        const scaledX = x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const scaledY = y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const renderPosition = this.getBodyRenderPositionWasm(bodyIndex, bodies);
+        const radius = bodies.radiuses[bodyIndex];
+        const bodyType = bodies.bodyTypes[bodyIndex] as BodyType;
+        const scaledX = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const scaledY = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const scaledRadius = this.getBodyRenderRadiusWasm(radius, bodyType);
         const strokeColor = 'white';
         const fillColor = renderStyle.fillColor;
         const texture = renderStyle.texture;
-        //     const label = renderStyle.label;
+        const label = renderStyle.label;
         //     // Viewport culling for objects outside viewport
         //     const drawLabel = showLabels && label && (showMoonLabels || body.bodyType !== BodyType.MOON);
         //     const labelMargin = drawLabel ? viewport.labelMargin : 0;
@@ -439,18 +475,18 @@ export default class Graphics {
         }
         this.ctx.restore();
         //     if (drawLabel) {
-        //         const labelColor = renderStyle.labelColor;
-        //         const labelFontSize = renderStyle.labelFontSize;
-        //         const labelGap = Math.max(8, labelFontSize * 0.6);
-        //         this.ctx.save();
-        //         this.ctx.translate(x + radius, y + radius);
-        //         this.ctx.scale(1 / this.zoom, -1 / this.zoom);
-        //         this.ctx.fillStyle = labelColor;
-        //         this.ctx.font = `${labelFontSize}px Arial`;
-        //         this.ctx.textAlign = 'left';
-        //         this.ctx.textBaseline = 'bottom';
-        //         this.ctx.fillText(label, labelGap, -labelGap);
-        //         this.ctx.restore();
+        // const labelColor = renderStyle.labelColor;
+        // const labelFontSize = renderStyle.labelFontSize;
+        // const labelGap = Math.max(8, labelFontSize * 0.6);
+        // this.ctx.save();
+        // this.ctx.translate(scaledX + radius, scaledY + radius);
+        // this.ctx.scale(1 / this.zoom, -1 / this.zoom);
+        // this.ctx.fillStyle = labelColor;
+        // this.ctx.font = `${labelFontSize}px Arial`;
+        // this.ctx.textAlign = 'left';
+        // this.ctx.textBaseline = 'bottom';
+        // this.ctx.fillText(label, labelGap, -labelGap);
+        // this.ctx.restore();
         //     }
     }
 }

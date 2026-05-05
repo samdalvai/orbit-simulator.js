@@ -1,4 +1,6 @@
-import createEngineModule, { type EngineModule } from '../wasm/out/engine.js';
+import type { EngineModule, EngineModuleOptions } from '../wasm/out/engine.js';
+import wasmEngineBinaryUrl from 'url:../wasm/out/engine.wasm';
+import wasmEngineModuleSource from 'bundle-text:../wasm/out/engine.js.txt';
 import AssetStore from './AssetStore';
 import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
@@ -18,6 +20,9 @@ const BLACK_HOLE_MASS_KG = 8e30;
 const BODY_HOVER_TOLERANCE_PIXELS = 10;
 
 const DEMO_LABELS = ['Solar system', 'Alpha centauri', 'Triple star system', 'Random system', 'Random galaxy'];
+
+type CreateEngineModule = (options?: EngineModuleOptions) => Promise<EngineModule>;
+type EngineModuleImport = { default: CreateEngineModule };
 
 const SHORTCUTS: Array<[string, string]> = [
     ['L', 'Toggle labels'],
@@ -91,7 +96,18 @@ export default class Application {
 
     private async initializeWasmEngine(): Promise<void> {
         try {
-            this.wasmEngine = await createEngineModule();
+            const dynamicImport = new Function('specifier', 'return import(specifier)') as (
+                specifier: string,
+            ) => Promise<EngineModuleImport>;
+            const wasmEngineModuleUrl = URL.createObjectURL(
+                new Blob([wasmEngineModuleSource], { type: 'text/javascript' }),
+            );
+            const { default: createEngineModule } = await dynamicImport(wasmEngineModuleUrl);
+
+            this.wasmEngine = await createEngineModule({
+                locateFile: path => (path.endsWith('.wasm') ? wasmEngineBinaryUrl : path),
+                mainScriptUrlOrBlob: wasmEngineModuleUrl,
+            });
         } catch (err) {
             this.wasmEngine = null;
             console.warn('Unable to initialize wasm engine. Build it with `make -C wasm wasm` first.', err);

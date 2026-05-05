@@ -18,6 +18,7 @@ export interface EngineModuleOptions {
     print?: (text: string) => void;
     printErr?: (text: string) => void;
     setStatus?: (text: string) => void;
+    mainScriptUrlOrBlob?: string | Blob;
     arguments?: string[];
     thisProgram?: string;
     preRun?: EngineRuntimeCallback | EngineRuntimeCallback[];

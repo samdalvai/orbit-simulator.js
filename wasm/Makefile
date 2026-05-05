@@ -11,6 +11,7 @@ NATIVE_SOURCES := $(ENGINE_SOURCES) main.c
 
 NATIVE_TARGET := $(OUT_DIR)/engine-test
 WASM_JS_TARGET := $(OUT_DIR)/engine.js
+WASM_JS_TEXT_TARGET := $(OUT_DIR)/engine.js.txt
 
 WASM_EXPORTED_FUNCTIONS := \
 	_update \
@@ -81,10 +82,13 @@ test: native
 $(NATIVE_TARGET): $(NATIVE_SOURCES) *.h | $(OUT_DIR)
 	$(CC) $(CFLAGS) $(NATIVE_SOURCES) -o $@ $(LDLIBS)
 
-wasm: $(WASM_JS_TARGET)
+wasm: $(WASM_JS_TARGET) $(WASM_JS_TEXT_TARGET)
 
 $(WASM_JS_TARGET): $(ENGINE_SOURCES) *.h Makefile | $(OUT_DIR)
 	$(EMCC) $(WASM_FLAGS) $(WASM_THREAD_FLAGS) $(WASM_EXPORT_FLAGS) $(ENGINE_SOURCES) -o $@ $(LDLIBS)
+
+$(WASM_JS_TEXT_TARGET): $(WASM_JS_TARGET) | $(OUT_DIR)
+	cp $(WASM_JS_TARGET) $@
 
 run: run-native
 
@@ -96,4 +100,4 @@ $(OUT_DIR):
 
 clean:
 	rm -rf build app
-	rm -f $(NATIVE_TARGET) $(WASM_JS_TARGET) $(OUT_DIR)/engine.wasm $(OUT_DIR)/engine.worker.js
+	rm -f $(NATIVE_TARGET) $(WASM_JS_TARGET) $(WASM_JS_TEXT_TARGET) $(OUT_DIR)/engine.wasm $(OUT_DIR)/engine.worker.js

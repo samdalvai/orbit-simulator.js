@@ -20,7 +20,16 @@ npm install
 npm start
 ```
 
-Now open the browser at http://localhost:1234
+Now open the browser at http://localhost:1234.
+
+The dev server adds the cross-origin isolation headers required by the threaded
+wasm build:
+
+```text
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+Cross-Origin-Resource-Policy: same-origin
+```
 
 # App demo
 

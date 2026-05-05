@@ -62,7 +62,10 @@ Browser pthread builds require `SharedArrayBuffer`, which means the page must be
 ```text
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
+Cross-Origin-Resource-Policy: same-origin
 ```
+
+`npm start` loads `.proxyrc.cjs`, so the Parcel dev server sends these headers automatically. Any other server used for the threaded wasm build must send equivalent headers.
 
 Output:
 

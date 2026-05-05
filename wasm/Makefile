@@ -67,6 +67,7 @@ empty :=
 space := $(empty) $(empty)
 WASM_EXPORT_LIST := $(subst $(space),$(comma),$(strip $(WASM_EXPORTED_FUNCTIONS)))
 WASM_EXPORT_FLAGS := -sEXPORTED_FUNCTIONS=$(WASM_EXPORT_LIST)
+WASM_THREAD_FLAGS ?= -pthread -DENGINE_USE_PTHREADS -DENGINE_FORCE_THREADS=4 -sPTHREAD_POOL_SIZE=3
 WASM_FLAGS ?= -O3 --no-entry -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createEngineModule -sNO_FILESYSTEM=1 -sEXPORTED_RUNTIME_METHODS=HEAPU8,HEAP32,HEAPU32,HEAPF64
 
 .PHONY: build native test wasm run run-native clean
@@ -82,8 +83,8 @@ $(NATIVE_TARGET): $(NATIVE_SOURCES) *.h | $(OUT_DIR)
 
 wasm: $(WASM_JS_TARGET)
 
-$(WASM_JS_TARGET): $(ENGINE_SOURCES) *.h | $(OUT_DIR)
-	$(EMCC) $(WASM_FLAGS) $(WASM_EXPORT_FLAGS) $(ENGINE_SOURCES) -o $@ $(LDLIBS)
+$(WASM_JS_TARGET): $(ENGINE_SOURCES) *.h Makefile | $(OUT_DIR)
+	$(EMCC) $(WASM_FLAGS) $(WASM_THREAD_FLAGS) $(WASM_EXPORT_FLAGS) $(ENGINE_SOURCES) -o $@ $(LDLIBS)
 
 run: run-native
 
@@ -95,4 +96,4 @@ $(OUT_DIR):
 
 clean:
 	rm -rf build app
-	rm -f $(NATIVE_TARGET) $(WASM_JS_TARGET) $(OUT_DIR)/engine.wasm
+	rm -f $(NATIVE_TARGET) $(WASM_JS_TARGET) $(OUT_DIR)/engine.wasm $(OUT_DIR)/engine.worker.js

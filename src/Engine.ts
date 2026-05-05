@@ -56,7 +56,7 @@ export class Engine {
             body.integrateVerletVelocity(dt);
         }
 
-        this.broadPhase();
+        // this.broadPhase();
     }
 
     initializeVerlet(): void {

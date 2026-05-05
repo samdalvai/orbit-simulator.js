@@ -29,9 +29,13 @@ for (let i = 0; i < numBodies; i++) {
 
 export async function setupWasmBenchmark(): Promise<void> {
     type CreateEngineModule = typeof import('../wasm/out/engine.js').default;
+    type EngineModuleImport = { default: CreateEngineModule };
 
     const engineModulePath = `${process.cwd()}/wasm/out/engine.js`;
-    const { default: createEngineModule } = (await import(engineModulePath)) as { default: CreateEngineModule };
+    const dynamicImport = new Function('specifier', 'return import(specifier)') as (
+        specifier: string,
+    ) => Promise<EngineModuleImport>;
+    const { default: createEngineModule } = await dynamicImport(engineModulePath);
     const engine = await createEngineModule();
 
     engine._clearBodies();

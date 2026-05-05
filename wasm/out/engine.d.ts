@@ -40,6 +40,7 @@ export interface EngineModule {
     _clearAllForces(): void;
 
     _getBodyCount(): number;
+    _getMaxBodies(): number;
     _clearBodies(): void;
     _addNewBody(
         x: number,

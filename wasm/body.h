@@ -36,6 +36,7 @@ extern double invMasses[MAX_BODIES];
 extern uint32_t bodyCount;
 
 uint32_t getBodyCount();
+uint32_t getMaxBodies();
 void clearBodies();
 uint32_t addNewBody(
     double x,

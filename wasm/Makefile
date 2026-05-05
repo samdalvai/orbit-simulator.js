@@ -18,6 +18,7 @@ WASM_EXPORTED_FUNCTIONS := \
 	_initializeVerlet \
 	_clearAllForces \
 	_getBodyCount \
+	_getMaxBodies \
 	_clearBodies \
 	_addNewBody \
 	_removeBody \

@@ -31,6 +31,10 @@ uint32_t getBodyCount()
     return bodyCount;
 }
 
+uint32_t getMaxBodies() {
+    return MAX_BODIES;
+}
+
 void clearBodies()
 {
     bodyCount = 0;

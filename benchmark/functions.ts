@@ -9,7 +9,7 @@ declare const process: {
     cwd(): string;
 };
 
-const numBodies = 10_000;
+const numBodies = 20_000;
 const NO_PARENT = 0xffffffff;
 const DEFAULT_THETA = 0.5;
 const DEFAULT_EPSILON = 1;

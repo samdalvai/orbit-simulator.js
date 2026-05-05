@@ -160,6 +160,7 @@ export default class Application {
         Graphics.pan.x = 0;
         Graphics.pan.y = 0;
 
+        this.wasmEngine._clearBodies();
         const solarSystem = createSolarSystemWasm(this.wasmEngine);
         this.bodyRenderStyles = solarSystem.renderStyles;
         Graphics.zoom = 0.3;

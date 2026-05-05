@@ -285,7 +285,7 @@ export function createSolarSystemWasm(engine: EngineModule): SolarSystem {
     const renderStyles = new Map<number, BodyRenderStyle>();
     const sun = createBody(SUN, BodyType.STAR);
     bodies.push(sun);
-    const id = engine._addNewBody(
+    const sunId = engine._addNewBody(
         sun.position.x,
         sun.position.y,
         sun.radius,
@@ -295,12 +295,12 @@ export function createSolarSystemWasm(engine: EngineModule): SolarSystem {
         sun.velocity.y,
         -1, // TODO: to be update with real parent id
     );
-    renderStyles.set(id, createRenderStyle(SUN, BodyType.STAR));
+    renderStyles.set(sunId, createRenderStyle(SUN, BodyType.STAR));
 
     for (const planetSpec of PLANETS) {
         const planet = createBody(planetSpec, BodyType.PLANET, sun);
         // bodies.push(planet);
-        const id = engine._addNewBody(
+        const planetId = engine._addNewBody(
             planet.position.x,
             planet.position.y,
             planet.radius,
@@ -310,13 +310,24 @@ export function createSolarSystemWasm(engine: EngineModule): SolarSystem {
             planet.velocity.y,
             -1, // TODO: to be update with real parent id
         );
-        renderStyles.set(id, createRenderStyle(planetSpec, BodyType.PLANET));
+        renderStyles.set(planetId, createRenderStyle(planetSpec, BodyType.PLANET));
 
-        // for (const moonSpec of planetSpec.moons ?? []) {
-        //     const moon = createBody(moonSpec, BodyType.MOON, planet);
-        //     bodies.push(moon);
-        //     renderStyles.set(moon.id, createRenderStyle(moonSpec, BodyType.MOON));
-        // }
+        for (const moonSpec of planetSpec.moons ?? []) {
+            const moon = createBody(moonSpec, BodyType.MOON, planet);
+
+            const moonId = engine._addNewBody(
+                moon.position.x,
+                moon.position.y,
+                moon.radius,
+                moon.mass,
+                moon.bodyType,
+                moon.velocity.x,
+                moon.velocity.y,
+                planetId, // TODO: to be update with real parent id
+            );
+
+            renderStyles.set(moonId, createRenderStyle(moonSpec, BodyType.MOON));
+        }
     }
 
     for (const beltSpec of BELTS) {

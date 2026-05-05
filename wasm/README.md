@@ -20,6 +20,26 @@ make run-native
 
 `make run` is kept as an alias for `make run-native`.
 
+## Install emcc
+
+Install Emscripten's `emcc` from the official `emsdk` repository:
+
+```shell
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+./emsdk install latest
+./emsdk activate latest
+source ./emsdk_env.sh
+```
+
+Confirm `emcc` is available on your `PATH`:
+
+```shell
+emcc --version
+```
+
+Run `source /path/to/emsdk/emsdk_env.sh` again in each new shell before building wasm, or add it to your shell profile.
+
 ## Build Wasm
 
 Requires Emscripten's `emcc` on your `PATH`.

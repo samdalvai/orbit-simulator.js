@@ -1,3 +1,4 @@
+import { EngineModule } from '../../wasm/out/engine';
 import AssetStore from '../AssetStore';
 import { Body, BodyType } from '../Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../BodyRenderStyle';
@@ -53,6 +54,47 @@ export function createBelt(
     }
 
     return bodies;
+}
+
+export function createBeltWasm(
+    centerPos: Vec2,
+    centerMass: number,
+    spec: BeltSpec,
+    renderStyles: Map<number, BodyRenderStyle>,
+    engine: EngineModule,
+): void {
+    for (let i = 0; i < spec.numBodies; i++) {
+        const position = getOrbitPosition(
+            randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm),
+            randomNumber(0, 360),
+        );
+        const asteroid = new Body(
+            position.x,
+            position.y,
+            randomNumber(spec.minRadiusKm, spec.maxRadiusKm),
+            randomNumber(spec.minMassKg, spec.maxMassKg),
+            BodyType.ASTEROID,
+        );
+
+        const fillColor = spec.colors[Math.floor(randomNumber(0, spec.colors.length))];
+
+        asteroid.velocity = getOrbitalSpeed(centerPos, centerMass, asteroid, G);
+        const id = engine._addNewBody(
+            asteroid.position.x,
+            asteroid.position.y,
+            asteroid.radius,
+            asteroid.mass,
+            asteroid.bodyType,
+            asteroid.velocity.x,
+            asteroid.velocity.y,
+            -1, // TODO: to be update with real parent id
+        );
+
+        renderStyles.set(id, {
+            ...DEFAULT_BODY_RENDER_STYLE,
+            fillColor,
+        });
+    }
 }
 
 export function createRenderStyle(spec: CelestialBodySpec, bodyType: BodyType): BodyRenderStyle {

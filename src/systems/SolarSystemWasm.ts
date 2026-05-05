@@ -3,7 +3,7 @@ import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM } from '../Constants';
 import { Engine } from '../Engine';
-import { createBelt, createBody, createRenderStyle } from './BodyGeneration';
+import { createBelt, createBeltWasm, createBody, createRenderStyle } from './BodyGeneration';
 import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';
 
 const ASTEROID_BELT_OBJECTS = 1000;
@@ -319,9 +319,10 @@ export function createSolarSystemWasm(engine: EngineModule): SolarSystem {
         // }
     }
 
-    // for (const beltSpec of BELTS) {
-    //     bodies.push(...createBelt(sun.position, sun.mass, beltSpec, renderStyles));
-    // }
+    for (const beltSpec of BELTS) {
+        // bodies.push(...createBelt(sun.position, sun.mass, beltSpec, renderStyles));
+        createBeltWasm(sun.position, sun.mass, beltSpec, renderStyles, engine);
+    }
 
     return { bodies, renderStyles };
 }

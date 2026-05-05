@@ -90,11 +90,20 @@ export default class Application {
 
     private async runWasmEngineExample(): Promise<void> {
         try {
-            const wasmEngine = await createEngineModule();
-            const err = wasmEngine._update(FIXED_DELTA_TIME);
+            const engine = await createEngineModule();
 
-            console.log('Wasm engine update result:', err);
-            console.log('Body count: ', wasmEngine._getBodyCount());
+            const posXStart = engine._posX / Float64Array.BYTES_PER_ELEMENT;
+            engine._addNewBody(0, 0, 10, 1, 1, 0, 0, -1);
+            engine._addNewBody(10, 10, 10, 1, 1, 0, 0, -1);
+            const bodyCount = engine._getBodyCount();
+            console.log('bodyCount: ', bodyCount);
+            for (let i = 0; i < 1000; i++) {
+                engine._update(FIXED_DELTA_TIME);
+            }
+
+            const posX = engine.HEAPF64.subarray(posXStart, posXStart + bodyCount);
+
+            console.log('posX[0]: ', posX[0]);
         } catch (err) {
             console.warn('Unable to run wasm engine example. Build it with `make -C wasm wasm` first.', err);
         }

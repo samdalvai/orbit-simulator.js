@@ -104,6 +104,7 @@ export default class Application {
             const posX = engine.HEAPF64.subarray(posXStart, posXStart + bodyCount);
 
             console.log('posX[0]: ', posX[0]);
+            console.log('posX[1]: ', posX[1]);
         } catch (err) {
             console.warn('Unable to run wasm engine example. Build it with `make -C wasm wasm` first.', err);
         }

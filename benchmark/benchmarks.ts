@@ -1,5 +1,5 @@
 import { benchmark } from './registry';
-import { runModified, runOriginal } from './functions';
+import { runModified, runOriginal, setupWasmBenchmark } from './functions';
 
-benchmark('modified', runModified);
-benchmark('original', runOriginal);
+benchmark('wasm version', runModified, setupWasmBenchmark);
+benchmark('typescript version', runOriginal);

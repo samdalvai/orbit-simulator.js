@@ -27,6 +27,8 @@ int main(void)
     }
 
     printf("Body count: %d\n", getBodyCount());
+    printf("initial posX[0]: %f\n", posX[0]);
+    printf("initial posX[1]: %f\n", posX[1]);
 
     // Benchmarking
     clock_t start = clock();
@@ -44,6 +46,8 @@ int main(void)
     double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
 
     printf("Time: %f seconds\n", elapsed);
+    printf("final posX[0]: %f\n", posX[0]);
+    printf("final posX[1]: %f\n", posX[1]);
 
     return 0;
 }

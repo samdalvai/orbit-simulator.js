@@ -1,4 +1,4 @@
-import createEngineModule from '../wasm/out/engine.js';
+import createEngineModule, { type EngineModule } from '../wasm/out/engine.js';
 import AssetStore from './AssetStore';
 import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
@@ -39,6 +39,7 @@ const SHORTCUTS: Array<[string, string]> = [
 
 export default class Application {
     private engine: Engine;
+    private wasmEngine: EngineModule | null = null;
     private bodyRenderStyles = new Map<number, BodyRenderStyle>();
     private blackHole: Body | null = null;
     private shortcutsOverlay: HTMLDivElement | null = null;
@@ -66,7 +67,6 @@ export default class Application {
 
     constructor() {
         this.engine = new Engine();
-        console.log(Number.MAX_VALUE);
     }
 
     isRunning(): boolean {
@@ -85,13 +85,28 @@ export default class Application {
         this.running = Graphics.openWindow();
         this.createShortcutsButton();
         this.loadDemo();
+        await this.initializeWasmEngine();
         await this.runWasmEngineExample();
     }
 
-    private async runWasmEngineExample(): Promise<void> {
+    private async initializeWasmEngine(): Promise<void> {
         try {
-            const engine = await createEngineModule();
+            this.wasmEngine = await createEngineModule();
+        } catch (err) {
+            this.wasmEngine = null;
+            console.warn('Unable to initialize wasm engine. Build it with `make -C wasm wasm` first.', err);
+        }
+    }
 
+    private async runWasmEngineExample(): Promise<void> {
+        const engine = this.wasmEngine;
+
+        if (!engine) {
+            return;
+        }
+
+        try {
+            engine._clearBodies();
             const posXStart = engine._posX / Float64Array.BYTES_PER_ELEMENT;
             engine._addNewBody(0, 0, 10, 1, 1, 0, 0, -1);
             engine._addNewBody(10, 10, 10, 1, 1, 0, 0, -1);

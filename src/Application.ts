@@ -422,7 +422,7 @@ export default class Application {
             const y = posY[i];
             const radius = radiuses[i];
             const bodyType = bodyTypes[i];
-            Graphics.drawBodyWasm(x, y, radius, bodyType, this.bodyRenderStyles.get(i), this.showTextures);
+            Graphics.drawBodyWasm(x, y, radius, bodyType, this.bodyRenderStyles.get(i), this.showTextures, viewport);
         }
 
         Graphics.endWorld();

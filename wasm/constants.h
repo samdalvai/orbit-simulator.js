@@ -1,7 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#define MAX_BODIES 10000
+#define MAX_BODIES 20000
 
 static const double G = 6.6743e-20;
 

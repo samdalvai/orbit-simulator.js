@@ -386,7 +386,7 @@ export default class Graphics {
         showTextures: boolean,
         // showLabels: boolean,
         // showMoonLabels: boolean,
-        // viewport: RenderViewport,
+        viewport: RenderViewport,
     ): void {
         const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
         // const renderPosition = this.getBodyRenderPosition(body);
@@ -418,6 +418,16 @@ export default class Graphics {
         //     ) {
         //         return;
         //     }
+
+        if (
+            scaledX + scaledRadius < viewport.minX ||
+            scaledX - scaledRadius > viewport.maxX ||
+            scaledY + scaledRadius < viewport.minY ||
+            scaledY - scaledRadius > viewport.maxY
+        ) {
+            return;
+        }
+
         this.ctx.save();
         this.ctx.translate(scaledX, scaledY);
         if (!showTextures) {

@@ -1,5 +1,5 @@
 import { MAX_BODIES } from './Constants';
-import { getBodyCount, mass, positionX, positionY, forceSumX, forceSumY } from './PackedBody';
+import { forceSumX, forceSumY, getBodyCount, mass, positionX, positionY } from './PackedBody';
 import * as Utils from './Utils';
 import { Vec2 } from './Vec2';
 
@@ -11,9 +11,9 @@ const NODE_CAPACITY = PARENT_CAPACITY * 4;
 
 const children = new Uint32Array(NODE_CAPACITY);
 const next = new Uint32Array(NODE_CAPACITY);
-const nodePosX = new Float64Array(NODE_CAPACITY);
-const nodePosY = new Float64Array(NODE_CAPACITY);
-const mass = new Float64Array(NODE_CAPACITY);
+const nodepositionX = new Float64Array(NODE_CAPACITY);
+const nodepositionY = new Float64Array(NODE_CAPACITY);
+const nodeMass = new Float64Array(NODE_CAPACITY);
 const centerX = new Float64Array(NODE_CAPACITY);
 const centerY = new Float64Array(NODE_CAPACITY);
 const size = new Float64Array(NODE_CAPACITY);
@@ -93,19 +93,19 @@ export function insertXYMass(x: number, y: number, bodyMass: number): void {
         node = children[node] + quadrant;
     }
 
-    if (mass[node] === 0) {
-        nodePosX[node] = x;
-        nodePosY[node] = y;
-        mass[node] = bodyMass;
+    if (nodeMass[node] === 0) {
+        nodepositionX[node] = x;
+        nodepositionY[node] = y;
+        nodeMass[node] = bodyMass;
         return;
     }
 
-    const existingX = nodePosX[node];
-    const existingY = nodePosY[node];
-    const existingMass = mass[node];
+    const existingX = nodepositionX[node];
+    const existingY = nodepositionY[node];
+    const existingMass = nodeMass[node];
 
     if (x === existingX && y === existingY) {
-        mass[node] += bodyMass;
+        nodeMass[node] += bodyMass;
         return;
     }
 
@@ -120,14 +120,14 @@ export function insertXYMass(x: number, y: number, bodyMass: number): void {
         }
 
         const n1 = firstChild + q1;
-        nodePosX[n1] = existingX;
-        nodePosY[n1] = existingY;
-        mass[n1] = existingMass;
+        nodepositionX[n1] = existingX;
+        nodepositionY[n1] = existingY;
+        nodeMass[n1] = existingMass;
 
         const n2 = firstChild + q2;
-        nodePosX[n2] = x;
-        nodePosY[n2] = y;
-        mass[n2] = bodyMass;
+        nodepositionX[n2] = x;
+        nodepositionY[n2] = y;
+        nodeMass[n2] = bodyMass;
         return;
     }
 }
@@ -142,15 +142,19 @@ export function propagate(): void {
         const i2 = firstChild + 2;
         const i3 = firstChild + 3;
 
-        const m0 = mass[i0];
-        const m1 = mass[i1];
-        const m2 = mass[i2];
-        const m3 = mass[i3];
+        const m0 = nodeMass[i0];
+        const m1 = nodeMass[i1];
+        const m2 = nodeMass[i2];
+        const m3 = nodeMass[i3];
         const totalMass = m0 + m1 + m2 + m3;
 
-        mass[node] = totalMass;
-        nodePosX[node] = (nodePosX[i0] * m0 + nodePosX[i1] * m1 + nodePosX[i2] * m2 + nodePosX[i3] * m3) / totalMass;
-        nodePosY[node] = (nodePosY[i0] * m0 + nodePosY[i1] * m1 + nodePosY[i2] * m2 + nodePosY[i3] * m3) / totalMass;
+        nodeMass[node] = totalMass;
+        nodepositionX[node] =
+            (nodepositionX[i0] * m0 + nodepositionX[i1] * m1 + nodepositionX[i2] * m2 + nodepositionX[i3] * m3) /
+            totalMass;
+        nodepositionY[node] =
+            (nodepositionY[i0] * m0 + nodepositionY[i1] * m1 + nodepositionY[i2] * m2 + nodepositionY[i3] * m3) /
+            totalMass;
     }
 }
 
@@ -165,15 +169,15 @@ export function applyForceOn(bodyIndex: number, x: number, y: number, G: number,
     let node = ROOT;
 
     for (;;) {
-        const dx = nodePosX[node] - x;
-        const dy = nodePosY[node] - y;
+        const dx = nodepositionX[node] - x;
+        const dy = nodepositionY[node] - y;
         const distanceSquared = dx * dx + dy * dy;
 
         if (children[node] === 0 || size[node] * size[node] < distanceSquared * thetaSq) {
             const denominator = (distanceSquared + epsilonSquared) * Math.sqrt(distanceSquared);
 
             if (denominator !== 0) {
-                const scale = Math.min((G * mass[node]) / denominator, Number.MAX_VALUE);
+                const scale = Math.min((G * nodeMass[node]) / denominator, Number.MAX_VALUE);
                 accX += dx * scale;
                 accY += dy * scale;
             }
@@ -228,9 +232,9 @@ function pushNode(nextNode: number, nodeCenterX: number, nodeCenterY: number, no
 
     children[node] = 0;
     next[node] = nextNode;
-    nodePosX[node] = 0;
-    nodePosY[node] = 0;
-    mass[node] = 0;
+    nodepositionX[node] = 0;
+    nodepositionY[node] = 0;
+    nodeMass[node] = 0;
     centerX[node] = nodeCenterX;
     centerY[node] = nodeCenterY;
     size[node] = nodeSize;

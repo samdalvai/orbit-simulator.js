@@ -2,9 +2,8 @@ import { Body, BodyType } from '../src/Body';
 import { SETTINGS } from '../src/Constants';
 import { Engine } from '../src/Engine';
 import { randomNumber } from '../src/Math';
-import { masses, posX, posY } from '../src_packed/PackedBody';
-import { Engine as EnginePacked } from '../src_packed/PackedEngine';
-import { Body as PackedBody } from '../src_packed/Body';
+import { masses, posX, posY } from '../src/PackedBody';
+import { Engine as EnginePacked } from '../src/PackedEngine';
 
 declare const process: {
     on(event: 'exit', listener: () => void): void;
@@ -21,11 +20,9 @@ for (let i = 0; i < numBodies; i++) {
     const radius = randomNumber(10_000, 100_000);
     const mass = randomNumber(1e16, 1e24);
     const b = new Body(x, y, radius, mass, BodyType.PLANET);
-    const bPack = new PackedBody(x, y, radius, mass, BodyType.PLANET);
-    // bodies.push(b);
 
     engine.addBody(b);
-    enginePacked.addBody(bPack);
+    enginePacked.addBody(b);
 }
 
 // const WARM_UP_ITERATIONS = 1_000;

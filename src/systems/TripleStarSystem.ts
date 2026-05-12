@@ -1,11 +1,11 @@
 import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM, G } from '../Constants';
-import { Engine } from '../PackedEngine';
 import { getOrbitPosition } from '../Math';
+import { Engine } from '../PackedEngine';
 import { Vec2 } from '../Vec2';
-import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';
 import { createBelt, createBody, createRenderStyle } from './BodyGeneration';
+import { BeltSpec, CelestialBodySpec } from './BodySpec';
 
 const STAR_A: CelestialBodySpec = {
     name: 'Aureon',
@@ -139,46 +139,43 @@ const BELTS: BeltSpec[] = [
     },
 ];
 
-export function createTripleStarSystem(engine: Engine): SolarSystem {
+export function createTripleStarSystem(engine: Engine, bodyRenderStyles: Map<number, BodyRenderStyle>) {
     const bodies: Body[] = [];
-    const renderStyles = new Map<number, BodyRenderStyle>();
     const sunA = createBody(STAR_A, BodyType.STAR);
     bodies.push(sunA);
-    renderStyles.set(sunA.id, createRenderStyle(STAR_A, BodyType.STAR));
+    bodyRenderStyles.set(sunA.id, createRenderStyle(STAR_A, BodyType.STAR));
 
     const sunB = createBody(STAR_B, BodyType.STAR, sunA);
     bodies.push(sunB);
-    renderStyles.set(sunB.id, createRenderStyle(STAR_B, BodyType.STAR));
+    bodyRenderStyles.set(sunB.id, createRenderStyle(STAR_B, BodyType.STAR));
 
     const sunC = createBody(STAR_C, BodyType.STAR, sunA);
     bodies.push(sunC);
-    renderStyles.set(sunC.id, createRenderStyle(STAR_C, BodyType.STAR));
+    bodyRenderStyles.set(sunC.id, createRenderStyle(STAR_C, BodyType.STAR));
 
     const centralMassKg = sunA.mass + sunB.mass + sunC.mass;
 
     for (const planetSpec of PLANETS) {
         const planet = createBarycentricOrbitBody(planetSpec, BodyType.PLANET, centralMassKg);
         bodies.push(planet);
-        renderStyles.set(planet.id, createRenderStyle(planetSpec, BodyType.PLANET));
+        bodyRenderStyles.set(planet.id, createRenderStyle(planetSpec, BodyType.PLANET));
 
         for (const moonSpec of planetSpec.moons ?? []) {
             const moon = createBody(moonSpec, BodyType.MOON, planet);
             bodies.push(moon);
-            renderStyles.set(moon.id, createRenderStyle(moonSpec, BodyType.MOON));
+            bodyRenderStyles.set(moon.id, createRenderStyle(moonSpec, BodyType.MOON));
         }
     }
 
     const startsCenter = centroid([sunA.position, sunB.position, sunC.position]);
 
     for (const beltSpec of BELTS) {
-        bodies.push(...createBelt(startsCenter, centralMassKg, beltSpec, renderStyles));
+        bodies.push(...createBelt(startsCenter, centralMassKg, beltSpec, bodyRenderStyles));
     }
 
     for (const body of bodies) {
         engine.addBody(body);
     }
-
-    return { bodies, renderStyles };
 }
 
 function centroid(points: Vec2[]): Vec2 {

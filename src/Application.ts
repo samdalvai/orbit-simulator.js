@@ -20,7 +20,6 @@ import {
 import { Engine } from './PackedEngine';
 import Graphics from './PackedGraphics';
 import { formatDuration } from './Utils';
-import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
 import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
 import { createSolarSystem } from './systems/SolarSystem';
@@ -30,7 +29,7 @@ const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
 const BODY_HOVER_TOLERANCE_PIXELS = 10;
 
-const DEMO_LABELS = ['Solar system', 'Alpha centauri', 'Triple star system', 'Random system', 'Random galaxy'];
+const DEMO_LABELS = ['Solar system', /*'Alpha centauri',*/ 'Triple star system', 'Random system', 'Random galaxy'];
 
 export default class Application {
     private engine: Engine;
@@ -108,23 +107,16 @@ export default class Application {
 
             if (this.demoIndex === 2) {
                 Graphics.zoom = 0.2;
-                const solarSystem = createAlphaCentauriSystem(this.engine);
-                this.bodyRenderStyles = solarSystem.renderStyles;
+                createTripleStarSystem(this.engine, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 3) {
-                Graphics.zoom = 0.2;
-                const solarSystem = createTripleStarSystem(this.engine);
-                this.bodyRenderStyles = solarSystem.renderStyles;
-            }
-
-            if (this.demoIndex === 4) {
                 Graphics.zoom = 0.16;
                 const solarSystem = createRandomSolarSystem(this.engine);
                 this.bodyRenderStyles = solarSystem.renderStyles;
             }
 
-            if (this.demoIndex === 5) {
+            if (this.demoIndex === 4) {
                 Graphics.zoom = 0.01;
                 const solarSystem = createRandomGalaxy(this.engine);
                 this.bodyRenderStyles = solarSystem.renderStyles;

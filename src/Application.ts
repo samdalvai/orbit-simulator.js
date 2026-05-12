@@ -2,14 +2,17 @@ import AssetStore from './AssetStore';
 import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
 import { FIXED_DELTA_TIME, G, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
-import { Engine } from './Engine';
-import Graphics from './Graphics';
+// import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
+import { getBodyCount, ids } from './PackedBody';
+import { Engine } from './PackedEngine';
+import Graphics from './PackedGraphics';
 import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
 import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
 import { createSolarSystem } from './systems/SolarSystem';
+import { createSolarSystemPacked } from './systems/SolarSystemPacked';
 import { createTripleStarSystem } from './systems/TripleStarSystem';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
@@ -97,7 +100,8 @@ export default class Application {
 
         if (this.demoIndex === 1) {
             Graphics.zoom = 0.3;
-            const solarSystem = createSolarSystem(this.engine);
+            const solarSystem = createSolarSystemPacked(this.engine);
+            // const solarSystem = createSolarSystem(this.engine);
             this.bodyRenderStyles = solarSystem.renderStyles;
         }
 
@@ -248,18 +252,17 @@ export default class Application {
                         switch (inputEvent.button) {
                             case MouseButton.LEFT:
                                 {
-                                    const hoveredBody = this.getHoveredBody();
-                                    if (!hoveredBody) return;
-                                    const pos = Graphics.getBodyRenderPosition(hoveredBody).scaleNew(
-                                        KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-                                    );
-                                    this.selectedPlanet = hoveredBody;
-
-                                    Graphics.pan = pos;
-                                    if (Graphics.zoom < 1) {
-                                        Graphics.zoom = 1;
-                                    }
-                                    this.selectedPlanet = hoveredBody;
+                                    // const hoveredBody = this.getHoveredBody();
+                                    // if (!hoveredBody) return;
+                                    // const pos = Graphics.getBodyRenderPosition(hoveredBody).scaleNew(
+                                    //     KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+                                    // );
+                                    // this.selectedPlanet = hoveredBody;
+                                    // Graphics.pan = pos;
+                                    // if (Graphics.zoom < 1) {
+                                    //     Graphics.zoom = 1;
+                                    // }
+                                    // this.selectedPlanet = hoveredBody;
                                 }
                                 break;
                             case MouseButton.RIGHT:
@@ -312,24 +315,25 @@ export default class Application {
         Graphics.beginWorld();
 
         if (this.selectedPlanet) {
-            const pos = Graphics.getBodyRenderPosition(this.selectedPlanet).scaleNew(
-                KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-            );
-            Graphics.pan = pos;
+            // const pos = Graphics.getBodyRenderPosition(this.selectedPlanet).scaleNew(
+            //     KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+            // );
+            // Graphics.pan = pos;
         }
 
         const viewport = Graphics.getRenderViewport();
 
-        if (this.showTextures) {
-            for (const body of this.engine.getBodies()) {
-                Graphics.drawStarLight(body, this.bodyRenderStyles.get(body.id), viewport);
-            }
-        }
+        // if (this.showTextures) {
+        //     for (const body of this.engine.getBodies()) {
+        //         Graphics.drawStarLight(body, this.bodyRenderStyles.get(body.id), viewport);
+        //     }
+        // }
 
-        for (const body of this.engine.getBodies()) {
+        // Draw all bodies
+        for (let i = 0; i < getBodyCount(); i++) {
             Graphics.drawBody(
-                body,
-                this.bodyRenderStyles.get(body.id),
+                i,
+                this.bodyRenderStyles.get(ids[i]),
                 this.showTextures,
                 this.showLabels,
                 this.showMoonLabels,
@@ -351,7 +355,7 @@ export default class Application {
         const stats: Array<[string, string]> = [
             ['Demo', DEMO_LABELS[this.demoIndex - 1]],
             ['Paused', this.paused ? 'ON' : 'OFF'],
-            ['Bodies', `${this.engine.getBodies().length}/${MAX_BODIES}`],
+            ['Bodies', `${this.engine.getBodiesCount()}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
             ['Zoom', Graphics.zoom.toFixed(4)],
             ['Labels', this.showLabels ? 'ON' : 'OFF'],
@@ -417,26 +421,27 @@ export default class Application {
     private getHoveredBody(): Body | null {
         if (!this.hasMousePosition) return null;
 
-        let hoveredBody: Body | null = null;
-        let bestDistanceSq = Number.POSITIVE_INFINITY;
-        const tolerance = BODY_HOVER_TOLERANCE_PIXELS / Graphics.zoom;
+        // let hoveredBody: Body | null = null;
+        // let bestDistanceSq = Number.POSITIVE_INFINITY;
+        // const tolerance = BODY_HOVER_TOLERANCE_PIXELS / Graphics.zoom;
 
-        for (const body of this.engine.getBodies()) {
-            const renderPosition = Graphics.getBodyRenderPosition(body);
-            const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-            const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-            const dx = InputManager.mousePosition.x - x;
-            const dy = InputManager.mousePosition.y - y;
-            const hitRadius = Graphics.getBodyRenderRadius(body) + tolerance;
-            const distanceSq = dx * dx + dy * dy;
+        // for (const body of this.engine.getBodies()) {
+        //     const renderPosition = Graphics.getBodyRenderPosition(body);
+        //     const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        //     const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        //     const dx = InputManager.mousePosition.x - x;
+        //     const dy = InputManager.mousePosition.y - y;
+        //     const hitRadius = Graphics.getBodyRenderRadius(body) + tolerance;
+        //     const distanceSq = dx * dx + dy * dy;
 
-            if (distanceSq <= hitRadius * hitRadius && distanceSq < bestDistanceSq) {
-                hoveredBody = body;
-                bestDistanceSq = distanceSq;
-            }
-        }
+        //     if (distanceSq <= hitRadius * hitRadius && distanceSq < bestDistanceSq) {
+        //         hoveredBody = body;
+        //         bestDistanceSq = distanceSq;
+        //     }
+        // }
 
-        return hoveredBody;
+        // return hoveredBody;
+        return null;
     }
 
     private drawHoveredBodyPopup(): void {
@@ -500,47 +505,44 @@ export default class Application {
     }
 
     private panToNextPlanetOrStar(): void {
-        const bodies = this.engine
-            .getBodies()
-            .filter(body => body.bodyType === BodyType.PLANET || body.bodyType === BodyType.STAR);
-
-        if (bodies.length === 0) {
-            this.selectedPlanet = null;
-            return;
-        }
-
-        const selectedIndex = this.selectedPlanet ? bodies.findIndex(body => body.id === this.selectedPlanet?.id) : -1;
-        const nextBody = bodies[(selectedIndex + 1) % bodies.length];
-        const pos = Graphics.getBodyRenderPosition(nextBody).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
-
-        Graphics.pan = pos;
-        if (Graphics.zoom < 1) {
-            Graphics.zoom = 1;
-        }
-        this.selectedPlanet = nextBody;
+        // const bodies = this.engine
+        //     .getBodies()
+        //     .filter(body => body.bodyType === BodyType.PLANET || body.bodyType === BodyType.STAR);
+        // if (bodies.length === 0) {
+        //     this.selectedPlanet = null;
+        //     return;
+        // }
+        // const selectedIndex = this.selectedPlanet ? bodies.findIndex(body => body.id === this.selectedPlanet?.id) : -1;
+        // const nextBody = bodies[(selectedIndex + 1) % bodies.length];
+        // const pos = Graphics.getBodyRenderPosition(nextBody).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
+        // Graphics.pan = pos;
+        // if (Graphics.zoom < 1) {
+        //     Graphics.zoom = 1;
+        // }
+        // this.selectedPlanet = nextBody;
     }
 
     private createBlackHoleAtMouse(): void {
         this.removeBlackHole();
 
-        if (this.engine.getBodies().length >= MAX_BODIES) {
-            return;
-        }
+        // if (this.engine.getBodies().length >= MAX_BODIES) {
+        //     return;
+        // }
 
-        const x = InputManager.mousePosition.x / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const y = InputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const blackHole = new Body(x, y, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.STAR);
+        // const x = InputManager.mousePosition.x / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        // const y = InputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        // const blackHole = new Body(x, y, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.STAR);
 
-        this.engine.addBody(blackHole);
-        this.bodyRenderStyles.set(blackHole.id, {
-            fillColor: '#030009',
-            texture: AssetStore.getTexture('blackHole'),
-            label: 'Black Hole',
-            labelColor: '#d9b8ff',
-            labelFontSize: 16,
-        });
+        // this.engine.addBody(blackHole);
+        // this.bodyRenderStyles.set(blackHole.id, {
+        //     fillColor: '#030009',
+        //     texture: AssetStore.getTexture('blackHole'),
+        //     label: 'Black Hole',
+        //     labelColor: '#d9b8ff',
+        //     labelFontSize: 16,
+        // });
 
-        this.blackHole = blackHole;
+        // this.blackHole = blackHole;
     }
 
     private removeBlackHole(): void {
@@ -548,9 +550,9 @@ export default class Application {
             return;
         }
 
-        this.engine.removeBody(this.blackHole);
-        this.bodyRenderStyles.delete(this.blackHole.id);
-        this.blackHole = null;
+        // this.engine.removeBody(this.blackHole);
+        // this.bodyRenderStyles.delete(this.blackHole.id);
+        // this.blackHole = null;
     }
 
     private createShortcutsButton(): void {

@@ -2,7 +2,7 @@ import { Body, BodyType } from '../src/Body';
 import { SETTINGS } from '../src/Constants';
 import { Engine } from '../src/Engine';
 import { randomNumber } from '../src/Math';
-import { masses, posX, posY } from '../src/PackedBody';
+import { mass, positionX, positionY } from '../src/PackedBody';
 import { Engine as EnginePacked } from '../src/PackedEngine';
 
 declare const process: {
@@ -50,5 +50,5 @@ process.on('exit', () => {
     console.log('Body count engine packed: ', enginePacked.getBodiesCount());
 
     console.log('First body engine: ', engine.getBodies()[0]);
-    console.log(`First body engine packed: posX ${posX[0]} posY ${posY[0]} mass ${masses[0]}`);
+    console.log(`First body engine packed: posX ${positionX[0]} posY ${positionY[0]} mass ${mass[0]}`);
 });

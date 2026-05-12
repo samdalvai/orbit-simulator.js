@@ -10,10 +10,10 @@ import {
     initializeAcceleration,
     integrateVerletPosition,
     integrateVerletVelocity,
-    maxX,
-    maxY,
-    minX,
-    minY,
+    aabbMaxX,
+    aabbMaxY,
+    aabbMinX,
+    aabbMinY,
     swapBodies,
 } from './PackedBody';
 import { applyPackedBarnesHutGravitationalForces } from './PackedGravityExtreme';
@@ -80,10 +80,10 @@ export class Engine {
         const count = getBodyCount();
 
         for (let i = 1; i < count; i++) {
-            const minXCurrent = minX[i];
+            const minXCurrent = aabbMinX[i];
             let j = i - 1;
 
-            while (j >= 0 && minX[j] > minXCurrent) {
+            while (j >= 0 && aabbMinX[j] > minXCurrent) {
                 swapBodies(j + 1, j);
                 j--;
             }
@@ -91,16 +91,16 @@ export class Engine {
 
         // Broad phase check with prune & sweep algorithm
         for (let i = 0, len = count; i < len; i++) {
-            const maxXCurrent = maxX[i];
-            const minYCurrent = minY[i];
-            const maxYCurrent = maxY[i];
+            const maxXCurrent = aabbMaxX[i];
+            const minYCurrent = aabbMinY[i];
+            const maxYCurrent = aabbMaxY[i];
 
             for (let j = i + 1; j < len; j++) {
                 // If objects don't overlap on X axis they cannot collide
-                if (minX[j] > maxXCurrent) break;
+                if (aabbMinX[j] > maxXCurrent) break;
 
                 // If objects overlap on X axis but don't overlap on Y axis the cannot collide
-                if (maxYCurrent < minY[j] || minYCurrent > maxY[j]) {
+                if (maxYCurrent < aabbMinY[j] || minYCurrent > aabbMaxY[j]) {
                     continue;
                 }
 

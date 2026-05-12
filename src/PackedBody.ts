@@ -12,35 +12,35 @@ export enum BodyType {
 const CAPACITY = MAX_BODIES;
 export const NO_PARENT = -1;
 
-export const ids = new Int32Array(CAPACITY);
-export const indexOfId = new Int32Array(CAPACITY);
+export const bodyIds = new Int32Array(CAPACITY);
+export const bodyIndexById = new Int32Array(CAPACITY);
 
-export const parents = new Int32Array(CAPACITY);
+export const parentBodyIds = new Int32Array(CAPACITY);
 export const bodyTypes = new Uint8Array(CAPACITY);
 
-export const radiuses = new Float64Array(CAPACITY);
+export const radii = new Float64Array(CAPACITY);
 
 // Linear motion
-export const posX = new Float64Array(CAPACITY);
-export const posY = new Float64Array(CAPACITY);
-export const velX = new Float64Array(CAPACITY);
-export const velY = new Float64Array(CAPACITY);
-export const accX = new Float64Array(CAPACITY);
-export const accY = new Float64Array(CAPACITY);
+export const positionX = new Float64Array(CAPACITY);
+export const positionY = new Float64Array(CAPACITY);
+export const velocityX = new Float64Array(CAPACITY);
+export const velocityY = new Float64Array(CAPACITY);
+export const accelerationX = new Float64Array(CAPACITY);
+export const accelerationY = new Float64Array(CAPACITY);
 
 // Forces
-export const sumForcesX = new Float64Array(CAPACITY);
-export const sumForcesY = new Float64Array(CAPACITY);
+export const forceSumX = new Float64Array(CAPACITY);
+export const forceSumY = new Float64Array(CAPACITY);
 
 // Mass
-export const masses = new Float64Array(CAPACITY);
-export const invMasses = new Float64Array(CAPACITY);
+export const mass = new Float64Array(CAPACITY);
+export const invMass = new Float64Array(CAPACITY);
 
 // AABB for collision
-export const minX = new Float64Array(CAPACITY);
-export const maxX = new Float64Array(CAPACITY);
-export const minY = new Float64Array(CAPACITY);
-export const maxY = new Float64Array(CAPACITY);
+export const aabbMinX = new Float64Array(CAPACITY);
+export const aabbMaxX = new Float64Array(CAPACITY);
+export const aabbMinY = new Float64Array(CAPACITY);
+export const aabbMaxY = new Float64Array(CAPACITY);
 
 let bodyCount = 0;
 
@@ -56,48 +56,48 @@ export function addNewBody(
     x: number,
     y: number,
     radius: number,
-    mass: number,
+    bodyMass: number,
     bodyType: BodyType,
     velocity: Vec2,
     parentId: number = NO_PARENT,
 ): number {
-    Utils.assert(mass > 0, 'Mass needs to be greater than 0');
+    Utils.assert(bodyMass > 0, 'Mass needs to be greater than 0');
     Utils.assert(bodyCount < CAPACITY, 'Body capacity exceeded');
 
     const index = bodyCount;
     const bodyId = bodyCount++;
 
-    ids[index] = bodyId;
-    indexOfId[index] = bodyId;
+    bodyIds[index] = bodyId;
+    bodyIndexById[index] = bodyId;
 
-    parents[index] = parentId;
+    parentBodyIds[index] = parentId;
     bodyTypes[index] = bodyType;
-    radiuses[index] = radius;
+    radii[index] = radius;
 
-    posX[index] = x;
-    posY[index] = y;
-    velX[index] = velocity.x;
-    velY[index] = velocity.y;
-    accX[index] = 0;
-    accY[index] = 0;
+    positionX[index] = x;
+    positionY[index] = y;
+    velocityX[index] = velocity.x;
+    velocityY[index] = velocity.y;
+    accelerationX[index] = 0;
+    accelerationY[index] = 0;
 
-    sumForcesX[index] = 0;
-    sumForcesY[index] = 0;
+    forceSumX[index] = 0;
+    forceSumY[index] = 0;
 
-    masses[index] = mass;
-    invMasses[index] = 1 / mass;
+    mass[index] = bodyMass;
+    invMass[index] = 1 / bodyMass;
 
-    minX[index] = 0;
-    minY[index] = 0;
-    maxX[index] = 0;
-    maxY[index] = 0;
+    aabbMinX[index] = 0;
+    aabbMinY[index] = 0;
+    aabbMaxX[index] = 0;
+    aabbMaxY[index] = 0;
 
     updateAABB(index);
 
     // Insert the body at the correct position based on minX
     // this ensures that bodies are already almost sorted when teh simulation begins
     let currentIndex = index;
-    while (currentIndex > 0 && minX[currentIndex - 1] > minX[currentIndex]) {
+    while (currentIndex > 0 && aabbMinX[currentIndex - 1] > aabbMinX[currentIndex]) {
         swapBodies(currentIndex - 1, currentIndex);
         currentIndex--;
     }
@@ -106,42 +106,42 @@ export function addNewBody(
 }
 
 export function removeBody(bodyId: number): void {
-    const index = indexOfId[bodyId];
+    const index = bodyIndexById[bodyId];
     Utils.assert(index >= 0 && index < bodyCount, 'Body id out of bounds');
 
     const lastIndex = bodyCount - 1;
-    const movedId = ids[lastIndex];
+    const movedId = bodyIds[lastIndex];
 
-    ids[index] = movedId;
-    indexOfId[movedId] = index;
+    bodyIds[index] = movedId;
+    bodyIndexById[movedId] = index;
 
-    parents[index] = parents[lastIndex];
+    parentBodyIds[index] = parentBodyIds[lastIndex];
     bodyTypes[index] = bodyTypes[lastIndex];
-    radiuses[index] = radiuses[lastIndex];
+    radii[index] = radii[lastIndex];
 
-    posX[index] = posX[lastIndex];
-    posY[index] = posY[lastIndex];
-    velX[index] = velX[lastIndex];
-    velY[index] = velY[lastIndex];
-    accX[index] = accX[lastIndex];
-    accY[index] = accY[lastIndex];
+    positionX[index] = positionX[lastIndex];
+    positionY[index] = positionY[lastIndex];
+    velocityX[index] = velocityX[lastIndex];
+    velocityY[index] = velocityY[lastIndex];
+    accelerationX[index] = accelerationX[lastIndex];
+    accelerationY[index] = accelerationY[lastIndex];
 
-    sumForcesX[index] = sumForcesX[lastIndex];
-    sumForcesY[index] = sumForcesY[lastIndex];
+    forceSumX[index] = forceSumX[lastIndex];
+    forceSumY[index] = forceSumY[lastIndex];
 
-    masses[index] = masses[lastIndex];
-    invMasses[index] = invMasses[lastIndex];
+    mass[index] = mass[lastIndex];
+    invMass[index] = invMass[lastIndex];
 
-    minX[index] = minX[lastIndex];
-    minY[index] = minY[lastIndex];
-    maxX[index] = maxX[lastIndex];
-    maxY[index] = maxY[lastIndex];
+    aabbMinX[index] = aabbMinX[lastIndex];
+    aabbMinY[index] = aabbMinY[lastIndex];
+    aabbMaxX[index] = aabbMaxX[lastIndex];
+    aabbMaxY[index] = aabbMaxY[lastIndex];
 
     bodyCount--;
 
     for (let i = 0; i < bodyCount; i++) {
-        if (parents[i] === bodyId) {
-            parents[i] = NO_PARENT;
+        if (parentBodyIds[i] === bodyId) {
+            parentBodyIds[i] = NO_PARENT;
         }
     }
     // TODO: need to check if deleted body was parent to another one and remove that parent entry (set to no parent)
@@ -150,103 +150,103 @@ export function removeBody(bodyId: number): void {
 export function swapBodies(aIndex: number, bIndex: number): void {
     Utils.assert(aIndex >= 0 && aIndex < bodyCount, 'Body index out of bounds');
     Utils.assert(bIndex >= 0 && bIndex < bodyCount, 'Body index out of bounds');
-    const idA = ids[aIndex];
-    const idB = ids[bIndex];
+    const idA = bodyIds[aIndex];
+    const idB = bodyIds[bIndex];
 
-    swapInt32(ids, aIndex, bIndex);
+    swapInt32(bodyIds, aIndex, bIndex);
 
-    indexOfId[idA] = bIndex;
-    indexOfId[idB] = aIndex;
+    bodyIndexById[idA] = bIndex;
+    bodyIndexById[idB] = aIndex;
 
-    swapInt32(parents, aIndex, bIndex);
+    swapInt32(parentBodyIds, aIndex, bIndex);
     swapUint8(bodyTypes, aIndex, bIndex);
-    swapFloat64(radiuses, aIndex, bIndex);
+    swapFloat64(radii, aIndex, bIndex);
 
-    swapFloat64(posX, aIndex, bIndex);
-    swapFloat64(posY, aIndex, bIndex);
-    swapFloat64(velX, aIndex, bIndex);
-    swapFloat64(velY, aIndex, bIndex);
-    swapFloat64(accX, aIndex, bIndex);
-    swapFloat64(accY, aIndex, bIndex);
+    swapFloat64(positionX, aIndex, bIndex);
+    swapFloat64(positionY, aIndex, bIndex);
+    swapFloat64(velocityX, aIndex, bIndex);
+    swapFloat64(velocityY, aIndex, bIndex);
+    swapFloat64(accelerationX, aIndex, bIndex);
+    swapFloat64(accelerationY, aIndex, bIndex);
 
-    swapFloat64(sumForcesX, aIndex, bIndex);
-    swapFloat64(sumForcesY, aIndex, bIndex);
+    swapFloat64(forceSumX, aIndex, bIndex);
+    swapFloat64(forceSumY, aIndex, bIndex);
 
-    swapFloat64(masses, aIndex, bIndex);
-    swapFloat64(invMasses, aIndex, bIndex);
+    swapFloat64(mass, aIndex, bIndex);
+    swapFloat64(invMass, aIndex, bIndex);
 
-    swapFloat64(minX, aIndex, bIndex);
-    swapFloat64(minY, aIndex, bIndex);
-    swapFloat64(maxX, aIndex, bIndex);
-    swapFloat64(maxY, aIndex, bIndex);
+    swapFloat64(aabbMinX, aIndex, bIndex);
+    swapFloat64(aabbMinY, aIndex, bIndex);
+    swapFloat64(aabbMaxX, aIndex, bIndex);
+    swapFloat64(aabbMaxY, aIndex, bIndex);
 }
 
 export function addForce(bodyIndex: number, force: Vec2) {
-    sumForcesX[bodyIndex] += force.x;
-    sumForcesY[bodyIndex] += force.y;
+    forceSumX[bodyIndex] += force.x;
+    forceSumY[bodyIndex] += force.y;
 }
 
 export function addForceXY(bodyIndex: number, x: number, y: number) {
-    sumForcesX[bodyIndex] += x;
-    sumForcesY[bodyIndex] += y;
+    forceSumX[bodyIndex] += x;
+    forceSumY[bodyIndex] += y;
 }
 
 export function clearForces(bodyIndex: number) {
-    sumForcesX[bodyIndex] = 0;
-    sumForcesY[bodyIndex] = 0;
+    forceSumX[bodyIndex] = 0;
+    forceSumY[bodyIndex] = 0;
 }
 
 export function applyImpulseLinear(bodyIndex: number, j: Vec2): void {
-    const invM = invMasses[bodyIndex];
-    velX[bodyIndex] += j.x * invM;
-    velY[bodyIndex] += j.y * invM;
+    const invM = invMass[bodyIndex];
+    velocityX[bodyIndex] += j.x * invM;
+    velocityY[bodyIndex] += j.y * invM;
 }
 
 export function initializeAcceleration(bodyIndex: number): void {
     // Find the acceleration based on the forces that are being applied and the mass
-    const invM = invMasses[bodyIndex];
-    accX[bodyIndex] = sumForcesX[bodyIndex] * invM;
-    accY[bodyIndex] = sumForcesY[bodyIndex] * invM;
+    const invM = invMass[bodyIndex];
+    accelerationX[bodyIndex] = forceSumX[bodyIndex] * invM;
+    accelerationY[bodyIndex] = forceSumY[bodyIndex] * invM;
 
     // Clear all the forces and torque acting on the object before the next physics step
     clearForces(bodyIndex);
 }
 
 export function integrateVerletPosition(bodyIndex: number, dt: number): void {
-    const ax = accX[bodyIndex];
-    const ay = accY[bodyIndex];
+    const ax = accelerationX[bodyIndex];
+    const ay = accelerationY[bodyIndex];
 
-    posX[bodyIndex] += velX[bodyIndex] * dt + 0.5 * ax * dt * dt;
-    posY[bodyIndex] += velY[bodyIndex] * dt + 0.5 * ay * dt * dt;
+    positionX[bodyIndex] += velocityX[bodyIndex] * dt + 0.5 * ax * dt * dt;
+    positionY[bodyIndex] += velocityY[bodyIndex] * dt + 0.5 * ay * dt * dt;
 
     // Update AABB values based on new position
     updateAABB(bodyIndex);
 }
 
 export function integrateVerletVelocity(bodyIndex: number, dt: number): void {
-    const oldAx = accX[bodyIndex];
-    const oldAy = accY[bodyIndex];
+    const oldAx = accelerationX[bodyIndex];
+    const oldAy = accelerationY[bodyIndex];
 
-    const invM = invMasses[bodyIndex];
-    const newAx = sumForcesX[bodyIndex] * invM;
-    const newAy = sumForcesY[bodyIndex] * invM;
+    const invM = invMass[bodyIndex];
+    const newAx = forceSumX[bodyIndex] * invM;
+    const newAy = forceSumY[bodyIndex] * invM;
 
-    velX[bodyIndex] += 0.5 * (oldAx + newAx) * dt;
-    velY[bodyIndex] += 0.5 * (oldAy + newAy) * dt;
+    velocityX[bodyIndex] += 0.5 * (oldAx + newAx) * dt;
+    velocityY[bodyIndex] += 0.5 * (oldAy + newAy) * dt;
 
     // store for next step
-    accX[bodyIndex] = newAx;
-    accY[bodyIndex] = newAy;
+    accelerationX[bodyIndex] = newAx;
+    accelerationY[bodyIndex] = newAy;
 
     clearForces(bodyIndex);
 }
 
 export function updateAABB(bodyIndex: number) {
-    const radius = radiuses[bodyIndex];
-    minX[bodyIndex] = posX[bodyIndex] - radius;
-    maxX[bodyIndex] = posX[bodyIndex] + radius;
-    minY[bodyIndex] = posY[bodyIndex] - radius;
-    maxY[bodyIndex] = posY[bodyIndex] + radius;
+    const radius = radii[bodyIndex];
+    aabbMinX[bodyIndex] = positionX[bodyIndex] - radius;
+    aabbMaxX[bodyIndex] = positionX[bodyIndex] + radius;
+    aabbMinY[bodyIndex] = positionY[bodyIndex] - radius;
+    aabbMaxY[bodyIndex] = positionY[bodyIndex] + radius;
 }
 
 function swapFloat64(array: Float64Array, aIndex: number, bIndex: number): void {

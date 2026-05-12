@@ -1,5 +1,4 @@
-import { Body } from './Body';
-import { applyImpulseLinear, invMasses, posX, posY, radiuses, updateAABB, velX, velY } from './PackedBody';
+import { applyImpulseLinear, invMass, mass, positionX, positionY, radii, updateAABB, velocityX, velocityY } from './PackedBody';
 import { Vec2 } from './Vec2';
 
 type Collision = {
@@ -8,10 +7,10 @@ type Collision = {
 };
 
 export function detectCircleCollision(aIndex: number, bIndex: number): Collision | null {
-    const dx = posX[bIndex] - posX[aIndex];
-    const dy = posY[bIndex] - posY[aIndex];
+    const dx = positionX[bIndex] - positionX[aIndex];
+    const dy = positionY[bIndex] - positionY[aIndex];
 
-    const radiusSum = radiuses[aIndex] + radiuses[bIndex];
+    const radiusSum = radii[aIndex] + radii[bIndex];
     const distSq = dx * dx + dy * dy;
 
     if (distSq >= radiusSum * radiusSum) {
@@ -38,8 +37,8 @@ export function resolveCollision(
 ): void {
     const n = collision.normal;
 
-    const rvx = velX[bIndex] - velX[aIndex];
-    const rvy = velY[bIndex] - velY[aIndex];
+    const rvx = velocityX[bIndex] - velocityX[aIndex];
+    const rvy = velocityY[bIndex] - velocityY[aIndex];
 
     const velAlongNormal = rvx * n.x + rvy * n.y;
 
@@ -48,7 +47,7 @@ export function resolveCollision(
         return;
     }
 
-    const invMassSum = invMasses[aIndex] + invMasses[bIndex];
+    const invMassSum = invMass[aIndex] + invMass[bIndex];
     if (invMassSum === 0) {
         return;
     }
@@ -66,7 +65,7 @@ export function positionalCorrection(aIndex: number, bIndex: number, collision: 
     const percent = 0.8; // correction strength
     const slop = 0.01; // small tolerance
 
-    const invMassSum = invMasses[aIndex] + invMasses[bIndex];
+    const invMassSum = invMass[aIndex] + invMass[bIndex];
     if (invMassSum === 0) return;
 
     const correctionMag = (Math.max(collision.penetration - slop, 0) / invMassSum) * percent;
@@ -74,11 +73,11 @@ export function positionalCorrection(aIndex: number, bIndex: number, collision: 
     const cx = correctionMag * collision.normal.x;
     const cy = correctionMag * collision.normal.y;
 
-    posX[aIndex] -= cx * invMasses[aIndex];
-    posY[aIndex] -= cy * invMasses[aIndex];
+    positionX[aIndex] -= cx * invMass[aIndex];
+    positionY[aIndex] -= cy * invMass[aIndex];
 
-    posX[bIndex] += cx * invMasses[bIndex];
-    posY[bIndex] += cy * invMasses[bIndex];
+    positionX[bIndex] += cx * invMass[bIndex];
+    positionY[bIndex] += cy * invMass[bIndex];
 
     updateAABB(aIndex);
     updateAABB(bIndex);
@@ -87,13 +86,13 @@ export function positionalCorrection(aIndex: number, bIndex: number, collision: 
 /**
  * Impact energy in kg * (km/s)^2
  */
-export function computeImpactEnergy(a: Body, b: Body, normal: Vec2): number {
-    const rvx = b.velocity.x - a.velocity.x;
-    const rvy = b.velocity.y - a.velocity.y;
+export function computeImpactEnergy(aIndex: number, bIndex: number, normal: Vec2): number {
+    const rvx = velocityX[bIndex] - velocityX[aIndex];
+    const rvy = velocityY[bIndex] - velocityY[aIndex];
 
     const impactSpeed = Math.abs(rvx * normal.x + rvy * normal.y);
 
-    const reducedMass = (a.mass * b.mass) / (a.mass + b.mass);
+    const reducedMass = (mass[aIndex] * mass[bIndex]) / (mass[aIndex] + mass[bIndex]);
 
     return 0.5 * reducedMass * impactSpeed * impactSpeed;
 }

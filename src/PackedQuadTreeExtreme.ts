@@ -1,5 +1,5 @@
 import { MAX_BODIES } from './Constants';
-import { getBodyCount, masses, posX, posY, sumForcesX, sumForcesY } from './PackedBody';
+import { getBodyCount, mass, positionX, positionY, forceSumX, forceSumY } from './PackedBody';
 import * as Utils from './Utils';
 import { Vec2 } from './Vec2';
 
@@ -46,10 +46,10 @@ export function buildPackedQuadTree(theta = 0.5, epsilon = 1): boolean {
     let maxY = Number.NEGATIVE_INFINITY;
 
     for (let i = 0; i < getBodyCount(); i++) {
-        if (masses[i] === 0) continue;
+        if (mass[i] === 0) continue;
 
-        const x = posX[i];
-        const y = posY[i];
+        const x = positionX[i];
+        const y = positionY[i];
 
         if (x < minX) minX = x;
         if (y < minY) minY = y;
@@ -66,7 +66,7 @@ export function buildPackedQuadTree(theta = 0.5, epsilon = 1): boolean {
     clearQuadTree((minX + maxX) * 0.5, (minY + maxY) * 0.5, Math.max(maxX - minX, maxY - minY));
 
     for (let i = 0; i < getBodyCount(); i++) {
-        insertXYMass(posX[i], posY[i], masses[i]);
+        insertXYMass(positionX[i], positionY[i], mass[i]);
     }
 
     propagate();
@@ -188,9 +188,9 @@ export function applyForceOn(bodyIndex: number, x: number, y: number, G: number,
         }
     }
 
-    const bodyMass = masses[bodyIndex];
-    sumForcesX[bodyIndex] += accX * bodyMass;
-    sumForcesY[bodyIndex] += accY * bodyMass;
+    const bodyMass = mass[bodyIndex];
+    forceSumX[bodyIndex] += accX * bodyMass;
+    forceSumY[bodyIndex] += accY * bodyMass;
 }
 
 function subdivideNode(node: number): number {

@@ -2,10 +2,20 @@ import AssetStore from './AssetStore';
 import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
-import GUI from './GUI';
+import GUI from './GUI2';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
-import { bodyTypes, getBodyCount, ids, indexOfId, masses, radiuses, removeBody, velX, velY } from './PackedBody';
+import {
+    bodyIds,
+    bodyIndexById,
+    bodyTypes,
+    getBodyCount,
+    mass,
+    radii,
+    removeBody,
+    velocityX,
+    velocityY,
+} from './PackedBody';
 import { Engine } from './PackedEngine';
 import Graphics from './PackedGraphics';
 import { formatDuration } from './Utils';
@@ -259,7 +269,7 @@ export default class Application {
                                 {
                                     const bodyId = this.getHoveredBody();
                                     if (bodyId === null) return;
-                                    const bodyIndex = indexOfId[bodyId];
+                                    const bodyIndex = bodyIndexById[bodyId];
                                     const pos = Graphics.getBodyRenderPosition(bodyIndex).scaleNew(
                                         KILOMETERS_TO_PIXELS_RENDERING_SCALE,
                                     );
@@ -321,7 +331,7 @@ export default class Application {
         Graphics.beginWorld();
 
         if (this.selectedPlanet) {
-            const index = indexOfId[this.selectedPlanet];
+            const index = bodyIndexById[this.selectedPlanet];
             const pos = Graphics.getBodyRenderPosition(index).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
             Graphics.pan = pos;
         }
@@ -330,7 +340,7 @@ export default class Application {
 
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {
-                Graphics.drawStarLight(i, this.bodyRenderStyles.get(ids[i]), viewport);
+                Graphics.drawStarLight(i, this.bodyRenderStyles.get(bodyIds[i]), viewport);
             }
         }
 
@@ -338,7 +348,7 @@ export default class Application {
         for (let i = 0; i < getBodyCount(); i++) {
             Graphics.drawBody(
                 i,
-                this.bodyRenderStyles.get(ids[i]),
+                this.bodyRenderStyles.get(bodyIds[i]),
                 this.showTextures,
                 this.showLabels,
                 this.showMoonLabels,
@@ -440,7 +450,7 @@ export default class Application {
             const distanceSq = dx * dx + dy * dy;
 
             if (distanceSq <= hitRadius * hitRadius && distanceSq < bestDistanceSq) {
-                hoveredBody = ids[i];
+                hoveredBody = bodyIds[i];
                 bestDistanceSq = distanceSq;
             }
         }
@@ -452,18 +462,18 @@ export default class Application {
         const bodyId = this.getHoveredBody();
         if (bodyId === null) return;
 
-        const bodyIndex = indexOfId[bodyId];
+        const bodyIndex = bodyIndexById[bodyId];
         const style = this.bodyRenderStyles.get(bodyId);
         const bodyType = BodyType[bodyTypes[bodyIndex]];
         const type = bodyType[0] + bodyType.slice(1).toLowerCase();
         const title = style?.label || type;
-        const vX = velX[bodyIndex];
-        const vY = velY[bodyIndex];
+        const vX = velocityX[bodyIndex];
+        const vY = velocityY[bodyIndex];
         const velocityMag = Math.sqrt(vX * vX + vY * vY);
         const rows: Array<[string, string]> = [
             ['Orbital speed', `${velocityMag.toFixed(2)} km/s`],
-            ['Mass', `${masses[bodyIndex].toExponential(3)} kg`],
-            ['Radius', `${radiuses[bodyIndex].toLocaleString(undefined, { maximumFractionDigits: 1 })} km`],
+            ['Mass', `${mass[bodyIndex].toExponential(3)} kg`],
+            ['Radius', `${radii[bodyIndex].toLocaleString(undefined, { maximumFractionDigits: 1 })} km`],
             ['Type', type],
         ];
 
@@ -526,14 +536,14 @@ export default class Application {
 
         if (!hasPlanetOrStar) return;
 
-        const selectedIndex = this.selectedPlanet !== null ? indexOfId[this.selectedPlanet] : -1;
+        const selectedIndex = this.selectedPlanet !== null ? bodyIndexById[this.selectedPlanet] : -1;
         let nextIndex = (selectedIndex + 1) % getBodyCount();
 
         while (bodyTypes[nextIndex] !== BodyType.PLANET && bodyTypes[nextIndex] !== BodyType.STAR) {
             nextIndex = (nextIndex + 1) % getBodyCount();
         }
 
-        const nextBodyId = ids[nextIndex];
+        const nextBodyId = bodyIds[nextIndex];
         const pos = Graphics.getBodyRenderPosition(nextIndex).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
         Graphics.pan = pos;
         if (Graphics.zoom < 1) {

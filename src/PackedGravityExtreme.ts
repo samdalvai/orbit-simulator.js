@@ -1,5 +1,5 @@
 import { Body } from './Body';
-import { getBodyCount, masses, posX, posY } from './PackedBody';
+import { getBodyCount, mass, positionX, positionY } from './PackedBody';
 import { applyForceOn, buildPackedQuadTree } from './PackedQuadTreeExtreme';
 import { Vec2 } from './Vec2';
 
@@ -69,7 +69,7 @@ export function applyPackedBarnesHutGravitationalForces(
     const thetaSquared = theta * theta;
 
     for (let i = 0; i < getBodyCount(); i++) {
-        if (masses[i] === 0) continue;
-        applyForceOn(i, posX[i], posY[i], G, thetaSquared);
+        if (mass[i] === 0) continue;
+        applyForceOn(i, positionX[i], positionY[i], G, thetaSquared);
     }
 }

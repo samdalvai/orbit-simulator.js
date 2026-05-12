@@ -214,7 +214,9 @@ export default class Graphics {
         this.ctx.restore();
     }
 
+    // TODO: handle moon orbit position
     static getBodyRenderPosition(bodyId: number): Vec2 {
+        return new Vec2(posX[bodyId], posY[bodyId]);
         if (bodyTypes[bodyId] !== BodyType.MOON || parents[bodyId] === NO_PARENT) {
             return new Vec2(posX[bodyId], posY[bodyId]);
         }

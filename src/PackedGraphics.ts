@@ -296,6 +296,11 @@ export default class Graphics {
         const paddingX = Math.max(0, radius - aabbHalfWidth) + labelMargin;
         const paddingY = Math.max(0, radius - aabbHalfHeight) + labelMargin;
 
+        if (bodyTypes[bodyId] === BodyType.MOON) {
+            console.log("parent: ", parents[bodyId]);
+            console.log("moon pos: ", x, y);
+        }
+
         if (
             maxXScreen + paddingX < viewport.minX ||
             minXScreen - paddingX > viewport.maxX ||

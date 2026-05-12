@@ -103,8 +103,7 @@ export default class Application {
 
             if (this.demoIndex === 1) {
                 Graphics.zoom = 0.3;
-                const solarSystem = createSolarSystem(this.engine);
-                this.bodyRenderStyles = solarSystem.renderStyles;
+                createSolarSystem(this.engine, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 2) {

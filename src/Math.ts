@@ -1,4 +1,5 @@
 import { Body } from './Body';
+import { bodyIndexById, mass, positionX, positionY } from './PackedBody';
 import { Vec2 } from './Vec2';
 
 /**
@@ -21,8 +22,29 @@ export function getOrbitalSpeed(centerPos: Vec2, centerMass: number, planet: Bod
     return tangent.scaleNew(v);
 }
 
+export function getOrbitalSpeedByPlanetId(centerPos: Vec2, centerMass: number, planetId: number, G: number): Vec2 {
+    const planetIndex = bodyIndexById[planetId];
+    const planetPos = new Vec2(positionX[planetIndex], positionY[planetIndex]);
+
+    const rVec = planetPos.subNew(centerPos);
+    const r = rVec.magnitude();
+    const v = Math.sqrt((G * (centerMass + mass[planetIndex])) / r);
+    const dir = planetPos.subNew(centerPos).unitVector();
+    const tangent = dir.perpNew();
+
+    return tangent.scaleNew(v);
+}
+
 export function getOrbitalSpeedByParent(parent: Body, planet: Body, G: number): Vec2 {
     return getOrbitalSpeed(parent.position, parent.mass, planet, G);
+}
+
+export function getOrbitalSpeedByParentId(parentId: number, planetId: number, G: number): Vec2 {
+    const parentIndex = bodyIndexById[parentId];
+    const parentPos = new Vec2(positionX[parentIndex], positionY[parentIndex]);
+    const parentMass = mass[parentId];
+
+    return getOrbitalSpeedByPlanetId(parentPos, parentMass, planetId, G);
 }
 
 /**

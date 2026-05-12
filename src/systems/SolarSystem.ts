@@ -2,8 +2,8 @@ import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM } from '../Constants';
 import { Engine } from '../PackedEngine';
-import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';
 import { createBelt, createBody, createRenderStyle } from './BodyGeneration';
+import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';
 
 const ASTEROID_BELT_OBJECTS = 1000;
 const KUIPER_BELT_OBJECTS = 1500;
@@ -279,32 +279,30 @@ const BELTS: BeltSpec[] = [
     },
 ];
 
-export function createSolarSystem(engine: Engine): SolarSystem {
+export function createSolarSystem(engine: Engine, bodyRenderStyles: Map<number, BodyRenderStyle>): void {
     const bodies: Body[] = [];
-    const renderStyles = new Map<number, BodyRenderStyle>();
+    // const renderStyles = new Map<number, BodyRenderStyle>();
     const sun = createBody(SUN, BodyType.STAR);
     bodies.push(sun);
-    renderStyles.set(sun.id, createRenderStyle(SUN, BodyType.STAR));
+    bodyRenderStyles.set(sun.id, createRenderStyle(SUN, BodyType.STAR));
 
     for (const planetSpec of PLANETS) {
         const planet = createBody(planetSpec, BodyType.PLANET, sun);
         bodies.push(planet);
-        renderStyles.set(planet.id, createRenderStyle(planetSpec, BodyType.PLANET));
+        bodyRenderStyles.set(planet.id, createRenderStyle(planetSpec, BodyType.PLANET));
 
         for (const moonSpec of planetSpec.moons ?? []) {
             const moon = createBody(moonSpec, BodyType.MOON, planet);
             bodies.push(moon);
-            renderStyles.set(moon.id, createRenderStyle(moonSpec, BodyType.MOON));
+            bodyRenderStyles.set(moon.id, createRenderStyle(moonSpec, BodyType.MOON));
         }
     }
 
     for (const beltSpec of BELTS) {
-        bodies.push(...createBelt(sun.position, sun.mass, beltSpec, renderStyles));
+        bodies.push(...createBelt(sun.position, sun.mass, beltSpec, bodyRenderStyles));
     }
 
     for (const body of bodies) {
         engine.addBody(body);
     }
-
-    return { bodies, renderStyles };
 }

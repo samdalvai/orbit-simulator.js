@@ -1,4 +1,3 @@
-import { Body, BodyType } from './Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
 import {
     ASTEROID_MIN_RENDERING_RADIUS,
@@ -14,6 +13,7 @@ import {
     STAR_RADIUS_RENDERING_SCALE,
 } from './Constants';
 import {
+    BodyType,
     NO_PARENT,
     bodyTypes,
     indexOfId,

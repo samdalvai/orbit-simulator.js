@@ -3,10 +3,9 @@ import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
 import { FIXED_DELTA_TIME, G, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
 import Gui from './Gui';
-// import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
-import { getBodyCount, ids, removeBody } from './PackedBody';
+import { bodyTypes, getBodyCount, ids, indexOfId, masses, radiuses, removeBody, velX, velY } from './PackedBody';
 import { Engine } from './PackedEngine';
 import Graphics from './PackedGraphics';
 import { formatDuration } from './Utils';
@@ -27,31 +26,29 @@ export default class Application {
     private bodyRenderStyles = new Map<number, BodyRenderStyle>();
     private running = false;
     private paused = false;
-    
+
     // Demos
     private demoIndex = 1;
     private loadingDemo = false;
-    
+
     // Inputs
     private middleMousePressed = false;
     private controlPressed = false;
     private hasMousePosition = false;
-    
+
     // Debug related properties
     private debug = true;
     private FPS = 0;
     private lastFPSUpdate = 0;
     private showTextures = true;
     private showLabels = true;
-    private showMoonLabels = false;
+    private showMoonLabels = true;
     private totalTime = 0;
-    
+
     private selectedPlanet: Body | null = null;
     private blackHole: number | null = null;
-    
-    // constructor(setLoadingMessage: LoadingMessageSetter = () => {}) {
+
     constructor() {
-        // this.setLoadingMessage = setLoadingMessage;
         this.engine = new Engine();
     }
 
@@ -423,44 +420,47 @@ export default class Application {
         this.hasMousePosition = true;
     }
 
-    private getHoveredBody(): Body | null {
+    private getHoveredBody(): number | null {
         if (!this.hasMousePosition) return null;
 
-        // let hoveredBody: Body | null = null;
-        // let bestDistanceSq = Number.POSITIVE_INFINITY;
-        // const tolerance = BODY_HOVER_TOLERANCE_PIXELS / Graphics.zoom;
+        let hoveredBody: number | null = null;
+        let bestDistanceSq = Number.POSITIVE_INFINITY;
+        const tolerance = BODY_HOVER_TOLERANCE_PIXELS / Graphics.zoom;
 
-        // for (const body of this.engine.getBodies()) {
-        //     const renderPosition = Graphics.getBodyRenderPosition(body);
-        //     const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        //     const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        //     const dx = InputManager.mousePosition.x - x;
-        //     const dy = InputManager.mousePosition.y - y;
-        //     const hitRadius = Graphics.getBodyRenderRadius(body) + tolerance;
-        //     const distanceSq = dx * dx + dy * dy;
+        for (let i = 0; i < getBodyCount(); i++) {
+            const renderPosition = Graphics.getBodyRenderPosition(i);
+            const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+            const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+            const dx = InputManager.mousePosition.x - x;
+            const dy = InputManager.mousePosition.y - y;
+            const hitRadius = Graphics.getBodyRenderRadius(i) + tolerance;
+            const distanceSq = dx * dx + dy * dy;
 
-        //     if (distanceSq <= hitRadius * hitRadius && distanceSq < bestDistanceSq) {
-        //         hoveredBody = body;
-        //         bestDistanceSq = distanceSq;
-        //     }
-        // }
+            if (distanceSq <= hitRadius * hitRadius && distanceSq < bestDistanceSq) {
+                hoveredBody = ids[i];
+                bestDistanceSq = distanceSq;
+            }
+        }
 
-        // return hoveredBody;
-        return null;
+        return hoveredBody;
     }
 
     private drawHoveredBodyPopup(): void {
-        const body = this.getHoveredBody();
-        if (!body) return;
+        const bodyId = this.getHoveredBody();
+        if (!bodyId) return;
 
-        const style = this.bodyRenderStyles.get(body.id);
-        const bodyType = BodyType[body.bodyType];
+        const bodyIndex = indexOfId[bodyId];
+        const style = this.bodyRenderStyles.get(bodyId);
+        const bodyType = BodyType[bodyTypes[bodyIndex]];
         const type = bodyType[0] + bodyType.slice(1).toLowerCase();
         const title = style?.label || type;
+        const vX = velX[bodyIndex];
+        const vY = velY[bodyIndex];
+        const velocityMag = Math.sqrt(vX * vX + vY * vY);
         const rows: Array<[string, string]> = [
-            ['Orbital speed', `${body.velocity.magnitude().toFixed(2)} km/s`],
-            ['Mass', `${body.mass.toExponential(3)} kg`],
-            ['Radius', `${body.radius.toLocaleString(undefined, { maximumFractionDigits: 1 })} km`],
+            ['Orbital speed', `${velocityMag.toFixed(2)} km/s`],
+            ['Mass', `${masses[bodyIndex].toExponential(3)} kg`],
+            ['Radius', `${radiuses[bodyIndex].toLocaleString(undefined, { maximumFractionDigits: 1 })} km`],
             ['Type', type],
         ];
 

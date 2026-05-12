@@ -6,7 +6,7 @@ import Gui from './Gui';
 // import Graphics from './Graphics';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
-import { getBodyCount, ids } from './PackedBody';
+import { getBodyCount, ids, removeBody } from './PackedBody';
 import { Engine } from './PackedEngine';
 import Graphics from './PackedGraphics';
 import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
@@ -169,6 +169,12 @@ export default class Application {
 
                     if (inputEvent.key === '/') {
                         SETTINGS.subSteps = clamp(SETTINGS.subSteps - 1, 1, SETTINGS.subSteps - 1);
+                    }
+
+                    if (inputEvent.key === 'z') {
+                        const boydId = 3;
+                        console.log('Deleting body with id: ', boydId);
+                        removeBody(boydId);
                     }
 
                     if (key === 'r' && inputEvent.shiftKey) {

@@ -5,8 +5,8 @@ import { Engine } from '../PackedEngine';
 import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';
 import { createBelt, createBody, createRenderStyle } from './PackedBodyGeneration';
 
-const ASTEROID_BELT_OBJECTS = 1000;
-const KUIPER_BELT_OBJECTS = 1500;
+const ASTEROID_BELT_OBJECTS = 3000;
+const KUIPER_BELT_OBJECTS = 5000;
 
 const SUN: CelestialBodySpec = {
     name: 'Sun',

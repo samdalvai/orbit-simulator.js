@@ -1,7 +1,6 @@
 import { Body } from './Body';
-import { addForce, getBodyCount, masses, posX, posY } from './PackedBody';
+import { getBodyCount, masses, posX, posY } from './PackedBody';
 import { applyForceOn, buildPackedQuadTree } from './PackedQuadTreeExtreme';
-// import { buildQuadTree } from './QuadTree';
 import { Vec2 } from './Vec2';
 
 const DEFAULT_THETA = 0.5;

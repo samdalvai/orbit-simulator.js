@@ -1,5 +1,5 @@
 import { Body } from './Body';
-import { posX, posY, radiuses } from './PackedBody';
+import { applyImpulseLinear, invMasses, posX, posY, radiuses, updateAABB, velX, velY } from './PackedBody';
 import { Vec2 } from './Vec2';
 
 type Collision = {
@@ -31,15 +31,15 @@ export function detectCircleCollision(aIndex: number, bIndex: number): Collision
 }
 
 export function resolveCollision(
-    a: Body,
-    b: Body,
+    aIndex: number,
+    bIndex: number,
     collision: Collision,
     restitution = 0.2, // 0 = inelastic, 1 = elastic
 ): void {
     const n = collision.normal;
 
-    const rvx = b.velocity.x - a.velocity.x;
-    const rvy = b.velocity.y - a.velocity.y;
+    const rvx = velX[bIndex] - velX[aIndex];
+    const rvy = velY[bIndex] - velY[aIndex];
 
     const velAlongNormal = rvx * n.x + rvy * n.y;
 
@@ -48,7 +48,7 @@ export function resolveCollision(
         return;
     }
 
-    const invMassSum = a.invMass + b.invMass;
+    const invMassSum = invMasses[aIndex] + invMasses[bIndex];
     if (invMassSum === 0) {
         return;
     }
@@ -58,15 +58,15 @@ export function resolveCollision(
     const impulseX = j * n.x;
     const impulseY = j * n.y;
 
-    a.applyImpulseLinear(new Vec2(-impulseX, -impulseY));
-    b.applyImpulseLinear(new Vec2(impulseX, impulseY));
+    applyImpulseLinear(aIndex, new Vec2(-impulseX, -impulseY));
+    applyImpulseLinear(bIndex, new Vec2(impulseX, impulseY));
 }
 
-export function positionalCorrection(a: Body, b: Body, collision: Collision): void {
+export function positionalCorrection(aIndex: number, bIndex: number, collision: Collision): void {
     const percent = 0.8; // correction strength
     const slop = 0.01; // small tolerance
 
-    const invMassSum = a.invMass + b.invMass;
+    const invMassSum = invMasses[aIndex] + invMasses[bIndex];
     if (invMassSum === 0) return;
 
     const correctionMag = (Math.max(collision.penetration - slop, 0) / invMassSum) * percent;
@@ -74,14 +74,14 @@ export function positionalCorrection(a: Body, b: Body, collision: Collision): vo
     const cx = correctionMag * collision.normal.x;
     const cy = correctionMag * collision.normal.y;
 
-    a.position.x -= cx * a.invMass;
-    a.position.y -= cy * a.invMass;
+    posX[aIndex] -= cx * invMasses[aIndex];
+    posY[aIndex] -= cy * invMasses[aIndex];
 
-    b.position.x += cx * b.invMass;
-    b.position.y += cy * b.invMass;
+    posX[bIndex] += cx * invMasses[bIndex];
+    posY[bIndex] += cy * invMasses[bIndex];
 
-    a.updateAABB();
-    b.updateAABB();
+    updateAABB(aIndex);
+    updateAABB(bIndex);
 }
 
 /**

@@ -1,5 +1,5 @@
 import { Body } from './Body';
-import { detectCircleCollision } from './Collision';
+import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
 import { G, MAX_BODIES } from './Constants';
 import {
     NO_PARENT,
@@ -108,8 +108,8 @@ export class Engine {
                 const collision = detectCircleCollision(i, j);
 
                 if (collision) {
-                    // resolveCollision(a, b, collision, 0.2);
-                    // positionalCorrection(a, b, collision);
+                    resolveCollision(i, j, collision, 0.2);
+                    positionalCorrection(i, j, collision);
 
                     // TODO: do something with impact energy, e.g. explode planets
                     // const impact = computeImpactEnergy(a, b, collision.normal);

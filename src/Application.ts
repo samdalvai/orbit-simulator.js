@@ -9,6 +9,7 @@ import { clamp } from './Math';
 import { getBodyCount, ids, removeBody } from './PackedBody';
 import { Engine } from './PackedEngine';
 import Graphics from './PackedGraphics';
+import { formatDuration } from './Utils';
 import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
 import { createSolarSystemPacked } from './systems/PackedSolarSystem';
 import { createRandomGalaxy } from './systems/RandomGalaxy';
@@ -349,9 +350,9 @@ export default class Application {
             ['Moon labels', this.showMoonLabels ? 'ON' : 'OFF'],
             ['Mouse (x)', `${(x / KILOMETERS_TO_PIXELS_RENDERING_SCALE).toExponential(5)} km`],
             ['Mouse (y)', `${(y / KILOMETERS_TO_PIXELS_RENDERING_SCALE).toExponential(5)} km`],
-            ['Physics step', this.formatDuration(SETTINGS.dt)],
-            ['Sim time / sec', this.formatDuration(simulationSecondsPerSecond)],
-            ['Total time', this.formatDuration(this.totalTime)],
+            ['Physics step', formatDuration(SETTINGS.dt)],
+            ['Sim time / sec', formatDuration(simulationSecondsPerSecond)],
+            ['Total time', formatDuration(this.totalTime)],
             ['Substeps', `${SETTINGS.subSteps}`],
         ];
 
@@ -539,20 +540,5 @@ export default class Application {
         this.engine.deleteBody(this.blackHoleId);
         this.bodyRenderStyles.delete(this.blackHoleId);
         this.blackHoleId = null;
-    }
-
-    private formatDuration(seconds: number): string {
-        const minutes = seconds / 60;
-        if (minutes < 60) {
-            return `${minutes.toFixed(2)} min`;
-        }
-
-        const hours = minutes / 60;
-        if (hours < 24) {
-            return `${hours.toFixed(2)} h`;
-        }
-
-        const days = hours / 24;
-        return `${days.toFixed(2)} d`;
     }
 }

@@ -7,3 +7,18 @@ export function assert(...args: (boolean | string)[]): void {
         if (!tests[i]) throw new Error(message);
     }
 }
+
+export function formatDuration(seconds: number): string {
+    const minutes = seconds / 60;
+    if (minutes < 60) {
+        return `${minutes.toFixed(2)} min`;
+    }
+
+    const hours = minutes / 60;
+    if (hours < 24) {
+        return `${hours.toFixed(2)} h`;
+    }
+
+    const days = hours / 24;
+    return `${days.toFixed(2)} d`;
+}

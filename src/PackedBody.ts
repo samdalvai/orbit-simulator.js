@@ -139,8 +139,8 @@ export function removeBody(bodyId: number): void {
 }
 
 export function swapBodies(aIndex: number, bIndex: number): void {
-    Utils.assert(aIndex >= 0 && aIndex < bodyCount, 'Body id out of bounds');
-    Utils.assert(bIndex >= 0 && bIndex < bodyCount, 'Body id out of bounds');
+    Utils.assert(aIndex >= 0 && aIndex < bodyCount, 'Body index out of bounds');
+    Utils.assert(bIndex >= 0 && bIndex < bodyCount, 'Body index out of bounds');
     const idA = ids[aIndex];
     const idB = ids[bIndex];
 

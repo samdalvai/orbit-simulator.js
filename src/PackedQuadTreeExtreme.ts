@@ -152,7 +152,7 @@ export function propagate(): void {
     }
 }
 
-export function applyForceOn(bodyId: number, x: number, y: number, G: number, thetaSq = thetaSquared): void {
+export function applyForceOn(bodyIndex: number, x: number, y: number, G: number, thetaSq = thetaSquared): void {
     let accX = 0;
     let accY = 0;
 
@@ -186,9 +186,9 @@ export function applyForceOn(bodyId: number, x: number, y: number, G: number, th
         }
     }
 
-    const bodyMass = masses[bodyId];
-    sumForcesX[bodyId] += accX * bodyMass;
-    sumForcesY[bodyId] += accY * bodyMass;
+    const bodyMass = masses[bodyIndex];
+    sumForcesX[bodyIndex] += accX * bodyMass;
+    sumForcesY[bodyIndex] += accY * bodyMass;
 }
 
 function subdivideNode(node: number): number {

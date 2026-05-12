@@ -2,23 +2,35 @@ import AssetStore from '../AssetStore';
 import { Body, BodyType } from '../Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../BodyRenderStyle';
 import { EARTH_RADIUS_KM, G } from '../Constants';
-import { clamp, getOrbitPosition, getOrbitalSpeed, getOrbitalSpeedByParent, randomNumber } from '../Math';
+import {
+    clamp,
+    getOrbitPosition,
+    getOrbitalSpeed,
+    getOrbitalSpeedByParentId,
+    randomNumber,
+} from '../Math';
+import { BodyId, addNewBody, bodyIndexById, mass, positionX, positionY, velocityX, velocityY } from '../PackedBody';
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec } from './BodySpec';
 
-export function createBody(spec: CelestialBodySpec, bodyType: BodyType, parent: Body | null = null): Body {
-    const position = parent
-        ? parent.position.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0))
-        : getOrbitPosition(0, 0);
-
-    const body = new Body(position.x, position.y, spec.radiusKm, spec.massKg, bodyType);
-    body.parent = parent;
-
-    if (parent) {
-        body.velocity = parent.velocity.addNew(getOrbitalSpeedByParent(parent, body, G));
+export function createBody(spec: CelestialBodySpec, bodyType: BodyType, parentId: number | null = null): BodyId {
+    if (parentId === null) {
+        return addNewBody(0, 0, spec.radiusKm, spec.massKg, bodyType);
     }
 
-    return body;
+    const parentIndex = bodyIndexById[parentId];
+    const parentPos = new Vec2(positionX[parentIndex], positionY[parentIndex]);
+    const parentVel = new Vec2(velocityX[parentIndex], velocityY[parentIndex]);
+
+    const bodyPos = parentPos.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
+    const bodyId = addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, spec.massKg, bodyType, new Vec2(), parentId);
+    const orbitalSpeed = parentVel.addNew(getOrbitalSpeedByParentId(parentId, bodyId, G));
+
+    const bodyIndex = bodyIndexById[bodyId];
+    velocityX[bodyIndex] = orbitalSpeed.x;
+    velocityY[bodyIndex] = orbitalSpeed.y;
+
+    return bodyId;
 }
 
 export function createBelt(

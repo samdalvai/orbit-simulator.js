@@ -42,7 +42,7 @@ export function getOrbitalSpeedByParent(parent: Body, planet: Body, G: number): 
 export function getOrbitalSpeedByParentId(parentId: number, planetId: number, G: number): Vec2 {
     const parentIndex = bodyIndexById[parentId];
     const parentPos = new Vec2(positionX[parentIndex], positionY[parentIndex]);
-    const parentMass = mass[parentId];
+    const parentMass = mass[parentIndex];
 
     return getOrbitalSpeedByPlanetId(parentPos, parentMass, planetId, G);
 }

@@ -2,8 +2,8 @@ import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM } from '../Constants';
 import { Engine } from '../PackedEngine';
-import { createBelt, createBody, createRenderStyle } from './PackedBodyGeneration';
 import { BeltSpec, CelestialBodySpec } from './BodySpec';
+import { createBelt, createBody, createRenderStyle } from './PackedBodyGeneration';
 
 const ASTEROID_BELT_OBJECTS = 1000;
 const KUIPER_BELT_OBJECTS = 1500;
@@ -280,29 +280,25 @@ const BELTS: BeltSpec[] = [
 ];
 
 export function createSolarSystem(engine: Engine, bodyRenderStyles: Map<number, BodyRenderStyle>): void {
-    const bodies: Body[] = [];
     // const renderStyles = new Map<number, BodyRenderStyle>();
-    const sun = createBody(SUN, BodyType.STAR);
-    bodies.push(sun);
-    bodyRenderStyles.set(sun.id, createRenderStyle(SUN, BodyType.STAR));
+    const sunId = createBody(SUN, BodyType.STAR);
+    bodyRenderStyles.set(sunId, createRenderStyle(SUN, BodyType.STAR));
 
     for (const planetSpec of PLANETS) {
-        const planet = createBody(planetSpec, BodyType.PLANET, sun);
-        bodies.push(planet);
-        bodyRenderStyles.set(planet.id, createRenderStyle(planetSpec, BodyType.PLANET));
+        const planetId = createBody(planetSpec, BodyType.PLANET, sunId);
+        bodyRenderStyles.set(planetId, createRenderStyle(planetSpec, BodyType.PLANET));
 
         for (const moonSpec of planetSpec.moons ?? []) {
-            const moon = createBody(moonSpec, BodyType.MOON, planet);
-            bodies.push(moon);
-            bodyRenderStyles.set(moon.id, createRenderStyle(moonSpec, BodyType.MOON));
+            const moonId = createBody(moonSpec, BodyType.MOON, planetId);
+            bodyRenderStyles.set(moonId, createRenderStyle(moonSpec, BodyType.MOON));
         }
     }
 
-    for (const beltSpec of BELTS) {
-        bodies.push(...createBelt(sun.position, sun.mass, beltSpec, bodyRenderStyles));
-    }
+    // for (const beltSpec of BELTS) {
+    //     createBelt(sun.position, sun.mass, beltSpec, bodyRenderStyles);
+    // }
 
-    for (const body of bodies) {
-        engine.addBody(body);
-    }
+    // for (const body of bodies) {
+    //     engine.addBody(body);
+    // }
 }

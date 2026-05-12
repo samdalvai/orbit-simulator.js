@@ -9,6 +9,8 @@ export enum BodyType {
     ASTEROID,
 }
 
+export type BodyId = number;
+
 const CAPACITY = MAX_BODIES;
 export const NO_PARENT = -1;
 
@@ -58,9 +60,9 @@ export function addNewBody(
     radius: number,
     bodyMass: number,
     bodyType: BodyType,
-    velocity: Vec2,
+    velocity: Vec2 = new Vec2(),
     parentId: number = NO_PARENT,
-): number {
+): BodyId {
     Utils.assert(bodyMass > 0, 'Mass needs to be greater than 0');
     Utils.assert(bodyCount < CAPACITY, 'Body capacity exceeded');
 
@@ -144,7 +146,6 @@ export function removeBody(bodyId: number): void {
             parentBodyIds[i] = NO_PARENT;
         }
     }
-    // TODO: need to check if deleted body was parent to another one and remove that parent entry (set to no parent)
 }
 
 export function swapBodies(aIndex: number, bIndex: number): void {

@@ -13,7 +13,20 @@ import {
     RADIUS_RENDERING_EXPONENT,
     STAR_RADIUS_RENDERING_SCALE,
 } from './Constants';
-import { NO_PARENT, bodyTypes, indexOfId, maxX, maxY, minX, minY, parents, posX, posY, radiuses } from './PackedBody';
+import {
+    NO_PARENT,
+    bodyTypes,
+    indexOfId,
+    masses,
+    maxX,
+    maxY,
+    minX,
+    minY,
+    parents,
+    posX,
+    posY,
+    radiuses,
+} from './PackedBody';
 import { Vec2 } from './Vec2';
 
 export type RenderViewport = {
@@ -24,6 +37,7 @@ export type RenderViewport = {
     labelMargin: number;
 };
 
+const SOLAR_MASS_KG = 1.98847e30;
 export default class Graphics {
     static windowWidth: number;
     static windowHeight: number;
@@ -229,7 +243,9 @@ export default class Graphics {
         const moonOffset = bodyPos.subNew(parentPos).scaleNew(MOON_ORBIT_RENDERING_SCALE);
         const moonOffsetMagnitude = moonOffset.magnitude();
         const minMoonOrbitDistance =
-            (this.getBodyRenderRadius(parendIndex) + this.getBodyRenderRadius(bodyIndex) + MIN_MOON_ORBIT_RENDERING_GAP) /
+            (this.getBodyRenderRadius(parendIndex) +
+                this.getBodyRenderRadius(bodyIndex) +
+                MIN_MOON_ORBIT_RENDERING_GAP) /
             KILOMETERS_TO_PIXELS_RENDERING_SCALE;
 
         if (moonOffsetMagnitude > 0 && moonOffsetMagnitude < minMoonOrbitDistance) {
@@ -263,6 +279,43 @@ export default class Graphics {
 
     private static getBodyMinRenderingRadius(bodyType: BodyType): number {
         return bodyType === BodyType.ASTEROID ? ASTEROID_MIN_RENDERING_RADIUS : MIN_BODY_RENDERING_RADIUS;
+    }
+
+    static drawStarLight(bodyIndex: number, style: BodyRenderStyle | undefined, viewport: RenderViewport): void {
+        if (bodyTypes[bodyIndex] !== BodyType.STAR) {
+            return;
+        }
+
+        const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
+        const renderPosition = this.getBodyRenderPosition(bodyIndex);
+        const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const radius = this.getBodyRenderRadius(bodyIndex);
+        const massFactor = Math.max(0.5, Math.min(4, Math.pow(masses[bodyIndex] / SOLAR_MASS_KG, 0.2)));
+        const lightRadius = radius * (10 + massFactor * 0.1);
+
+        if (
+            x + lightRadius < viewport.minX ||
+            x - lightRadius > viewport.maxX ||
+            y + lightRadius < viewport.minY ||
+            y - lightRadius > viewport.maxY
+        ) {
+            return;
+        }
+
+        const gradient = this.ctx.createRadialGradient(x, y, radius, x, y, lightRadius);
+        gradient.addColorStop(0, renderStyle.fillColor);
+        gradient.addColorStop(0.15, renderStyle.fillColor);
+        gradient.addColorStop(1, 'transparent');
+
+        this.ctx.save();
+        this.ctx.globalCompositeOperation = 'lighter';
+        this.ctx.globalAlpha = Math.max(0.25, Math.min(0.75, 0.28 + massFactor * 0.12));
+        this.ctx.fillStyle = gradient;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, lightRadius, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
     }
 
     static drawBody(

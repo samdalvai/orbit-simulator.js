@@ -310,11 +310,11 @@ export default class Application {
 
         const viewport = Graphics.getRenderViewport();
 
-        // if (this.showTextures) {
-        //     for (const body of this.engine.getBodies()) {
-        //         Graphics.drawStarLight(body, this.bodyRenderStyles.get(body.id), viewport);
-        //     }
-        // }
+        if (this.showTextures) {
+            for (let i = 0; i < getBodyCount(); i++) {
+                Graphics.drawStarLight(i, this.bodyRenderStyles.get(ids[i]), viewport);
+            }
+        }
 
         // Draw all bodies
         for (let i = 0; i < getBodyCount(); i++) {

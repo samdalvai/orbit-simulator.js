@@ -2,7 +2,7 @@ import { TEXTURES } from '../AssetStore';
 import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM, EARTH_RADIUS_KM } from '../Constants';
-import { Engine } from '../Engine';
+import { Engine } from '../PackedEngine';
 import { randomNumber } from '../Math';
 import { assert } from '../Utils';
 import { Vec2 } from '../Vec2';

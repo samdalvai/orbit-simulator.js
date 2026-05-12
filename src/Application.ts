@@ -11,7 +11,6 @@ import { Engine } from './PackedEngine';
 import Graphics from './PackedGraphics';
 import { formatDuration } from './Utils';
 import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
-import { createSolarSystemPacked } from './systems/PackedSolarSystem';
 import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
 import { createSolarSystem } from './systems/SolarSystem';
@@ -79,7 +78,7 @@ export default class Application {
     async loadDemo(): Promise<void> {
         if (this.loadingDemo) return;
 
-        const shouldRunAfterLoad = this.running;
+        Body.resetIds();
         this.loadingDemo = true;
         this.running = false;
         Gui.setLoadingMessage('Loading simulation...');
@@ -97,39 +96,38 @@ export default class Application {
 
             if (this.demoIndex === 1) {
                 Graphics.zoom = 0.3;
-                Body.resetIds();
-                const solarSystem = createSolarSystemPacked(this.engine);
+                const solarSystem = createSolarSystem(this.engine);
                 // const solarSystem = createSolarSystem(this.engine);
                 this.bodyRenderStyles = solarSystem.renderStyles;
             }
 
-            // if (this.demoIndex === 2) {
-            //     Graphics.zoom = 0.2;
-            //     const solarSystem = createAlphaCentauriSystem(this.engine);
-            //     this.bodyRenderStyles = solarSystem.renderStyles;
-            // }
+            if (this.demoIndex === 2) {
+                Graphics.zoom = 0.2;
+                const solarSystem = createAlphaCentauriSystem(this.engine);
+                this.bodyRenderStyles = solarSystem.renderStyles;
+            }
 
-            // if (this.demoIndex === 3) {
-            //     Graphics.zoom = 0.2;
-            //     const solarSystem = createTripleStarSystem(this.engine);
-            //     this.bodyRenderStyles = solarSystem.renderStyles;
-            // }
+            if (this.demoIndex === 3) {
+                Graphics.zoom = 0.2;
+                const solarSystem = createTripleStarSystem(this.engine);
+                this.bodyRenderStyles = solarSystem.renderStyles;
+            }
 
-            // if (this.demoIndex === 4) {
-            //     Graphics.zoom = 0.16;
-            //     const solarSystem = createRandomSolarSystem(this.engine);
-            //     this.bodyRenderStyles = solarSystem.renderStyles;
-            // }
+            if (this.demoIndex === 4) {
+                Graphics.zoom = 0.16;
+                const solarSystem = createRandomSolarSystem(this.engine);
+                this.bodyRenderStyles = solarSystem.renderStyles;
+            }
 
-            // if (this.demoIndex === 5) {
-            //     Graphics.zoom = 0.01;
-            //     const solarSystem = createRandomGalaxy(this.engine);
-            //     this.bodyRenderStyles = solarSystem.renderStyles;
-            // }
+            if (this.demoIndex === 5) {
+                Graphics.zoom = 0.01;
+                const solarSystem = createRandomGalaxy(this.engine);
+                this.bodyRenderStyles = solarSystem.renderStyles;
+            }
 
             this.engine.initializeVerlet();
         } finally {
-            this.running = shouldRunAfterLoad;
+            this.running = true;
             this.loadingDemo = false;
             Gui.setLoadingMessage(null);
         }

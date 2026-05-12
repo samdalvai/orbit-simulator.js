@@ -1,7 +1,7 @@
 import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM, G } from '../Constants';
-import { Engine } from '../Engine';
+import { Engine } from '../PackedEngine';
 import { getOrbitPosition } from '../Math';
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';

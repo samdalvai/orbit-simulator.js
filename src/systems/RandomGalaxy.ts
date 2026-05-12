@@ -2,7 +2,7 @@ import AssetStore from '../AssetStore';
 import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM, G } from '../Constants';
-import { Engine } from '../Engine';
+import { Engine } from '../PackedEngine';
 import { getOrbitPosition, randomNumber } from '../Math';
 import { SolarSystem } from './BodySpec';
 import { createRandomSolarSystem } from './RandomSolarSystem';

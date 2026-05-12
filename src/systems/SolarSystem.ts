@@ -1,7 +1,7 @@
 import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM } from '../Constants';
-import { Engine } from '../Engine';
+import { Engine } from '../PackedEngine';
 import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';
 import { createBelt, createBody, createRenderStyle } from './BodyGeneration';
 

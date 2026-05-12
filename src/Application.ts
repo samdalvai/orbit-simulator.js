@@ -447,7 +447,7 @@ export default class Application {
 
     private drawHoveredBodyPopup(): void {
         const bodyId = this.getHoveredBody();
-        if (!bodyId) return;
+        if (bodyId === null) return;
 
         const bodyIndex = indexOfId[bodyId];
         const style = this.bodyRenderStyles.get(bodyId);

@@ -1,15 +1,9 @@
 import AssetStore from '../AssetStore';
-import { Body, BodyType } from '../Body';
+import { BodyType } from '../Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../BodyRenderStyle';
 import { EARTH_RADIUS_KM, G } from '../Constants';
-import {
-    clamp,
-    getOrbitPosition,
-    getOrbitalSpeed,
-    getOrbitalSpeedByParentId,
-    randomNumber,
-} from '../Math';
-import { BodyId, addNewBody, bodyIndexById, mass, positionX, positionY, velocityX, velocityY } from '../PackedBody';
+import { clamp, getOrbitPosition, getOrbitalSpeedByBodyId, getOrbitalSpeedByParentId, randomNumber } from '../Math';
+import { BodyId, addNewBody, bodyIndexById, positionX, positionY, velocityX, velocityY } from '../PackedBody';
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec } from './BodySpec';
 
@@ -38,15 +32,14 @@ export function createBelt(
     centerMass: number,
     spec: BeltSpec,
     renderStyles: Map<number, BodyRenderStyle>,
-): Body[] {
-    const bodies: Body[] = [];
-
+): void {
     for (let i = 0; i < spec.numBodies; i++) {
         const position = getOrbitPosition(
             randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm),
             randomNumber(0, 360),
         );
-        const asteroid = new Body(
+
+        const asteroidId = addNewBody(
             position.x,
             position.y,
             randomNumber(spec.minRadiusKm, spec.maxRadiusKm),
@@ -56,15 +49,16 @@ export function createBelt(
 
         const fillColor = spec.colors[Math.floor(randomNumber(0, spec.colors.length))];
 
-        asteroid.velocity = getOrbitalSpeed(centerPos, centerMass, asteroid, G);
-        renderStyles.set(asteroid.id, {
+        const asteroidVelocity = getOrbitalSpeedByBodyId(centerPos, centerMass, asteroidId, G);
+        const asteroidIndex = bodyIndexById[asteroidId];
+        velocityX[asteroidIndex] = asteroidVelocity.x;
+        velocityY[asteroidIndex] = asteroidVelocity.y;
+
+        renderStyles.set(asteroidId, {
             ...DEFAULT_BODY_RENDER_STYLE,
             fillColor,
         });
-        bodies.push(asteroid);
     }
-
-    return bodies;
 }
 
 export function createRenderStyle(spec: CelestialBodySpec, bodyType: BodyType): BodyRenderStyle {

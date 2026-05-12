@@ -1,7 +1,9 @@
 import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM } from '../Constants';
+import { bodyIndexById, mass, positionX, positionY } from '../PackedBody';
 import { Engine } from '../PackedEngine';
+import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec } from './BodySpec';
 import { createBelt, createBody, createRenderStyle } from './PackedBodyGeneration';
 
@@ -279,8 +281,7 @@ const BELTS: BeltSpec[] = [
     },
 ];
 
-export function createSolarSystem(engine: Engine, bodyRenderStyles: Map<number, BodyRenderStyle>): void {
-    // const renderStyles = new Map<number, BodyRenderStyle>();
+export function createSolarSystem(bodyRenderStyles: Map<number, BodyRenderStyle>): void {
     const sunId = createBody(SUN, BodyType.STAR);
     bodyRenderStyles.set(sunId, createRenderStyle(SUN, BodyType.STAR));
 
@@ -294,11 +295,10 @@ export function createSolarSystem(engine: Engine, bodyRenderStyles: Map<number, 
         }
     }
 
-    // for (const beltSpec of BELTS) {
-    //     createBelt(sun.position, sun.mass, beltSpec, bodyRenderStyles);
-    // }
-
-    // for (const body of bodies) {
-    //     engine.addBody(body);
-    // }
+    for (const beltSpec of BELTS) {
+        const sunIndex = bodyIndexById[sunId];
+        const sunPos = new Vec2(positionX[sunIndex], positionY[sunIndex]);
+        const sunMass = mass[sunIndex];
+        createBelt(sunPos, sunMass, beltSpec, bodyRenderStyles);
+    }
 }

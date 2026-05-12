@@ -22,8 +22,8 @@ export function getOrbitalSpeed(centerPos: Vec2, centerMass: number, planet: Bod
     return tangent.scaleNew(v);
 }
 
-export function getOrbitalSpeedByPlanetId(centerPos: Vec2, centerMass: number, planetId: number, G: number): Vec2 {
-    const planetIndex = bodyIndexById[planetId];
+export function getOrbitalSpeedByBodyId(centerPos: Vec2, centerMass: number, bodyId: number, G: number): Vec2 {
+    const planetIndex = bodyIndexById[bodyId];
     const planetPos = new Vec2(positionX[planetIndex], positionY[planetIndex]);
 
     const rVec = planetPos.subNew(centerPos);
@@ -44,7 +44,7 @@ export function getOrbitalSpeedByParentId(parentId: number, planetId: number, G:
     const parentPos = new Vec2(positionX[parentIndex], positionY[parentIndex]);
     const parentMass = mass[parentIndex];
 
-    return getOrbitalSpeedByPlanetId(parentPos, parentMass, planetId, G);
+    return getOrbitalSpeedByBodyId(parentPos, parentMass, planetId, G);
 }
 
 /**

@@ -1,4 +1,5 @@
 import { Body } from './Body';
+import { posX, posY, radiuses } from './PackedBody';
 import { Vec2 } from './Vec2';
 
 type Collision = {
@@ -6,11 +7,11 @@ type Collision = {
     penetration: number;
 };
 
-export function detectCircleCollision(a: Body, b: Body): Collision | null {
-    const dx = b.position.x - a.position.x;
-    const dy = b.position.y - a.position.y;
+export function detectCircleCollision(aIndex: number, bIndex: number): Collision | null {
+    const dx = posX[bIndex] - posX[aIndex];
+    const dy = posY[bIndex] - posY[aIndex];
 
-    const radiusSum = a.radius + b.radius;
+    const radiusSum = radiuses[aIndex] + radiuses[bIndex];
     const distSq = dx * dx + dy * dy;
 
     if (distSq >= radiusSum * radiusSum) {

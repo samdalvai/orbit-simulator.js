@@ -1,4 +1,5 @@
 import { Body } from './Body';
+import { detectCircleCollision } from './Collision';
 import { G, MAX_BODIES } from './Constants';
 import {
     NO_PARENT,
@@ -104,15 +105,15 @@ export class Engine {
                 }
 
                 // Objects may be colliding: resolve collision
-                // const collision = detectCircleCollision(a, b);
+                const collision = detectCircleCollision(i, j);
 
-                // if (collision) {
-                //     resolveCollision(a, b, collision, 0.2);
-                //     positionalCorrection(a, b, collision);
+                if (collision) {
+                    // resolveCollision(a, b, collision, 0.2);
+                    // positionalCorrection(a, b, collision);
 
-                //     // TODO: do something with impact energy, e.g. explode planets
-                //     // const impact = computeImpactEnergy(a, b, collision.normal);
-                // }
+                    // TODO: do something with impact energy, e.g. explode planets
+                    // const impact = computeImpactEnergy(a, b, collision.normal);
+                }
             }
         }
     }

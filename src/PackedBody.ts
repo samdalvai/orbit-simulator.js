@@ -96,39 +96,40 @@ export function addNewBody(
 }
 
 // TODO: body index or body id?
-export function removeBody(id: number): void {
-    Utils.assert(id >= 0 && id < bodyCount, 'Body id out of bounds');
+export function removeBody(bodyId: number): void {
+    const index = indexOfId[bodyId];
+    Utils.assert(bodyId >= 0 && bodyId < bodyCount, 'Body id out of bounds');
 
     const lastIndex = bodyCount - 1;
+    const movedId = ids[lastIndex];
 
-    ids[id] = ids[lastIndex];
-    //indexOfId[id] = indexOfId[lastIndex];
+    ids[index] = movedId;
+    indexOfId[movedId] = index;
 
-    parents[id] = parents[lastIndex];
-    bodyTypes[id] = bodyTypes[lastIndex];
-    radiuses[id] = radiuses[lastIndex];
+    parents[index] = parents[lastIndex];
+    bodyTypes[index] = bodyTypes[lastIndex];
+    radiuses[index] = radiuses[lastIndex];
 
-    posX[id] = posX[lastIndex];
-    posY[id] = posY[lastIndex];
-    velX[id] = velX[lastIndex];
-    velY[id] = velY[lastIndex];
-    accX[id] = accX[lastIndex];
-    accY[id] = accY[lastIndex];
+    posX[index] = posX[lastIndex];
+    posY[index] = posY[lastIndex];
+    velX[index] = velX[lastIndex];
+    velY[index] = velY[lastIndex];
+    accX[index] = accX[lastIndex];
+    accY[index] = accY[lastIndex];
 
-    sumForcesX[id] = sumForcesX[lastIndex];
-    sumForcesY[id] = sumForcesY[lastIndex];
+    sumForcesX[index] = sumForcesX[lastIndex];
+    sumForcesY[index] = sumForcesY[lastIndex];
 
-    masses[id] = masses[lastIndex];
-    invMasses[id] = invMasses[lastIndex];
+    masses[index] = masses[lastIndex];
+    invMasses[index] = invMasses[lastIndex];
 
-    minX[id] = minX[lastIndex];
-    minY[id] = minY[lastIndex];
-    maxX[id] = maxX[lastIndex];
-    maxY[id] = maxY[lastIndex];
+    minX[index] = minX[lastIndex];
+    minY[index] = minY[lastIndex];
+    maxX[index] = maxX[lastIndex];
+    maxY[index] = maxY[lastIndex];
 
     bodyCount--;
-    // TODO: need to check if deleted body was parent to another one and remove that parent entry
-    // TODO: need to check if moved body was parent to antoher one and update that parent entry
+    // TODO: need to check if deleted body was parent to another one and remove that parent entry (set to no parent)
 }
 
 export function swapBodies(aIndex: number, bIndex: number): void {

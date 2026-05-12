@@ -52,7 +52,6 @@ export default class Application {
     constructor() {
         this.engine = new Engine();
         this.gui = new Gui();
-        console.log(Number.MAX_VALUE);
     }
 
     isRunning(): boolean {

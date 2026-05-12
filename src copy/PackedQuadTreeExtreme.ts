@@ -1,27 +1,40 @@
-import { Body } from './Body';
 import { MAX_BODIES } from './Constants';
+import { getBodyCount, masses, posX, posY, sumForcesX, sumForcesY } from './PackedBody';
+import * as Utils from './Utils';
 import { Vec2 } from './Vec2';
 
-export const ROOT = 0;
-export const NODE_CAPACITY = MAX_BODIES * 32;
-export const PARENT_CAPACITY = NODE_CAPACITY / 4;
+const ROOT = 0;
+const PARENT_CAPACITY = MAX_BODIES;
+const NODE_CAPACITY = MAX_BODIES * 4;
 
-export const children = new Uint32Array(NODE_CAPACITY);
-export const next = new Uint32Array(NODE_CAPACITY);
-export const posX = new Float64Array(NODE_CAPACITY);
-export const posY = new Float64Array(NODE_CAPACITY);
-export const mass = new Float64Array(NODE_CAPACITY);
-export const centerX = new Float64Array(NODE_CAPACITY);
-export const centerY = new Float64Array(NODE_CAPACITY);
-export const size = new Float64Array(NODE_CAPACITY);
-export const parents = new Uint32Array(PARENT_CAPACITY);
+const children = new Uint32Array(NODE_CAPACITY);
+const next = new Uint32Array(NODE_CAPACITY);
+const nodePosX = new Float64Array(NODE_CAPACITY);
+const nodePosY = new Float64Array(NODE_CAPACITY);
+const mass = new Float64Array(NODE_CAPACITY);
+const centerX = new Float64Array(NODE_CAPACITY);
+const centerY = new Float64Array(NODE_CAPACITY);
+const size = new Float64Array(NODE_CAPACITY);
+const parents = new Uint32Array(PARENT_CAPACITY);
 
 let nodeCount = 0;
 let parentCount = 0;
 let thetaSquared = 0.5 * 0.5;
 let epsilonSquared = 1;
 
-export function buildQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1): boolean {
+export function getNodeCount(): number {
+    return nodeCount;
+}
+
+export function getParentCount(): number {
+    return parentCount;
+}
+
+export function getThetaSquared(): number {
+    return thetaSquared;
+}
+
+export function buildPackedQuadTree(theta = 0.5, epsilon = 1): boolean {
     thetaSquared = theta * theta;
     epsilonSquared = epsilon * epsilon;
 
@@ -30,12 +43,11 @@ export function buildQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1)
     let maxX = Number.NEGATIVE_INFINITY;
     let maxY = Number.NEGATIVE_INFINITY;
 
-    for (let i = 0; i < bodies.length; i++) {
-        const body = bodies[i];
-        if (body.mass === 0) continue;
+    for (let i = 0; i < getBodyCount(); i++) {
+        if (masses[i] === 0) continue;
 
-        const x = body.position.x;
-        const y = body.position.y;
+        const x = posX[i];
+        const y = posY[i];
 
         if (x < minX) minX = x;
         if (y < minY) minY = y;
@@ -51,9 +63,8 @@ export function buildQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1)
 
     clearQuadTree((minX + maxX) * 0.5, (minY + maxY) * 0.5, Math.max(maxX - minX, maxY - minY));
 
-    for (let i = 0; i < bodies.length; i++) {
-        const body = bodies[i];
-        insertXYMass(body.position.x, body.position.y, body.mass);
+    for (let i = 0; i < getBodyCount(); i++) {
+        insertXYMass(posX[i], posY[i], masses[i]);
     }
 
     propagate();
@@ -81,14 +92,14 @@ export function insertXYMass(x: number, y: number, bodyMass: number): void {
     }
 
     if (mass[node] === 0) {
-        posX[node] = x;
-        posY[node] = y;
+        nodePosX[node] = x;
+        nodePosY[node] = y;
         mass[node] = bodyMass;
         return;
     }
 
-    const existingX = posX[node];
-    const existingY = posY[node];
+    const existingX = nodePosX[node];
+    const existingY = nodePosY[node];
     const existingMass = mass[node];
 
     if (x === existingX && y === existingY) {
@@ -107,13 +118,13 @@ export function insertXYMass(x: number, y: number, bodyMass: number): void {
         }
 
         const n1 = firstChild + q1;
-        posX[n1] = existingX;
-        posY[n1] = existingY;
+        nodePosX[n1] = existingX;
+        nodePosY[n1] = existingY;
         mass[n1] = existingMass;
 
         const n2 = firstChild + q2;
-        posX[n2] = x;
-        posY[n2] = y;
+        nodePosX[n2] = x;
+        nodePosY[n2] = y;
         mass[n2] = bodyMass;
         return;
     }
@@ -136,24 +147,24 @@ export function propagate(): void {
         const totalMass = m0 + m1 + m2 + m3;
 
         mass[node] = totalMass;
-        posX[node] = (posX[i0] * m0 + posX[i1] * m1 + posX[i2] * m2 + posX[i3] * m3) / totalMass;
-        posY[node] = (posY[i0] * m0 + posY[i1] * m1 + posY[i2] * m2 + posY[i3] * m3) / totalMass;
+        nodePosX[node] = (nodePosX[i0] * m0 + nodePosX[i1] * m1 + nodePosX[i2] * m2 + nodePosX[i3] * m3) / totalMass;
+        nodePosY[node] = (nodePosY[i0] * m0 + nodePosY[i1] * m1 + nodePosY[i2] * m2 + nodePosY[i3] * m3) / totalMass;
     }
 }
 
-export function accelerationAt(x: number, y: number, G: number, out = new Vec2(), thetaSq = thetaSquared): Vec2 {
-    out.x = 0;
-    out.y = 0;
+export function applyForceOn(bodyId: number, x: number, y: number, G: number, thetaSq = thetaSquared): void {
+    let accX = 0;
+    let accY = 0;
 
     if (nodeCount === 0) {
-        return out;
+        return;
     }
 
     let node = ROOT;
 
     for (;;) {
-        const dx = posX[node] - x;
-        const dy = posY[node] - y;
+        const dx = nodePosX[node] - x;
+        const dy = nodePosY[node] - y;
         const distanceSquared = dx * dx + dy * dy;
 
         if (children[node] === 0 || size[node] * size[node] < distanceSquared * thetaSq) {
@@ -161,8 +172,8 @@ export function accelerationAt(x: number, y: number, G: number, out = new Vec2()
 
             if (denominator !== 0) {
                 const scale = Math.min((G * mass[node]) / denominator, Number.MAX_VALUE);
-                out.x += dx * scale;
-                out.y += dy * scale;
+                accX += dx * scale;
+                accY += dy * scale;
             }
 
             if (next[node] === 0) {
@@ -175,14 +186,9 @@ export function accelerationAt(x: number, y: number, G: number, out = new Vec2()
         }
     }
 
-    return out;
-}
-
-export function forceOn(body: Body, G: number, out = new Vec2(), thetaSq = thetaSquared): Vec2 {
-    accelerationAt(body.position.x, body.position.y, G, out, thetaSq);
-    out.x *= body.mass;
-    out.y *= body.mass;
-    return out;
+    const bodyMass = masses[bodyId];
+    sumForcesX[bodyId] += accX * bodyMass;
+    sumForcesY[bodyId] += accY * bodyMass;
 }
 
 function subdivideNode(node: number): number {
@@ -214,16 +220,15 @@ function subdivideNode(node: number): number {
 }
 
 function pushNode(nextNode: number, nodeCenterX: number, nodeCenterY: number, nodeSize: number): number {
-    if (nodeCount >= NODE_CAPACITY) {
-        throw new Error('QuadTree node capacity exceeded');
-    }
+    Utils.assert(nodeCount < NODE_CAPACITY, 'QuadTree node capacity exceeded');
 
-    const node = nodeCount++;
+    const node = nodeCount;
+    nodeCount++;
 
     children[node] = 0;
     next[node] = nextNode;
-    posX[node] = 0;
-    posY[node] = 0;
+    nodePosX[node] = 0;
+    nodePosY[node] = 0;
     mass[node] = 0;
     centerX[node] = nodeCenterX;
     centerY[node] = nodeCenterY;

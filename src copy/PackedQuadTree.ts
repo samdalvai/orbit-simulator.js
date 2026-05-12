@@ -1,27 +1,40 @@
 import { Body } from './Body';
 import { MAX_BODIES } from './Constants';
+import * as Utils from './Utils';
 import { Vec2 } from './Vec2';
 
-export const ROOT = 0;
-export const NODE_CAPACITY = MAX_BODIES * 32;
-export const PARENT_CAPACITY = NODE_CAPACITY / 4;
+const ROOT = 0;
+const PARENT_CAPACITY = MAX_BODIES;
+const NODE_CAPACITY = MAX_BODIES * 4;
 
-export const children = new Uint32Array(NODE_CAPACITY);
-export const next = new Uint32Array(NODE_CAPACITY);
-export const posX = new Float64Array(NODE_CAPACITY);
-export const posY = new Float64Array(NODE_CAPACITY);
-export const mass = new Float64Array(NODE_CAPACITY);
-export const centerX = new Float64Array(NODE_CAPACITY);
-export const centerY = new Float64Array(NODE_CAPACITY);
-export const size = new Float64Array(NODE_CAPACITY);
-export const parents = new Uint32Array(PARENT_CAPACITY);
+const children = new Uint32Array(NODE_CAPACITY);
+const next = new Uint32Array(NODE_CAPACITY);
+const posX = new Float64Array(NODE_CAPACITY);
+const posY = new Float64Array(NODE_CAPACITY);
+const mass = new Float64Array(NODE_CAPACITY);
+const centerX = new Float64Array(NODE_CAPACITY);
+const centerY = new Float64Array(NODE_CAPACITY);
+const size = new Float64Array(NODE_CAPACITY);
+const parents = new Uint32Array(PARENT_CAPACITY);
 
 let nodeCount = 0;
 let parentCount = 0;
 let thetaSquared = 0.5 * 0.5;
 let epsilonSquared = 1;
 
-export function buildQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1): boolean {
+export function getNodeCount(): number {
+    return nodeCount;
+}
+
+export function getParentCount(): number {
+    return parentCount;
+}
+
+export function getThetaSquared(): number {
+    return thetaSquared;
+}
+
+export function buildPackedQuadTree(bodies: readonly Body[], theta = 0.5, epsilon = 1): boolean {
     thetaSquared = theta * theta;
     epsilonSquared = epsilon * epsilon;
 
@@ -214,11 +227,10 @@ function subdivideNode(node: number): number {
 }
 
 function pushNode(nextNode: number, nodeCenterX: number, nodeCenterY: number, nodeSize: number): number {
-    if (nodeCount >= NODE_CAPACITY) {
-        throw new Error('QuadTree node capacity exceeded');
-    }
+    Utils.assert(nodeCount < NODE_CAPACITY, 'QuadTree node capacity exceeded');
 
-    const node = nodeCount++;
+    const node = nodeCount;
+    nodeCount++;
 
     children[node] = 0;
     next[node] = nextNode;

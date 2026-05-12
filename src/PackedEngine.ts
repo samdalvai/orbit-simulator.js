@@ -66,7 +66,7 @@ export class Engine {
         }
 
         // TODO: Skipped for now, sorting breaks body/parent relation
-        // this.broadPhase();
+        this.broadPhase();
     }
 
     initializeVerlet(): void {

@@ -13,6 +13,8 @@ const CAPACITY = MAX_BODIES;
 export const NO_PARENT = -1;
 
 export const ids = new Int32Array(CAPACITY);
+export const indexOfId = new Int32Array(CAPACITY);
+
 export const parents = new Int32Array(CAPACITY);
 export const bodyTypes = new Uint8Array(CAPACITY);
 
@@ -57,14 +59,15 @@ export function addNewBody(
     mass: number,
     bodyType: BodyType,
     velocity: Vec2,
-    parent: number = NO_PARENT,
+    parentId: number = NO_PARENT,
 ): number {
     Utils.assert(mass > 0, 'Mass needs to be greater than 0');
     Utils.assert(bodyCount < CAPACITY, 'Body capacity exceeded');
-    // console.log('Setting mass to: ', mass);
 
     ids[bodyCount] = bodyCount;
-    parents[bodyCount] = parent;
+    indexOfId[bodyCount] = bodyCount;
+
+    parents[bodyCount] = parentId;
     bodyTypes[bodyCount] = bodyType;
     radiuses[bodyCount] = radius;
 
@@ -98,6 +101,8 @@ export function removeBody(id: number): void {
     const lastIndex = bodyCount - 1;
 
     ids[id] = ids[lastIndex];
+    //indexOfId[id] = indexOfId[lastIndex];
+
     parents[id] = parents[lastIndex];
     bodyTypes[id] = bodyTypes[lastIndex];
     radiuses[id] = radiuses[lastIndex];
@@ -128,8 +133,14 @@ export function removeBody(id: number): void {
 export function swapBodies(a: number, b: number): void {
     Utils.assert(a >= 0 && a < bodyCount, 'Body id out of bounds');
     Utils.assert(b >= 0 && b < bodyCount, 'Body id out of bounds');
+    const idA = ids[a];
+    const idB = ids[b];
 
     swapInt32(ids, a, b);
+
+    indexOfId[idA] = b;
+    indexOfId[idB] = a;
+
     swapInt32(parents, a, b);
     swapUint8(bodyTypes, a, b);
     swapFloat64(radiuses, a, b);
@@ -151,8 +162,6 @@ export function swapBodies(a: number, b: number): void {
     swapFloat64(minY, a, b);
     swapFloat64(maxX, a, b);
     swapFloat64(maxY, a, b);
-
-    // TODO: need to check if swapped bodies were parent to another one and update that parent entry
 }
 
 export function addForce(id: number, force: Vec2) {

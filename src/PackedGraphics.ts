@@ -13,7 +13,7 @@ import {
     RADIUS_RENDERING_EXPONENT,
     STAR_RADIUS_RENDERING_SCALE,
 } from './Constants';
-import { NO_PARENT, bodyTypes, maxX, maxY, minX, minY, parents, posX, posY, radiuses } from './PackedBody';
+import { NO_PARENT, bodyTypes, indexOfId, maxX, maxY, minX, minY, parents, posX, posY, radiuses } from './PackedBody';
 import { Vec2 } from './Vec2';
 
 export type RenderViewport = {
@@ -215,20 +215,21 @@ export default class Graphics {
     }
 
     // TODO: handle moon orbit position
-    static getBodyRenderPosition(bodyId: number): Vec2 {
-        if (bodyTypes[bodyId] !== BodyType.MOON || parents[bodyId] === NO_PARENT) {
-            return new Vec2(posX[bodyId], posY[bodyId]);
+    static getBodyRenderPosition(bodyIndex: number): Vec2 {
+        if (bodyTypes[bodyIndex] !== BodyType.MOON || parents[bodyIndex] === NO_PARENT) {
+            return new Vec2(posX[bodyIndex], posY[bodyIndex]);
         }
 
         // TOOD: consider making these methods scalar only, no Vec2 allocations
-        const parentId = parents[bodyId];
-        const parentPosition = this.getBodyRenderPosition(parentId);
-        const bodyPos = new Vec2(posX[bodyId], posY[bodyId]);
-        const parentPos = new Vec2(posX[parentId], posY[parentId]);
+        const parendIndex = indexOfId[parents[bodyIndex]];
+
+        const parentPosition = this.getBodyRenderPosition(parendIndex);
+        const bodyPos = new Vec2(posX[bodyIndex], posY[bodyIndex]);
+        const parentPos = new Vec2(posX[parendIndex], posY[parendIndex]);
         const moonOffset = bodyPos.subNew(parentPos).scaleNew(MOON_ORBIT_RENDERING_SCALE);
         const moonOffsetMagnitude = moonOffset.magnitude();
         const minMoonOrbitDistance =
-            (this.getBodyRenderRadius(parentId) + this.getBodyRenderRadius(bodyId) + MIN_MOON_ORBIT_RENDERING_GAP) /
+            (this.getBodyRenderRadius(parendIndex) + this.getBodyRenderRadius(bodyIndex) + MIN_MOON_ORBIT_RENDERING_GAP) /
             KILOMETERS_TO_PIXELS_RENDERING_SCALE;
 
         if (moonOffsetMagnitude > 0 && moonOffsetMagnitude < minMoonOrbitDistance) {
@@ -238,12 +239,12 @@ export default class Graphics {
         return parentPosition.addNew(moonOffset);
     }
 
-    static getBodyRenderRadius(bodyId: number): number {
+    static getBodyRenderRadius(bodyIndex: number): number {
         const radius =
-            Math.pow(radiuses[bodyId] / EARTH_RADIUS_KM, RADIUS_RENDERING_EXPONENT) *
-            this.getBodyRadiusRenderingScale(bodyTypes[bodyId]);
+            Math.pow(radiuses[bodyIndex] / EARTH_RADIUS_KM, RADIUS_RENDERING_EXPONENT) *
+            this.getBodyRadiusRenderingScale(bodyTypes[bodyIndex]);
 
-        return Math.max(this.getBodyMinRenderingRadius(bodyTypes[bodyId]), radius);
+        return Math.max(this.getBodyMinRenderingRadius(bodyTypes[bodyIndex]), radius);
     }
 
     private static getBodyRadiusRenderingScale(bodyType: BodyType): number {
@@ -265,7 +266,7 @@ export default class Graphics {
     }
 
     static drawBody(
-        bodyId: number,
+        bodyIndex: number,
         style: BodyRenderStyle | undefined,
         showTextures: boolean,
         showLabels: boolean,
@@ -273,10 +274,10 @@ export default class Graphics {
         viewport: RenderViewport,
     ): void {
         const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
-        const renderPosition = this.getBodyRenderPosition(bodyId);
+        const renderPosition = this.getBodyRenderPosition(bodyIndex);
         const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const radius = this.getBodyRenderRadius(bodyId);
+        const radius = this.getBodyRenderRadius(bodyIndex);
 
         const strokeColor = 'white';
         const fillColor = renderStyle.fillColor;
@@ -284,14 +285,14 @@ export default class Graphics {
         const label = renderStyle.label;
 
         // Viewport culling for objects outside viewport
-        const drawLabel = showLabels && label && (showMoonLabels || bodyTypes[bodyId] !== BodyType.MOON);
+        const drawLabel = showLabels && label && (showMoonLabels || bodyTypes[bodyIndex] !== BodyType.MOON);
         const labelMargin = drawLabel ? viewport.labelMargin : 0;
-        const renderOffsetX = renderPosition.x - posX[bodyId];
-        const renderOffsetY = renderPosition.y - posY[bodyId];
-        const minXScreen = (minX[bodyId] + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const minYScreen = (minY[bodyId] + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const maxXScreen = (maxX[bodyId] + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const maxYScreen = (maxY[bodyId] + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const renderOffsetX = renderPosition.x - posX[bodyIndex];
+        const renderOffsetY = renderPosition.y - posY[bodyIndex];
+        const minXScreen = (minX[bodyIndex] + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const minYScreen = (minY[bodyIndex] + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const maxXScreen = (maxX[bodyIndex] + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const maxYScreen = (maxY[bodyIndex] + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const aabbHalfWidth = (maxXScreen - minXScreen) * 0.5;
         const aabbHalfHeight = (maxYScreen - minYScreen) * 0.5;
         const paddingX = Math.max(0, radius - aabbHalfWidth) + labelMargin;

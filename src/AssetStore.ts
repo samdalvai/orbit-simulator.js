@@ -41,6 +41,7 @@ export const TEXTURES = {
 };
 
 type TextureMap = Record<string, ImageBitmap>;
+export type TextureName = keyof typeof TEXTURES;
 
 export default class AssetStore {
     private static textures: TextureMap = {};
@@ -50,7 +51,7 @@ export default class AssetStore {
      * @param name The key to reference the texture
      * @param src Path to the PNG file (relative to your project)
      */
-    static async loadTexture(name: keyof typeof TEXTURES, src: string): Promise<void> {
+    static async loadTexture(name: TextureName, src: string): Promise<void> {
         const img = new Image();
         img.src = src;
         await img.decode();
@@ -62,7 +63,7 @@ export default class AssetStore {
     }
 
     /** Retrieves a texture by name */
-    static getTexture(name: keyof typeof TEXTURES): ImageBitmap {
+    static getTexture(name: TextureName): ImageBitmap {
         const texture = this.textures[name];
 
         if (!texture) {
@@ -81,7 +82,7 @@ export default class AssetStore {
                 continue;
             }
 
-            const name = key as keyof typeof TEXTURES;
+            const name = key as TextureName;
             promises.push(this.loadTexture(name, TEXTURES[name]));
         }
 

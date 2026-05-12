@@ -1,11 +1,12 @@
 import AssetStore from './AssetStore';
-import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
 import GUI from './GUI';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
 import {
+    BodyType,
+    addNewBody,
     bodyIds,
     bodyIndexById,
     bodyTypes,
@@ -85,7 +86,6 @@ export default class Application {
     async loadDemo(): Promise<void> {
         if (this.loadingDemo) return;
 
-        Body.resetIds();
         this.loadingDemo = true;
         this.running = false;
         GUI.setLoadingMessage('Loading simulation...');
@@ -556,9 +556,7 @@ export default class Application {
 
         const x = InputManager.mousePosition.x / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const y = InputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const blackHole = new Body(x, y, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.STAR);
-
-        const blackHoleId = this.engine.addBody(blackHole);
+        const blackHoleId = addNewBody(x, y, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.STAR);
 
         if (blackHoleId !== null) {
             this.bodyRenderStyles.set(blackHoleId, {

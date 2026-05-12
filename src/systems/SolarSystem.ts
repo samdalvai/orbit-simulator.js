@@ -1,8 +1,6 @@
-import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM } from '../Constants';
-import { bodyIndexById, mass, positionX, positionY } from '../PackedBody';
-import { Engine } from '../PackedEngine';
+import { BodyType, bodyIndexById, mass, positionX, positionY } from '../PackedBody';
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec } from './BodySpec';
 import { createBelt, createBody, createRenderStyle } from './PackedBodyGeneration';

@@ -1,8 +1,4 @@
-import { TEXTURES } from '../AssetStore';
-import { Body } from '../Body';
-import { BodyRenderStyle } from '../BodyRenderStyle';
-
-type TextureName = keyof typeof TEXTURES;
+import { TextureName } from '../AssetStore';
 
 export type CelestialBodySpec = {
     name: string;
@@ -26,9 +22,4 @@ export type BeltSpec = {
     maxMassKg: number;
     numBodies: number;
     colors: string[];
-};
-
-export type SolarSystem = {
-    bodies: Body[];
-    renderStyles: Map<number, BodyRenderStyle>;
 };

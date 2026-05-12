@@ -1,15 +1,13 @@
-import { TEXTURES } from '../AssetStore';
+import { TextureName } from '../AssetStore';
 import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM, EARTH_RADIUS_KM } from '../Constants';
-import { Engine } from '../PackedEngine';
 import { randomNumber } from '../Math';
+import { Engine } from '../PackedEngine';
 import { assert } from '../Utils';
 import { Vec2 } from '../Vec2';
 import { createBody, createRenderStyle } from './BodyGeneration';
-import { CelestialBodySpec, SolarSystem } from './BodySpec';
-
-type TextureName = keyof typeof TEXTURES;
+import { CelestialBodySpec } from './BodySpec';
 
 export type RandomSolarSystemProbabilities = {
     starCount?: [number, number, number];
@@ -67,7 +65,7 @@ const PLANET_COLORS = ['#b7ada5', '#d8b16f', '#4a9fe8', '#c76245', '#d1a06f', '#
 const MOON_COLORS = ['#b8b8b1', '#8f7a69', '#d7cab6', '#9a8b7a', '#d0b48a', '#a8a097', '#d6e0dd'];
 const NAME_CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-export function createRandomSolarSystem(engine: Engine, config: RandomSolarSystemConfig = {}): SolarSystem {
+export function createRandomSolarSystem(engine: Engine, config: RandomSolarSystemConfig = {}) {
     const bodies: Body[] = [];
     const renderStyles = new Map<number, BodyRenderStyle>();
     const starCount =

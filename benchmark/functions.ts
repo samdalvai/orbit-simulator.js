@@ -32,7 +32,8 @@ for (let i = 0; i < numBodies; i++) {
     enginePacked.addBody(bPack);
 }
 
-const WARM_UP_ITERATIONS = 1_000;
+// const WARM_UP_ITERATIONS = 1_000;
+const WARM_UP_ITERATIONS = 0;
 
 for (let i = 0; i < WARM_UP_ITERATIONS; i++) {
     engine.update(SETTINGS.dt);

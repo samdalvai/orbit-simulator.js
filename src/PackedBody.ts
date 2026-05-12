@@ -129,6 +129,12 @@ export function removeBody(bodyId: number): void {
     maxY[index] = maxY[lastIndex];
 
     bodyCount--;
+
+    for (let i = 0; i < bodyCount; i++) {
+        if (parents[i] === bodyId) {
+            parents[i] = NO_PARENT;
+        }
+    }
     // TODO: need to check if deleted body was parent to another one and remove that parent entry (set to no parent)
 }
 

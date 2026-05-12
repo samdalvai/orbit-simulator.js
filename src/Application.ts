@@ -82,10 +82,10 @@ export default class Application {
 
         if (this.demoIndex === 1) {
             Graphics.zoom = 0.3;
+            Body.resetIds();
             const solarSystem = createSolarSystemPacked(this.engine);
             // const solarSystem = createSolarSystem(this.engine);
             this.bodyRenderStyles = solarSystem.renderStyles;
-            console.log(this.bodyRenderStyles);
         }
 
         // if (this.demoIndex === 2) {
@@ -172,9 +172,7 @@ export default class Application {
                     }
 
                     if (inputEvent.key === 'z') {
-                        const boydId = 3;
-                        console.log('Deleting body with id: ', boydId);
-                        removeBody(boydId);
+                        // For testing
                     }
 
                     if (key === 'r' && inputEvent.shiftKey) {

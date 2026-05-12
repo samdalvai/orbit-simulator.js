@@ -126,4 +126,8 @@ export class Body {
         this.minY = this.position.y - radius;
         this.maxY = this.position.y + radius;
     }
+
+    static resetIds() {
+        Body.nextId = 0;
+    }
 }

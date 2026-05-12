@@ -1,10 +1,6 @@
 import { Body, BodyType } from '../src/Body';
-import { G, SETTINGS } from '../src/Constants';
+import { SETTINGS } from '../src/Constants';
 import { Engine } from '../src/Engine';
-import {
-    applyBarnesHutGravitationalForces,
-    applyGravitationalForces,
-} from '../src/Gravity';
 import { randomNumber } from '../src/Math';
 import { masses, posX, posY } from '../src_packed/PackedBody';
 import { Engine as EnginePacked } from '../src_packed/PackedEngine';

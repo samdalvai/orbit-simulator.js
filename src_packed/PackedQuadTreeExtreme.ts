@@ -222,8 +222,7 @@ function subdivideNode(node: number): number {
 function pushNode(nextNode: number, nodeCenterX: number, nodeCenterY: number, nodeSize: number): number {
     Utils.assert(nodeCount < NODE_CAPACITY, 'QuadTree node capacity exceeded');
 
-    const node = nodeCount;
-    nodeCount++;
+    const node = nodeCount++;
 
     children[node] = 0;
     next[node] = nextNode;

@@ -4,8 +4,10 @@ import * as Utils from './Utils';
 import { Vec2 } from './Vec2';
 
 const ROOT = 0;
-const PARENT_CAPACITY = MAX_BODIES;
-const NODE_CAPACITY = MAX_BODIES * 4;
+
+// TODO: the PARENT_CAPACITY is arbitrary, can we define exactly how many nodes we need for the quad tree?
+const PARENT_CAPACITY = MAX_BODIES * 4;
+const NODE_CAPACITY = PARENT_CAPACITY * 4;
 
 const children = new Uint32Array(NODE_CAPACITY);
 const next = new Uint32Array(NODE_CAPACITY);

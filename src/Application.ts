@@ -25,18 +25,18 @@ const DEMO_LABELS = ['Solar system', 'Alpha centauri', 'Triple star system', 'Ra
 export default class Application {
     private engine: Engine;
     private bodyRenderStyles = new Map<number, BodyRenderStyle>();
-    private blackHoleId: number | null = null;
     private running = false;
     private paused = false;
-
+    
     // Demos
     private demoIndex = 1;
-
+    private loadingDemo = false;
+    
     // Inputs
     private middleMousePressed = false;
     private controlPressed = false;
     private hasMousePosition = false;
-
+    
     // Debug related properties
     private debug = true;
     private FPS = 0;
@@ -45,10 +45,10 @@ export default class Application {
     private showLabels = true;
     private showMoonLabels = false;
     private totalTime = 0;
-
+    
     private selectedPlanet: Body | null = null;
-    private loadingDemo = false;
-
+    private blackHole: number | null = null;
+    
     // constructor(setLoadingMessage: LoadingMessageSetter = () => {}) {
     constructor() {
         // this.setLoadingMessage = setLoadingMessage;
@@ -88,7 +88,7 @@ export default class Application {
         try {
             this.engine.clear();
             this.bodyRenderStyles.clear();
-            this.blackHoleId = null;
+            this.blackHole = null;
             this.selectedPlanet = null;
 
             Graphics.pan.x = 0;
@@ -545,17 +545,17 @@ export default class Application {
                 labelFontSize: 16,
             });
 
-            this.blackHoleId = blackHoleId;
+            this.blackHole = blackHoleId;
         }
     }
 
     private removeBlackHole(): void {
-        if (this.blackHoleId === null) {
+        if (this.blackHole === null) {
             return;
         }
 
-        removeBody(this.blackHoleId);
-        this.bodyRenderStyles.delete(this.blackHoleId);
-        this.blackHoleId = null;
+        removeBody(this.blackHole);
+        this.bodyRenderStyles.delete(this.blackHole);
+        this.blackHole = null;
     }
 }

@@ -18,11 +18,8 @@ import {
     swapBodies,
 } from './PackedBody';
 import { applyPackedBarnesHutGravitationalForces } from './PackedGravityExtreme';
-import { Vec2 } from './Vec2';
 
 export class Engine {
-    private forces: Vec2[] = [];
-
     addBody(body: Body): number | null {
         if (getBodyCount() >= MAX_BODIES) return null;
 
@@ -45,10 +42,6 @@ export class Engine {
 
     getBodiesCount(): number {
         return getBodyCount();
-    }
-
-    addForce(force: Vec2): void {
-        this.forces.push(force);
     }
 
     update(dt: number): void {
@@ -131,7 +124,6 @@ export class Engine {
     }
 
     clear() {
-        this.forces.length = 0;
         clearBodies();
     }
 }

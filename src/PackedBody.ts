@@ -95,6 +95,7 @@ export function addNewBody(
     return bodyCount++;
 }
 
+// TODO: body index or body id?
 export function removeBody(id: number): void {
     Utils.assert(id >= 0 && id < bodyCount, 'Body id out of bounds');
 
@@ -130,122 +131,122 @@ export function removeBody(id: number): void {
     // TODO: need to check if moved body was parent to antoher one and update that parent entry
 }
 
-export function swapBodies(a: number, b: number): void {
-    Utils.assert(a >= 0 && a < bodyCount, 'Body id out of bounds');
-    Utils.assert(b >= 0 && b < bodyCount, 'Body id out of bounds');
-    const idA = ids[a];
-    const idB = ids[b];
+export function swapBodies(aIndex: number, bIndex: number): void {
+    Utils.assert(aIndex >= 0 && aIndex < bodyCount, 'Body id out of bounds');
+    Utils.assert(bIndex >= 0 && bIndex < bodyCount, 'Body id out of bounds');
+    const idA = ids[aIndex];
+    const idB = ids[bIndex];
 
-    swapInt32(ids, a, b);
+    swapInt32(ids, aIndex, bIndex);
 
-    indexOfId[idA] = b;
-    indexOfId[idB] = a;
+    indexOfId[idA] = bIndex;
+    indexOfId[idB] = aIndex;
 
-    swapInt32(parents, a, b);
-    swapUint8(bodyTypes, a, b);
-    swapFloat64(radiuses, a, b);
+    swapInt32(parents, aIndex, bIndex);
+    swapUint8(bodyTypes, aIndex, bIndex);
+    swapFloat64(radiuses, aIndex, bIndex);
 
-    swapFloat64(posX, a, b);
-    swapFloat64(posY, a, b);
-    swapFloat64(velX, a, b);
-    swapFloat64(velY, a, b);
-    swapFloat64(accX, a, b);
-    swapFloat64(accY, a, b);
+    swapFloat64(posX, aIndex, bIndex);
+    swapFloat64(posY, aIndex, bIndex);
+    swapFloat64(velX, aIndex, bIndex);
+    swapFloat64(velY, aIndex, bIndex);
+    swapFloat64(accX, aIndex, bIndex);
+    swapFloat64(accY, aIndex, bIndex);
 
-    swapFloat64(sumForcesX, a, b);
-    swapFloat64(sumForcesY, a, b);
+    swapFloat64(sumForcesX, aIndex, bIndex);
+    swapFloat64(sumForcesY, aIndex, bIndex);
 
-    swapFloat64(masses, a, b);
-    swapFloat64(invMasses, a, b);
+    swapFloat64(masses, aIndex, bIndex);
+    swapFloat64(invMasses, aIndex, bIndex);
 
-    swapFloat64(minX, a, b);
-    swapFloat64(minY, a, b);
-    swapFloat64(maxX, a, b);
-    swapFloat64(maxY, a, b);
+    swapFloat64(minX, aIndex, bIndex);
+    swapFloat64(minY, aIndex, bIndex);
+    swapFloat64(maxX, aIndex, bIndex);
+    swapFloat64(maxY, aIndex, bIndex);
 }
 
-export function addForce(id: number, force: Vec2) {
-    sumForcesX[id] += force.x;
-    sumForcesY[id] += force.y;
+export function addForce(bodyIndex: number, force: Vec2) {
+    sumForcesX[bodyIndex] += force.x;
+    sumForcesY[bodyIndex] += force.y;
 }
 
-export function addForceXY(id: number, x: number, y: number) {
-    sumForcesX[id] += x;
-    sumForcesY[id] += y;
+export function addForceXY(bodyIndex: number, x: number, y: number) {
+    sumForcesX[bodyIndex] += x;
+    sumForcesY[bodyIndex] += y;
 }
 
-export function clearForces(id: number) {
-    sumForcesX[id] = 0;
-    sumForcesY[id] = 0;
+export function clearForces(bodyIndex: number) {
+    sumForcesX[bodyIndex] = 0;
+    sumForcesY[bodyIndex] = 0;
 }
 
-export function applyImpulseLinear(id: number, j: Vec2): void {
-    const invM = invMasses[id];
-    velX[id] += j.x * invM;
-    velY[id] += j.y * invM;
+export function applyImpulseLinear(bodyIndex: number, j: Vec2): void {
+    const invM = invMasses[bodyIndex];
+    velX[bodyIndex] += j.x * invM;
+    velY[bodyIndex] += j.y * invM;
 }
 
-export function initializeAcceleration(id: number): void {
+export function initializeAcceleration(bodyIndex: number): void {
     // Find the acceleration based on the forces that are being applied and the mass
-    const invM = invMasses[id];
-    accX[id] = sumForcesX[id] * invM;
-    accY[id] = sumForcesY[id] * invM;
+    const invM = invMasses[bodyIndex];
+    accX[bodyIndex] = sumForcesX[bodyIndex] * invM;
+    accY[bodyIndex] = sumForcesY[bodyIndex] * invM;
 
     // Clear all the forces and torque acting on the object before the next physics step
-    clearForces(id);
+    clearForces(bodyIndex);
 }
 
-export function integrateVerletPosition(id: number, dt: number): void {
-    const ax = accX[id];
-    const ay = accY[id];
+export function integrateVerletPosition(bodyIndex: number, dt: number): void {
+    const ax = accX[bodyIndex];
+    const ay = accY[bodyIndex];
 
-    posX[id] += velX[id] * dt + 0.5 * ax * dt * dt;
-    posY[id] += velY[id] * dt + 0.5 * ay * dt * dt;
+    posX[bodyIndex] += velX[bodyIndex] * dt + 0.5 * ax * dt * dt;
+    posY[bodyIndex] += velY[bodyIndex] * dt + 0.5 * ay * dt * dt;
 
     // Update AABB values based on new position
-    updateAABB(id);
+    updateAABB(bodyIndex);
 }
 
-export function integrateVerletVelocity(id: number, dt: number): void {
-    const oldAx = accX[id];
-    const oldAy = accY[id];
+export function integrateVerletVelocity(bodyIndex: number, dt: number): void {
+    const oldAx = accX[bodyIndex];
+    const oldAy = accY[bodyIndex];
 
-    const invM = invMasses[id];
-    const newAx = sumForcesX[id] * invM;
-    const newAy = sumForcesY[id] * invM;
+    const invM = invMasses[bodyIndex];
+    const newAx = sumForcesX[bodyIndex] * invM;
+    const newAy = sumForcesY[bodyIndex] * invM;
 
-    velX[id] += 0.5 * (oldAx + newAx) * dt;
-    velY[id] += 0.5 * (oldAy + newAy) * dt;
+    velX[bodyIndex] += 0.5 * (oldAx + newAx) * dt;
+    velY[bodyIndex] += 0.5 * (oldAy + newAy) * dt;
 
     // store for next step
-    accX[id] = newAx;
-    accY[id] = newAy;
+    accX[bodyIndex] = newAx;
+    accY[bodyIndex] = newAy;
 
-    clearForces(id);
+    clearForces(bodyIndex);
 }
 
-export function updateAABB(id: number) {
-    const radius = radiuses[id];
-    minX[id] = posX[id] - radius;
-    maxX[id] = posX[id] + radius;
-    minY[id] = posY[id] - radius;
-    maxY[id] = posY[id] + radius;
+export function updateAABB(bodyIndex: number) {
+    const radius = radiuses[bodyIndex];
+    minX[bodyIndex] = posX[bodyIndex] - radius;
+    maxX[bodyIndex] = posX[bodyIndex] + radius;
+    minY[bodyIndex] = posY[bodyIndex] - radius;
+    maxY[bodyIndex] = posY[bodyIndex] + radius;
 }
 
-function swapFloat64(array: Float64Array, a: number, b: number): void {
-    const tmp = array[a];
-    array[a] = array[b];
-    array[b] = tmp;
+function swapFloat64(array: Float64Array, aIndex: number, bIndex: number): void {
+    const tmp = array[aIndex];
+    array[aIndex] = array[bIndex];
+    array[bIndex] = tmp;
 }
 
-function swapInt32(array: Int32Array, a: number, b: number): void {
-    const tmp = array[a];
-    array[a] = array[b];
-    array[b] = tmp;
+function swapInt32(array: Int32Array, aIndex: number, bIndex: number): void {
+    const tmp = array[aIndex];
+    array[aIndex] = array[bIndex];
+    array[bIndex] = tmp;
 }
 
-function swapUint8(array: Uint8Array, a: number, b: number): void {
-    const tmp = array[a];
-    array[a] = array[b];
-    array[b] = tmp;
+function swapUint8(array: Uint8Array, aIndex: number, bIndex: number): void {
+    const tmp = array[aIndex];
+    array[aIndex] = array[bIndex];
+    array[bIndex] = tmp;
 }

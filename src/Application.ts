@@ -85,6 +85,7 @@ export default class Application {
             const solarSystem = createSolarSystemPacked(this.engine);
             // const solarSystem = createSolarSystem(this.engine);
             this.bodyRenderStyles = solarSystem.renderStyles;
+            console.log(this.bodyRenderStyles);
         }
 
         // if (this.demoIndex === 2) {

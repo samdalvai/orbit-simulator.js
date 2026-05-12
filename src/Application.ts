@@ -12,7 +12,7 @@ import { createAlphaCentauriSystem } from './systems/AlphaCentauriSystem';
 import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
 import { createSolarSystem } from './systems/SolarSystem';
-import { createSolarSystemPacked } from './systems/SolarSystemPacked';
+import { createSolarSystemPacked } from './systems/PackedSolarSystem';
 import { createTripleStarSystem } from './systems/TripleStarSystem';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;

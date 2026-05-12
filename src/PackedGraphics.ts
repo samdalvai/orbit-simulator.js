@@ -47,7 +47,7 @@ export default class Graphics {
     static zoom = 1;
     static pan = new Vec2(0, 0);
 
-    static openWindow(): boolean {
+    static initialize(): boolean {
         const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
         const ctx = canvas.getContext('2d');
 

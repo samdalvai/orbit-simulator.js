@@ -29,7 +29,6 @@ export default class Application {
     private blackHoleId: number | null = null;
     private running = false;
     private paused = false;
-    private gui: Gui;
 
     // Demos
     private demoIndex = 1;
@@ -52,7 +51,6 @@ export default class Application {
 
     constructor() {
         this.engine = new Engine();
-        this.gui = new Gui();
     }
 
     isRunning(): boolean {
@@ -65,11 +63,12 @@ export default class Application {
 
     async setup(): Promise<void> {
         InputManager.initialize();
+        Gui.initialize();
+        Graphics.initialize();
 
         await AssetStore.loadTextures();
-
-        this.running = Graphics.openWindow();
         this.loadDemo();
+        this.running = true;
     }
 
     loadDemo() {

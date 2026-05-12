@@ -17,13 +17,13 @@ const SHORTCUTS: Array<[string, string]> = [
 ];
 
 export default class Gui {
-    private shortcutsOverlay: HTMLDivElement | null = null;
+    private static shortcutsOverlay: HTMLDivElement | null = null;
 
-    constructor() {
+    static initialize() {
         this.createShortcutsButton();
     }
 
-    private createShortcutsButton(): void {
+    private static createShortcutsButton(): void {
         const button = document.createElement('button');
         button.type = 'button';
         button.textContent = '?';
@@ -58,7 +58,7 @@ export default class Gui {
         document.body.appendChild(button);
     }
 
-    private showShortcuts(): void {
+    private static showShortcuts(): void {
         if (this.shortcutsOverlay) {
             this.shortcutsOverlay.remove();
         }
@@ -153,7 +153,7 @@ export default class Gui {
         this.shortcutsOverlay = overlay;
     }
 
-    private hideShortcuts(): void {
+    private static hideShortcuts(): void {
         this.shortcutsOverlay?.remove();
         this.shortcutsOverlay = null;
     }

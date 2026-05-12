@@ -3,11 +3,11 @@ export const MAX_BODIES = 10_000;
 // TODO: decrease to 10 hours from 100 because fast movin moons (e.g Phobos are not well simulated)
 export const SIMULATION_TIME_SCALE = 3_600 * 10; // 10 simulated hours per real second
 
-export const AU_KM = 149_597_870.7;
-export const EARTH_RADIUS_KM = 6_371;
-
 /** Gravitational constant */
 export const G = 6.6743e-20; // km^3 / kg / s^2
+
+export const AU_KM = 149_597_870.7;
+export const EARTH_RADIUS_KM = 6_371;
 
 // Orbit/distance rendering scales.
 export const PLANET_ORBIT_RENDERING_SCALE = 500; // pixels per AU

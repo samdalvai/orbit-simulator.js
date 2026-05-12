@@ -526,7 +526,7 @@ export default class Application {
 
         if (!hasPlanetOrStar) return;
 
-        const selectedIndex = this.selectedPlanet ? indexOfId[this.selectedPlanet] : -1;
+        const selectedIndex = this.selectedPlanet !== null ? indexOfId[this.selectedPlanet] : -1;
         let nextIndex = (selectedIndex + 1) % getBodyCount();
 
         while (bodyTypes[nextIndex] !== BodyType.PLANET && bodyTypes[nextIndex] !== BodyType.STAR) {

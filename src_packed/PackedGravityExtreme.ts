@@ -1,7 +1,7 @@
 import { Body } from './Body';
 import { addForce, getBodyCount, masses, posX, posY } from './PackedBody';
 import { applyForceOn, buildPackedQuadTree } from './PackedQuadTreeExtreme';
-import { buildQuadTree } from './QuadTree';
+// import { buildQuadTree } from './QuadTree';
 import { Vec2 } from './Vec2';
 
 const DEFAULT_THETA = 0.5;
@@ -52,33 +52,6 @@ export function applyGravitationalForces(bodies: readonly Body[], G: number): vo
             force.y = -force.y;
             b.addForce(force);
         }
-    }
-}
-
-/**
- * Builds the quadtree and applies one gravitational force per body.
- */
-export function applyBarnesHutGravitationalForces(
-    bodies: readonly Body[],
-    G: number,
-    theta = DEFAULT_THETA,
-    epsilon = DEFAULT_EPSILON,
-): void {
-    const tree = buildQuadTree(bodies, theta, epsilon);
-
-    if (tree === null) {
-        return;
-    }
-
-    const force = new Vec2();
-    const thetaSquared = theta * theta;
-
-    for (let i = 0; i < bodies.length; i++) {
-        const body = bodies[i];
-        if (body.mass === 0) continue;
-
-        tree.forceOn(body, G, force, thetaSquared);
-        body.addForce(force);
     }
 }
 

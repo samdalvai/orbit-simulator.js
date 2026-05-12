@@ -1,5 +1,5 @@
 import { Body } from './Body';
-import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
+// import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
 import { G, MAX_BODIES } from './Constants';
 import {
     NO_PARENT,

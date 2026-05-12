@@ -1,8 +1,8 @@
 import AssetStore from './AssetStore';
 import { Body, BodyType } from './Body';
 import { BodyRenderStyle } from './BodyRenderStyle';
-import { FIXED_DELTA_TIME, G, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
-import Gui from './Gui';
+import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
+import GUI from './GUI';
 import InputManager, { MouseButton } from './InputManager';
 import { clamp } from './Math';
 import { bodyTypes, getBodyCount, ids, indexOfId, masses, radiuses, removeBody, velX, velY } from './PackedBody';
@@ -61,15 +61,15 @@ export default class Application {
     }
 
     async setup(): Promise<void> {
-        Gui.setLoadingMessage('Loading simulation...');
+        GUI.setLoadingMessage('Loading simulation...');
         InputManager.initialize();
-        Gui.initialize();
+        GUI.initialize();
         Graphics.initialize();
 
         await AssetStore.loadTextures();
         await this.loadDemo();
         this.running = true;
-        Gui.setLoadingMessage(null);
+        GUI.setLoadingMessage(null);
     }
 
     async loadDemo(): Promise<void> {
@@ -78,7 +78,7 @@ export default class Application {
         Body.resetIds();
         this.loadingDemo = true;
         this.running = false;
-        Gui.setLoadingMessage('Loading simulation...');
+        GUI.setLoadingMessage('Loading simulation...');
 
         await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 
@@ -125,7 +125,7 @@ export default class Application {
         } finally {
             this.running = true;
             this.loadingDemo = false;
-            Gui.setLoadingMessage(null);
+            GUI.setLoadingMessage(null);
         }
     }
 

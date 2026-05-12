@@ -1,15 +1,15 @@
 import Application from './src/Application';
 import { FIXED_DELTA_TIME } from './src/Constants';
-import Gui from './src/Gui';
+import GUI from './src/GUI';
 
 async function run() {
     const app = new Application();
 
-    Gui.setLoadingMessage('Loading simulation...');
+    GUI.setLoadingMessage('Loading simulation...');
     try {
         await app.setup();
     } catch (error) {
-        Gui.setLoadingMessage('Failed to load simulation.');
+        GUI.setLoadingMessage('Failed to load simulation.');
         throw error;
     }
 

@@ -16,7 +16,7 @@ const SHORTCUTS: Array<[string, string]> = [
     ['Space', 'Pan to next planet/star'],
 ];
 
-export default class Gui {
+export default class GUI {
     private static shortcutsOverlay: HTMLDivElement | null = null;
 
     static initialize() {

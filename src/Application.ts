@@ -25,7 +25,7 @@ const DEMO_LABELS = ['Solar system', 'Alpha centauri', 'Triple star system', 'Ra
 export default class Application {
     private engine: Engine;
     private bodyRenderStyles = new Map<number, BodyRenderStyle>();
-    private blackHole: Body | null = null;
+    private blackHoleId: number | null = null;
     private running = false;
     private paused = false;
     private gui: Gui;
@@ -74,7 +74,7 @@ export default class Application {
     loadDemo() {
         this.engine.clear();
         this.bodyRenderStyles.clear();
-        this.blackHole = null;
+        this.blackHoleId = null;
         this.selectedPlanet = null;
 
         Graphics.pan.x = 0;
@@ -512,34 +512,33 @@ export default class Application {
     private createBlackHoleAtMouse(): void {
         this.removeBlackHole();
 
-        // if (this.engine.getBodies().length >= MAX_BODIES) {
-        //     return;
-        // }
+        const x = InputManager.mousePosition.x / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const y = InputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const blackHole = new Body(x, y, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.STAR);
 
-        // const x = InputManager.mousePosition.x / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        // const y = InputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        // const blackHole = new Body(x, y, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.STAR);
+        const blackHoleId = this.engine.addBody(blackHole);
 
-        // this.engine.addBody(blackHole);
-        // this.bodyRenderStyles.set(blackHole.id, {
-        //     fillColor: '#030009',
-        //     texture: AssetStore.getTexture('blackHole'),
-        //     label: 'Black Hole',
-        //     labelColor: '#d9b8ff',
-        //     labelFontSize: 16,
-        // });
+        if (blackHoleId !== null) {
+            this.bodyRenderStyles.set(blackHoleId, {
+                fillColor: '#030009',
+                texture: AssetStore.getTexture('blackHole'),
+                label: 'Black Hole',
+                labelColor: '#d9b8ff',
+                labelFontSize: 16,
+            });
 
-        // this.blackHole = blackHole;
+            this.blackHoleId = blackHoleId;
+        }
     }
 
     private removeBlackHole(): void {
-        if (!this.blackHole) {
+        if (this.blackHoleId === null) {
             return;
         }
 
-        // this.engine.removeBody(this.blackHole);
-        // this.bodyRenderStyles.delete(this.blackHole.id);
-        // this.blackHole = null;
+        this.engine.deleteBody(this.blackHoleId);
+        this.bodyRenderStyles.delete(this.blackHoleId);
+        this.blackHoleId = null;
     }
 
     private formatDuration(seconds: number): string {

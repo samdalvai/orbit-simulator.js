@@ -36,6 +36,10 @@ export class Engine {
         return this.bodies;
     }
 
+    getBodiesCount(): number {
+        return this.bodies.length;
+    }
+
     addForce(force: Vec2): void {
         this.forces.push(force);
     }

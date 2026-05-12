@@ -64,41 +64,50 @@ export function addNewBody(
     Utils.assert(mass > 0, 'Mass needs to be greater than 0');
     Utils.assert(bodyCount < CAPACITY, 'Body capacity exceeded');
 
-    ids[bodyCount] = bodyCount;
-    indexOfId[bodyCount] = bodyCount;
+    const index = bodyCount;
+    const bodyId = bodyCount++;
 
-    parents[bodyCount] = parentId;
-    bodyTypes[bodyCount] = bodyType;
-    radiuses[bodyCount] = radius;
+    ids[index] = bodyId;
+    indexOfId[index] = bodyId;
 
-    posX[bodyCount] = x;
-    posY[bodyCount] = y;
-    velX[bodyCount] = velocity.x;
-    velY[bodyCount] = velocity.y;
-    accX[bodyCount] = 0;
-    accY[bodyCount] = 0;
+    parents[index] = parentId;
+    bodyTypes[index] = bodyType;
+    radiuses[index] = radius;
 
-    sumForcesX[bodyCount] = 0;
-    sumForcesY[bodyCount] = 0;
+    posX[index] = x;
+    posY[index] = y;
+    velX[index] = velocity.x;
+    velY[index] = velocity.y;
+    accX[index] = 0;
+    accY[index] = 0;
 
-    masses[bodyCount] = mass;
-    invMasses[bodyCount] = 1 / mass;
+    sumForcesX[index] = 0;
+    sumForcesY[index] = 0;
 
-    minX[bodyCount] = 0;
-    minY[bodyCount] = 0;
-    maxX[bodyCount] = 0;
-    maxY[bodyCount] = 0;
+    masses[index] = mass;
+    invMasses[index] = 1 / mass;
 
-    updateAABB(bodyCount);
+    minX[index] = 0;
+    minY[index] = 0;
+    maxX[index] = 0;
+    maxY[index] = 0;
 
-    // Body index === id
-    return bodyCount++;
+    updateAABB(index);
+
+    // Insert the body at the correct position based on minX
+    // this ensures that bodies are already almost sorted when teh simulation begins
+    let currentIndex = index;
+    while (currentIndex > 0 && minX[currentIndex - 1] > minX[currentIndex]) {
+        swapBodies(currentIndex - 1, currentIndex);
+        currentIndex--;
+    }
+
+    return bodyId;
 }
 
-// TODO: body index or body id?
 export function removeBody(bodyId: number): void {
     const index = indexOfId[bodyId];
-    Utils.assert(bodyId >= 0 && bodyId < bodyCount, 'Body id out of bounds');
+    Utils.assert(index >= 0 && index < bodyCount, 'Body id out of bounds');
 
     const lastIndex = bodyCount - 1;
     const movedId = ids[lastIndex];

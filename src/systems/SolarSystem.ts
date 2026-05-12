@@ -2,8 +2,8 @@ import { Body, BodyType } from '../Body';
 import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM } from '../Constants';
 import { Engine } from '../PackedEngine';
-import { createBelt, createBody, createRenderStyle } from './BodyGeneration';
-import { BeltSpec, CelestialBodySpec, SolarSystem } from './BodySpec';
+import { createBelt, createBody, createRenderStyle } from './PackedBodyGeneration';
+import { BeltSpec, CelestialBodySpec } from './BodySpec';
 
 const ASTEROID_BELT_OBJECTS = 1000;
 const KUIPER_BELT_OBJECTS = 1500;

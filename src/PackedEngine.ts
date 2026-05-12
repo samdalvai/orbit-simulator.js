@@ -1,5 +1,4 @@
 import { Body } from './Body';
-// import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
 import { G, MAX_BODIES } from './Constants';
 import {
     NO_PARENT,
@@ -14,7 +13,6 @@ import {
     maxY,
     minX,
     minY,
-    removeBody,
     swapBodies,
 } from './PackedBody';
 import { applyPackedBarnesHutGravitationalForces } from './PackedGravityExtreme';
@@ -34,10 +32,6 @@ export class Engine {
         );
 
         return packedId;
-    }
-
-    deleteBody(bodyId: number): void {
-        removeBody(bodyId);
     }
 
     getBodiesCount(): number {

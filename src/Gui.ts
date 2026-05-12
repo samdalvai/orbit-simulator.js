@@ -157,4 +157,20 @@ export default class Gui {
         this.shortcutsOverlay?.remove();
         this.shortcutsOverlay = null;
     }
+
+    static setLoadingMessage(message: string | null) {
+        let element = document.getElementById('loadingMessage');
+
+        if (element === null) {
+            element = document.createElement('div');
+        }
+        
+        element.id = 'loadingMessage';
+        element.setAttribute('role', 'status');
+        element.setAttribute('aria-live', 'polite');
+        element.hidden = true;
+        element.textContent = message ?? '';
+        element.hidden = message === null;
+        document.body.append(element);
+    }
 }

@@ -48,8 +48,11 @@ export default class Application {
     private totalTime = 0;
 
     private selectedPlanet: Body | null = null;
+    private loadingDemo = false;
 
+    // constructor(setLoadingMessage: LoadingMessageSetter = () => {}) {
     constructor() {
+        // this.setLoadingMessage = setLoadingMessage;
         this.engine = new Engine();
     }
 
@@ -62,57 +65,74 @@ export default class Application {
     }
 
     async setup(): Promise<void> {
+        Gui.setLoadingMessage('Loading simulation...');
         InputManager.initialize();
         Gui.initialize();
         Graphics.initialize();
 
         await AssetStore.loadTextures();
-        this.loadDemo();
+        await this.loadDemo();
         this.running = true;
+        Gui.setLoadingMessage(null);
     }
 
-    loadDemo() {
-        this.engine.clear();
-        this.bodyRenderStyles.clear();
-        this.blackHoleId = null;
-        this.selectedPlanet = null;
+    async loadDemo(): Promise<void> {
+        if (this.loadingDemo) return;
 
-        Graphics.pan.x = 0;
-        Graphics.pan.y = 0;
+        const shouldRunAfterLoad = this.running;
+        this.loadingDemo = true;
+        this.running = false;
+        Gui.setLoadingMessage('Loading simulation...');
 
-        if (this.demoIndex === 1) {
-            Graphics.zoom = 0.3;
-            Body.resetIds();
-            const solarSystem = createSolarSystemPacked(this.engine);
-            // const solarSystem = createSolarSystem(this.engine);
-            this.bodyRenderStyles = solarSystem.renderStyles;
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+        try {
+            this.engine.clear();
+            this.bodyRenderStyles.clear();
+            this.blackHoleId = null;
+            this.selectedPlanet = null;
+
+            Graphics.pan.x = 0;
+            Graphics.pan.y = 0;
+
+            if (this.demoIndex === 1) {
+                Graphics.zoom = 0.3;
+                Body.resetIds();
+                const solarSystem = createSolarSystemPacked(this.engine);
+                // const solarSystem = createSolarSystem(this.engine);
+                this.bodyRenderStyles = solarSystem.renderStyles;
+            }
+
+            // if (this.demoIndex === 2) {
+            //     Graphics.zoom = 0.2;
+            //     const solarSystem = createAlphaCentauriSystem(this.engine);
+            //     this.bodyRenderStyles = solarSystem.renderStyles;
+            // }
+
+            // if (this.demoIndex === 3) {
+            //     Graphics.zoom = 0.2;
+            //     const solarSystem = createTripleStarSystem(this.engine);
+            //     this.bodyRenderStyles = solarSystem.renderStyles;
+            // }
+
+            // if (this.demoIndex === 4) {
+            //     Graphics.zoom = 0.16;
+            //     const solarSystem = createRandomSolarSystem(this.engine);
+            //     this.bodyRenderStyles = solarSystem.renderStyles;
+            // }
+
+            // if (this.demoIndex === 5) {
+            //     Graphics.zoom = 0.01;
+            //     const solarSystem = createRandomGalaxy(this.engine);
+            //     this.bodyRenderStyles = solarSystem.renderStyles;
+            // }
+
+            this.engine.initializeVerlet();
+        } finally {
+            this.running = shouldRunAfterLoad;
+            this.loadingDemo = false;
+            Gui.setLoadingMessage(null);
         }
-
-        // if (this.demoIndex === 2) {
-        //     Graphics.zoom = 0.2;
-        //     const solarSystem = createAlphaCentauriSystem(this.engine);
-        //     this.bodyRenderStyles = solarSystem.renderStyles;
-        // }
-
-        // if (this.demoIndex === 3) {
-        //     Graphics.zoom = 0.2;
-        //     const solarSystem = createTripleStarSystem(this.engine);
-        //     this.bodyRenderStyles = solarSystem.renderStyles;
-        // }
-
-        // if (this.demoIndex === 4) {
-        //     Graphics.zoom = 0.16;
-        //     const solarSystem = createRandomSolarSystem(this.engine);
-        //     this.bodyRenderStyles = solarSystem.renderStyles;
-        // }
-
-        // if (this.demoIndex === 5) {
-        //     Graphics.zoom = 0.01;
-        //     const solarSystem = createRandomGalaxy(this.engine);
-        //     this.bodyRenderStyles = solarSystem.renderStyles;
-        // }
-
-        this.engine.initializeVerlet();
     }
 
     input(): void {
@@ -176,7 +196,7 @@ export default class Application {
                     }
 
                     if (key === 'r' && inputEvent.shiftKey) {
-                        this.loadDemo();
+                        void this.loadDemo();
                     }
 
                     if (inputEvent.code === 'MetaLeft') {
@@ -191,7 +211,7 @@ export default class Application {
 
                     if (Number.isInteger(keyAsNum) && keyAsNum > 0 && keyAsNum <= DEMO_LABELS.length) {
                         this.demoIndex = keyAsNum;
-                        this.loadDemo();
+                        void this.loadDemo();
                     }
 
                     break;
@@ -536,7 +556,7 @@ export default class Application {
             return;
         }
 
-        this.engine.deleteBody(this.blackHoleId);
+        removeBody(this.blackHoleId);
         this.bodyRenderStyles.delete(this.blackHoleId);
         this.blackHoleId = null;
     }

@@ -1,9 +1,17 @@
-import { FIXED_DELTA_TIME } from './src/Constants';
 import Application from './src/Application';
+import { FIXED_DELTA_TIME } from './src/Constants';
+import Gui from './src/Gui';
 
 async function run() {
     const app = new Application();
-    await app.setup();
+
+    Gui.setLoadingMessage('Loading simulation...');
+    try {
+        await app.setup();
+    } catch (error) {
+        Gui.setLoadingMessage('Failed to load simulation.');
+        throw error;
+    }
 
     console.log('Setup finished, starting loop');
 

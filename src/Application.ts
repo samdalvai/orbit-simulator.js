@@ -45,7 +45,7 @@ export default class Application {
     private showMoonLabels = true;
     private totalTime = 0;
 
-    private selectedPlanet: Body | null = null;
+    private selectedPlanet: number | null = null;
     private blackHole: number | null = null;
 
     constructor() {
@@ -94,7 +94,6 @@ export default class Application {
             if (this.demoIndex === 1) {
                 Graphics.zoom = 0.3;
                 const solarSystem = createSolarSystem(this.engine);
-                // const solarSystem = createSolarSystem(this.engine);
                 this.bodyRenderStyles = solarSystem.renderStyles;
             }
 
@@ -196,6 +195,10 @@ export default class Application {
 
                     if (inputEvent.code === 'MetaLeft') {
                         this.controlPressed = true;
+
+                        if (this.selectedPlanet) {
+                            this.selectedPlanet = null;
+                        }
                     }
 
                     if (inputEvent.code === 'Space') {
@@ -254,17 +257,18 @@ export default class Application {
                         switch (inputEvent.button) {
                             case MouseButton.LEFT:
                                 {
-                                    // const hoveredBody = this.getHoveredBody();
-                                    // if (!hoveredBody) return;
-                                    // const pos = Graphics.getBodyRenderPosition(hoveredBody).scaleNew(
-                                    //     KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-                                    // );
-                                    // this.selectedPlanet = hoveredBody;
-                                    // Graphics.pan = pos;
-                                    // if (Graphics.zoom < 1) {
-                                    //     Graphics.zoom = 1;
-                                    // }
-                                    // this.selectedPlanet = hoveredBody;
+                                    const bodyId = this.getHoveredBody();
+                                    if (bodyId === null) return;
+                                    const bodyIndex = indexOfId[bodyId];
+                                    const pos = Graphics.getBodyRenderPosition(bodyIndex).scaleNew(
+                                        KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+                                    );
+                                    this.selectedPlanet = bodyId;
+                                    Graphics.pan = pos;
+                                    if (Graphics.zoom < 1) {
+                                        Graphics.zoom = 1;
+                                    }
+                                    this.selectedPlanet = bodyId;
                                 }
                                 break;
                             case MouseButton.RIGHT:
@@ -317,10 +321,9 @@ export default class Application {
         Graphics.beginWorld();
 
         if (this.selectedPlanet) {
-            // const pos = Graphics.getBodyRenderPosition(this.selectedPlanet).scaleNew(
-            //     KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-            // );
-            // Graphics.pan = pos;
+            const index = indexOfId[this.selectedPlanet];
+            const pos = Graphics.getBodyRenderPosition(index).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
+            Graphics.pan = pos;
         }
 
         const viewport = Graphics.getRenderViewport();
@@ -510,21 +513,33 @@ export default class Application {
     }
 
     private panToNextPlanetOrStar(): void {
-        // const bodies = this.engine
-        //     .getBodies()
-        //     .filter(body => body.bodyType === BodyType.PLANET || body.bodyType === BodyType.STAR);
-        // if (bodies.length === 0) {
-        //     this.selectedPlanet = null;
-        //     return;
-        // }
-        // const selectedIndex = this.selectedPlanet ? bodies.findIndex(body => body.id === this.selectedPlanet?.id) : -1;
-        // const nextBody = bodies[(selectedIndex + 1) % bodies.length];
-        // const pos = Graphics.getBodyRenderPosition(nextBody).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
-        // Graphics.pan = pos;
-        // if (Graphics.zoom < 1) {
-        //     Graphics.zoom = 1;
-        // }
-        // this.selectedPlanet = nextBody;
+        let hasPlanetOrStar = false;
+
+        for (let i = 0; i < getBodyCount(); i++) {
+            const bodyType = bodyTypes[i];
+
+            if (bodyType === BodyType.PLANET || bodyType === BodyType.STAR) {
+                hasPlanetOrStar = true;
+                break;
+            }
+        }
+
+        if (!hasPlanetOrStar) return;
+
+        const selectedIndex = this.selectedPlanet ? indexOfId[this.selectedPlanet] : -1;
+        let nextIndex = (selectedIndex + 1) % getBodyCount();
+
+        while (bodyTypes[nextIndex] !== BodyType.PLANET && bodyTypes[nextIndex] !== BodyType.STAR) {
+            nextIndex = (nextIndex + 1) % getBodyCount();
+        }
+
+        const nextBodyId = ids[nextIndex];
+        const pos = Graphics.getBodyRenderPosition(nextIndex).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
+        Graphics.pan = pos;
+        if (Graphics.zoom < 1) {
+            Graphics.zoom = 1;
+        }
+        this.selectedPlanet = nextBodyId;
     }
 
     private createBlackHoleAtMouse(): void {

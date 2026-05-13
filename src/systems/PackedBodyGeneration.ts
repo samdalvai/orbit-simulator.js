@@ -7,16 +7,16 @@ import { BodyId, addNewBody, bodyIndexById, mass, positionX, positionY, velocity
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpecDeprecated, SolarSystemSpec } from './BodySpec';
 
-export function createSolarSystem(solarSystemSpec: SolarSystemSpec, renderStyles: Map<number, BodyRenderStyle>): void {
-    const starId = createBody(solarSystemSpec.star, BodyType.STAR);
+export function createPackedSolarSystem(solarSystemSpec: SolarSystemSpec, renderStyles: Map<number, BodyRenderStyle>): void {
+    const starId = createPackedBody(solarSystemSpec.star, BodyType.STAR);
     renderStyles.set(starId, createRenderStyle(solarSystemSpec.star, BodyType.STAR));
 
     for (const planetSpec of solarSystemSpec.planets) {
-        const planetId = createBody(planetSpec, BodyType.PLANET, starId);
+        const planetId = createPackedBody(planetSpec, BodyType.PLANET, starId);
         renderStyles.set(planetId, createRenderStyle(planetSpec, BodyType.PLANET));
-        
+
         for (const moonSpec of planetSpec.moons ?? []) {
-            const moonId = createBody(moonSpec, BodyType.MOON, planetId);
+            const moonId = createPackedBody(moonSpec, BodyType.MOON, planetId);
             renderStyles.set(moonId, createRenderStyle(moonSpec, BodyType.MOON));
         }
     }
@@ -25,11 +25,11 @@ export function createSolarSystem(solarSystemSpec: SolarSystemSpec, renderStyles
         const starIndex = bodyIndexById[starId];
         const starPos = new Vec2(positionX[starIndex], positionY[starIndex]);
         const starMass = mass[starIndex];
-        createBelt(starPos, starMass, beltSpec, renderStyles);
+        createPackedBelt(starPos, starMass, beltSpec, renderStyles);
     }
 }
 
-export function createBody(spec: CelestialBodySpecDeprecated, bodyType: BodyType, parentId: number | null = null): BodyId {
+export function createPackedBody(spec: CelestialBodySpecDeprecated, bodyType: BodyType, parentId: number | null = null): BodyId {
     if (parentId === null) {
         return addNewBody(0, 0, spec.radiusKm, spec.massKg, bodyType);
     }
@@ -49,7 +49,7 @@ export function createBody(spec: CelestialBodySpecDeprecated, bodyType: BodyType
     return bodyId;
 }
 
-export function createBelt(
+export function createPackedBelt(
     centerPos: Vec2,
     centerMass: number,
     spec: BeltSpec,

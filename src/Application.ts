@@ -20,9 +20,10 @@ import {
 import { Engine } from './PackedEngine';
 import Graphics from './PackedGraphics';
 import { formatDuration } from './Utils';
+import { createPackedSolarSystem } from './systems/PackedBodyGeneration';
 import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
-import { createSolarSystem } from './systems/SolarSystem';
+import { solarSystem } from './systems/SolarSystem';
 import { createTripleStarSystem } from './systems/TripleStarSystem';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
@@ -102,7 +103,7 @@ export default class Application {
 
             if (this.demoIndex === 1) {
                 Graphics.zoom = 0.3;
-                createSolarSystem(this.bodyRenderStyles);
+                createPackedSolarSystem(solarSystem, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 2) {

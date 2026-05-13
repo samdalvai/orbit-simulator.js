@@ -5,12 +5,14 @@ import { getOrbitPosition } from '../Math';
 import { Engine } from '../PackedEngine';
 import { Vec2 } from '../Vec2';
 import { createBelt, createBody, createRenderStyle } from './BodyGeneration';
-import { BeltSpec, CelestialBodySpecDeprecated } from './BodySpec';
+import { BeltSpec, CelestialBodySpecDeprecated, SolarSystemSpec } from './BodySpec';
 
 const STAR_A: CelestialBodySpecDeprecated = {
     name: 'Aureon',
     radiusKm: 720_000,
     massKg: 1.35e30,
+    orbitRadiusKm: 0.6 * AU_KM,
+    orbitAngleDegrees: 90,
     color: '#fff0a6',
     labelFontSize: 18,
     texture: 'planetSun',
@@ -194,7 +196,11 @@ function centroid(points: Vec2[]): Vec2 {
     return new Vec2(x, y);
 }
 
-function createBarycentricOrbitBody(spec: CelestialBodySpecDeprecated, bodyType: BodyType, centralMassKg: number): Body {
+function createBarycentricOrbitBody(
+    spec: CelestialBodySpecDeprecated,
+    bodyType: BodyType,
+    centralMassKg: number,
+): Body {
     const position = getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0);
     const body = new Body(position.x, position.y, spec.radiusKm, spec.massKg, bodyType);
     const orbitRadiusKm = position.magnitude();
@@ -206,3 +212,9 @@ function createBarycentricOrbitBody(spec: CelestialBodySpecDeprecated, bodyType:
 
     return body;
 }
+
+export const tripleStarSystem: SolarSystemSpec = {
+    stars: [STAR_A, STAR_B, STAR_C],
+    planets: [],
+    belts: [],
+};

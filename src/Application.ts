@@ -25,6 +25,7 @@ import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
 import { solarSystem } from './systems/SolarSystem';
 import { createTripleStarSystem } from './systems/TripleStarSystem';
+import { tripleStarSystem } from './systems/TripleStarSystemBarycentric';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
@@ -39,7 +40,7 @@ export default class Application {
     private paused = false;
 
     // Demos
-    private demoIndex = 1;
+    private demoIndex = 2;
     private loadingDemo = false;
 
     // Inputs
@@ -108,7 +109,7 @@ export default class Application {
 
             if (this.demoIndex === 2) {
                 Graphics.zoom = 0.2;
-                createTripleStarSystem(this.engine, this.bodyRenderStyles);
+                createPackedSolarSystem(tripleStarSystem, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 3) {

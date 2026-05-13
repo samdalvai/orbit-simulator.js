@@ -40,7 +40,7 @@ export default class Application {
     private paused = false;
 
     // Demos
-    private demoIndex = 1;
+    private demoIndex = 2;
     private loadingDemo = false;
 
     // Inputs

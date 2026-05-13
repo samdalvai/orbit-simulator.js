@@ -1,5 +1,18 @@
 import { TextureName } from '../AssetStore';
 
+// TODO: update to support multiple stars orbiting iaround baricentric point
+export type SolarSystemSpec = {
+    star: {
+        name: string;
+        radiusKm: number;
+        massKg: number;
+        color: string;
+        texture?: TextureName;
+    };
+    bodies: CelestialBodySpec[];
+    belts: BeltSpec[];
+};
+
 export type CelestialBodySpec = {
     name: string;
     radiusKm: number;

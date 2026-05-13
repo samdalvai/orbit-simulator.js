@@ -29,12 +29,15 @@ export function createPackedSolarSystem(
     basePos = new Vec2(),
     baseVel = new Vec2(),
 ): void {
-    const mainStarId = createPackedBody(solarSystemSpec.mainStar, BodyType.STAR);
+    const mainStarId = createPackedBody(solarSystemSpec.mainStar, BodyType.STAR, basePos, baseVel);
     const mainStarIndex = bodyIndexById[mainStarId];
     const mainStarPos = new Vec2(positionX[mainStarIndex], positionY[mainStarIndex]);
     const mainStarVel = new Vec2(velocityX[mainStarIndex], velocityY[mainStarIndex]);
     const mainStarMass = mass[mainStarIndex];
     renderStyles.set(mainStarId, createRenderStyle(solarSystemSpec.mainStar, BodyType.STAR));
+
+    console.log('main star pos: ', mainStarPos);
+    console.log('main star vel: ', mainStarVel);
 
     for (const starSpec of solarSystemSpec.secondaryStars) {
         const starId = createPackedBody(starSpec, BodyType.STAR, mainStarPos, mainStarVel, mainStarMass);
@@ -58,7 +61,7 @@ export function createPackedSolarSystem(
 
     for (const beltSpec of solarSystemSpec.belts) {
         // TODO: velocity of main star is not considered
-        createPackedBelt(mainStarPos, mainStarMass, beltSpec, renderStyles);
+        createPackedBelt(mainStarPos, mainStarMass, mainStarVel, beltSpec, renderStyles);
     }
 }
 
@@ -72,11 +75,12 @@ export function createPackedBody(
 ): BodyId {
     // TODO: if we have a barycentric position orbit is added twice to the position
     const bodyPos = parentPos.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
+    const bodyVel = parentVel.copy();
     const bodyMass = spec.massKg;
-    const bodyId = addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, bodyMass, bodyType, new Vec2(), parentId);
+    const bodyId = addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, bodyMass, bodyType, bodyVel, parentId);
 
     if (spec.orbitRadiusKm) {
-        const orbitalSpeed = parentVel.addNew(
+        const orbitalSpeed = bodyVel.addNew(
             getOrbitalSpeedByBodyPositionAndMass(parentPos, parentMass, bodyPos, bodyMass),
         );
 
@@ -91,14 +95,14 @@ export function createPackedBody(
 export function createPackedBelt(
     centerPos: Vec2,
     centerMass: number,
+    centerVel: Vec2,
     spec: BeltSpec,
     renderStyles: Map<number, BodyRenderStyle>,
 ): void {
     // TODO: this method ignores centerPos for asteroid positioning
     for (let i = 0; i < spec.numBodies; i++) {
-        const position = getOrbitPosition(
-            randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm),
-            randomNumber(0, 360),
+        const position = centerPos.addNew(
+            getOrbitPosition(randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm), randomNumber(0, 360)),
         );
 
         const asteroidId = addNewBody(
@@ -111,7 +115,7 @@ export function createPackedBelt(
 
         const fillColor = spec.colors[Math.floor(randomNumber(0, spec.colors.length))];
 
-        const asteroidVelocity = getOrbitalSpeedByBodyId(centerPos, centerMass, asteroidId, G);
+        const asteroidVelocity = centerVel.addNew(getOrbitalSpeedByBodyId(centerPos, centerMass, asteroidId, G));
         const asteroidIndex = bodyIndexById[asteroidId];
         velocityX[asteroidIndex] = asteroidVelocity.x;
         velocityY[asteroidIndex] = asteroidVelocity.y;

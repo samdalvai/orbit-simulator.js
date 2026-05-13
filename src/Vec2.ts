@@ -7,6 +7,10 @@ export class Vec2 {
         this.y = y;
     }
 
+    copy() {
+        return new Vec2(this.x, this.y);
+    }
+
     /** operator += */
     addAssign(v: Vec2): this {
         this.x += v.x;

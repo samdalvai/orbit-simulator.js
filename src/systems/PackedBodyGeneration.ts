@@ -64,36 +64,20 @@ export function createPackedBody(
     parentMass: number = 0,
     parentId: number = NO_PARENT,
 ): BodyId {
-    // if (parentId === null) {
-    //     const zero = new Vec2();
-    //     const bodyPos = zero.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
-    //     return addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, spec.massKg, bodyType);
-    // }
-
-    // if (parentPos === null || parentVel === null || parentMass === null) {
-    //     throw new Error('Some parent property is missing');
-    // }
-
-    // const parentIndex = bodyIndexById[parentId];
-    // const parentPos = new Vec2(positionX[parentIndex], positionY[parentIndex]);
-    // const parentVel = new Vec2(velocityX[parentIndex], velocityY[parentIndex]);
-    // const parentMass = mass[parentIndex];
-
     const bodyPos = parentPos.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
     const bodyMass = spec.massKg;
     const bodyId = addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, bodyMass, bodyType, new Vec2(), parentId);
 
-    // TODO: if parent position is (0,0) this method produces Infinite orbital speed
-    const orbitalSpeed = parentVel.addNew(
-        getOrbitalSpeedByBodyPositionAndMass(parentPos, parentMass, bodyPos, bodyMass),
-    );
+    // If parent mass is 0 there is no parent to orbit around
+    if (parentMass > 0) {
+        const orbitalSpeed = parentVel.addNew(
+            getOrbitalSpeedByBodyPositionAndMass(parentPos, parentMass, bodyPos, bodyMass),
+        );
 
-    console.log("orbitalSpeed: ", orbitalSpeed);
-    console.log("parentVel: ", parentVel);
-
-    const bodyIndex = bodyIndexById[bodyId];
-    velocityX[bodyIndex] = orbitalSpeed.x;
-    velocityY[bodyIndex] = orbitalSpeed.y;
+        const bodyIndex = bodyIndexById[bodyId];
+        velocityX[bodyIndex] = orbitalSpeed.x;
+        velocityY[bodyIndex] = orbitalSpeed.y;
+    }
 
     return bodyId;
 }

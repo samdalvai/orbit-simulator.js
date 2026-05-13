@@ -20,6 +20,7 @@ import {
 import { Engine } from './PackedEngine';
 import Graphics from './PackedGraphics';
 import { formatDuration } from './Utils';
+import { Vec2 } from './Vec2';
 import { createPackedSolarSystem } from './systems/PackedBodyGeneration';
 import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
@@ -103,7 +104,12 @@ export default class Application {
 
             if (this.demoIndex === 1) {
                 Graphics.zoom = 0.3;
-                createPackedSolarSystem(solarSystem, this.bodyRenderStyles);
+                createPackedSolarSystem(
+                    solarSystem,
+                    this.bodyRenderStyles,
+                    new Vec2(100000000, 10000000),
+                    new Vec2(100, 100),
+                );
             }
 
             if (this.demoIndex === 2) {
@@ -121,6 +127,7 @@ export default class Application {
                 Graphics.zoom = 0.01;
                 // const solarSystem = createRandomGalaxy(this.engine);
                 // this.bodyRenderStyles = solarSystem.renderStyles;
+                createRandomGalaxy(this.bodyRenderStyles);
             }
 
             this.engine.initializeVerlet();

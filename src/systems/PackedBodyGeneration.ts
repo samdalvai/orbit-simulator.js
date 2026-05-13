@@ -36,9 +36,6 @@ export function createPackedSolarSystem(
     const mainStarMass = mass[mainStarIndex];
     renderStyles.set(mainStarId, createRenderStyle(solarSystemSpec.mainStar, BodyType.STAR));
 
-    console.log('main star pos: ', mainStarPos);
-    console.log('main star vel: ', mainStarVel);
-
     for (const starSpec of solarSystemSpec.secondaryStars) {
         const starId = createPackedBody(starSpec, BodyType.STAR, mainStarPos, mainStarVel, mainStarMass);
         renderStyles.set(starId, createRenderStyle(starSpec, BodyType.STAR));
@@ -99,7 +96,6 @@ export function createPackedBelt(
     spec: BeltSpec,
     renderStyles: Map<number, BodyRenderStyle>,
 ): void {
-    // TODO: this method ignores centerPos for asteroid positioning
     for (let i = 0; i < spec.numBodies; i++) {
         const position = centerPos.addNew(
             getOrbitPosition(randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm), randomNumber(0, 360)),

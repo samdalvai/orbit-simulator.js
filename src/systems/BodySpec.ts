@@ -27,19 +27,6 @@ export type PlanetBodySpec = {
     moons?: CelestialBodySpec[];
 } & CelestialBodySpec;
 
-export type CelestialBodySpecDeprecated = {
-    name: string;
-    radiusKm: number;
-    massKg: number;
-    color: string;
-    labelColor?: string;
-    labelFontSize?: number;
-    texture?: TextureName;
-    orbitRadiusKm?: number;
-    orbitAngleDegrees?: number;
-    moons?: CelestialBodySpecDeprecated[];
-};
-
 export type BeltSpec = {
     innerOrbitRadiusKm: number;
     outerOrbitRadiusKm: number;

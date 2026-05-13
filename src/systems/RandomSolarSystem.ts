@@ -3,7 +3,7 @@ import { AU_KM, EARTH_RADIUS_KM } from '../Constants';
 import { randomNumber } from '../Math';
 import { assert } from '../Utils';
 import { Vec2 } from '../Vec2';
-import { CelestialBodySpecDeprecated, SolarSystemSpec } from './BodySpec';
+import { CelestialBodySpec, PlanetBodySpec, SolarSystemSpec } from './BodySpec';
 
 export type RandomSolarSystemProbabilities = {
     starCount?: [number, number, number];
@@ -82,7 +82,7 @@ export function createRandomSolarSystem() {
     };
 
     for (let i = 1; i < starCount; i++) {
-        const starSpec: CelestialBodySpecDeprecated = {
+        const starSpec: CelestialBodySpec = {
             name: randomName(),
             radiusKm: randomNumber(110_000, 620_000),
             massKg: randomNumber(2e29, 1.5e30),
@@ -101,7 +101,7 @@ export function createRandomSolarSystem() {
     for (let i = 0; i < planetCount; i++) {
         const radiusKm = randomNumber(2_000, 70_000);
         const densityFactor = radiusKm > 20_000 ? randomNumber(0.05, 0.25) : randomNumber(0.4, 1.6);
-        const planetSpec: CelestialBodySpecDeprecated = {
+        const planetSpec: PlanetBodySpec = {
             name: randomName(),
             radiusKm,
             massKg: 5.972e24 * Math.pow(radiusKm / EARTH_RADIUS_KM, 3) * densityFactor,
@@ -117,7 +117,7 @@ export function createRandomSolarSystem() {
 
         for (let j = 0; j < moonCount; j++) {
             const moonRadiusKm = randomNumber(90, Math.min(2_900, radiusKm * 0.45));
-            const moonSpec: CelestialBodySpecDeprecated = {
+            const moonSpec: CelestialBodySpec = {
                 name: randomName(),
                 radiusKm: moonRadiusKm,
                 massKg: 7.342e22 * Math.pow(moonRadiusKm / 1_737.4, 3) * randomNumber(0.35, 1.4),

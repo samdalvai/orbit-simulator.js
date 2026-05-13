@@ -26,6 +26,8 @@ import { BeltSpec, CelestialBodySpecDeprecated, SolarSystemSpec } from './BodySp
 export function createPackedSolarSystem(
     solarSystemSpec: SolarSystemSpec,
     renderStyles: Map<number, BodyRenderStyle>,
+    basePos = new Vec2(),
+    baseVel = new Vec2(),
 ): void {
     const mainStarId = createPackedBody(solarSystemSpec.mainStar, BodyType.STAR);
     const mainStarIndex = bodyIndexById[mainStarId];

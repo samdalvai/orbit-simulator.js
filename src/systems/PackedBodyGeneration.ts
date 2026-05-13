@@ -5,9 +5,9 @@ import { EARTH_RADIUS_KM, G } from '../Constants';
 import { clamp, getOrbitPosition, getOrbitalSpeedByBodyId, getOrbitalSpeedByParentId, randomNumber } from '../Math';
 import { BodyId, addNewBody, bodyIndexById, positionX, positionY, velocityX, velocityY } from '../PackedBody';
 import { Vec2 } from '../Vec2';
-import { BeltSpec, CelestialBodySpec } from './BodySpec';
+import { BeltSpec, CelestialBodySpecDeprecated } from './BodySpec';
 
-export function createBody(spec: CelestialBodySpec, bodyType: BodyType, parentId: number | null = null): BodyId {
+export function createBody(spec: CelestialBodySpecDeprecated, bodyType: BodyType, parentId: number | null = null): BodyId {
     if (parentId === null) {
         return addNewBody(0, 0, spec.radiusKm, spec.massKg, bodyType);
     }
@@ -61,7 +61,7 @@ export function createBelt(
     }
 }
 
-export function createRenderStyle(spec: CelestialBodySpec, bodyType: BodyType): BodyRenderStyle {
+export function createRenderStyle(spec: CelestialBodySpecDeprecated, bodyType: BodyType): BodyRenderStyle {
     return {
         fillColor: spec.color,
         texture: spec.texture ? AssetStore.getTexture(spec.texture) : null,
@@ -71,7 +71,7 @@ export function createRenderStyle(spec: CelestialBodySpec, bodyType: BodyType): 
     };
 }
 
-export function getDefaultLabelColor(spec: CelestialBodySpec, bodyType: BodyType): string {
+export function getDefaultLabelColor(spec: CelestialBodySpecDeprecated, bodyType: BodyType): string {
     if (bodyType === BodyType.MOON) {
         return 'rgba(255, 255, 255, 0.78)';
     }
@@ -79,7 +79,7 @@ export function getDefaultLabelColor(spec: CelestialBodySpec, bodyType: BodyType
     return spec.color;
 }
 
-export function getLabelFontSize(spec: CelestialBodySpec, bodyType: BodyType): number {
+export function getLabelFontSize(spec: CelestialBodySpecDeprecated, bodyType: BodyType): number {
     if (bodyType === BodyType.STAR) {
         return 20;
     }

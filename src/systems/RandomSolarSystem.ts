@@ -7,7 +7,7 @@ import { Engine } from '../PackedEngine';
 import { assert } from '../Utils';
 import { Vec2 } from '../Vec2';
 import { createBody, createRenderStyle } from './BodyGeneration';
-import { CelestialBodySpec } from './BodySpec';
+import { CelestialBodySpecDeprecated } from './BodySpec';
 
 export type RandomSolarSystemProbabilities = {
     starCount?: [number, number, number];
@@ -74,7 +74,7 @@ export function createRandomSolarSystem(engine: Engine, config: RandomSolarSyste
         weightedCount(config.probabilities?.planetCount ?? DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.planetCount) + 1;
     const randomStarColor = Math.floor(randomNumber(0, STAR_COLORS.length));
     assert(STAR_COLORS.length === STAR_TEXTURES.length);
-    const primaryStarSpec: CelestialBodySpec = {
+    const primaryStarSpec: CelestialBodySpecDeprecated = {
         name: randomName(),
         radiusKm: randomNumber(120_000, 1_060_000),
         massKg: randomNumber(8e29, 40e30),
@@ -88,7 +88,7 @@ export function createRandomSolarSystem(engine: Engine, config: RandomSolarSyste
     renderStyles.set(primaryStar.id, createRenderStyle(primaryStarSpec, BodyType.STAR));
 
     for (let i = 1; i < starCount; i++) {
-        const starSpec: CelestialBodySpec = {
+        const starSpec: CelestialBodySpecDeprecated = {
             name: randomName(),
             radiusKm: randomNumber(110_000, 620_000),
             massKg: randomNumber(2e29, 1.5e30),
@@ -109,7 +109,7 @@ export function createRandomSolarSystem(engine: Engine, config: RandomSolarSyste
     for (let i = 0; i < planetCount; i++) {
         const radiusKm = randomNumber(2_000, 70_000);
         const densityFactor = radiusKm > 20_000 ? randomNumber(0.05, 0.25) : randomNumber(0.4, 1.6);
-        const planetSpec: CelestialBodySpec = {
+        const planetSpec: CelestialBodySpecDeprecated = {
             name: randomName(),
             radiusKm,
             massKg: 5.972e24 * Math.pow(radiusKm / EARTH_RADIUS_KM, 3) * densityFactor,
@@ -130,7 +130,7 @@ export function createRandomSolarSystem(engine: Engine, config: RandomSolarSyste
 
         for (let j = 0; j < moonCount; j++) {
             const moonRadiusKm = randomNumber(90, Math.min(2_900, radiusKm * 0.45));
-            const moonSpec: CelestialBodySpec = {
+            const moonSpec: CelestialBodySpecDeprecated = {
                 name: randomName(),
                 radiusKm: moonRadiusKm,
                 massKg: 7.342e22 * Math.pow(moonRadiusKm / 1_737.4, 3) * randomNumber(0.35, 1.4),

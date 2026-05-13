@@ -5,9 +5,9 @@ import { getOrbitPosition } from '../Math';
 import { Engine } from '../PackedEngine';
 import { Vec2 } from '../Vec2';
 import { createBelt, createBody, createRenderStyle } from './BodyGeneration';
-import { BeltSpec, CelestialBodySpec } from './BodySpec';
+import { BeltSpec, CelestialBodySpecDeprecated } from './BodySpec';
 
-const STAR_A: CelestialBodySpec = {
+const STAR_A: CelestialBodySpecDeprecated = {
     name: 'Aureon',
     radiusKm: 720_000,
     massKg: 1.35e30,
@@ -16,7 +16,7 @@ const STAR_A: CelestialBodySpec = {
     texture: 'planetSun',
 };
 
-const STAR_B: CelestialBodySpec = {
+const STAR_B: CelestialBodySpecDeprecated = {
     name: 'Vesper',
     radiusKm: 420_000,
     massKg: 1.35e30,
@@ -27,7 +27,7 @@ const STAR_B: CelestialBodySpec = {
     texture: 'alphaCentauriB',
 };
 
-const STAR_C: CelestialBodySpec = {
+const STAR_C: CelestialBodySpecDeprecated = {
     name: 'Sable',
     radiusKm: 500_000,
     massKg: 1.35e30,
@@ -38,7 +38,7 @@ const STAR_C: CelestialBodySpec = {
     texture: 'proximaCentauri',
 };
 
-const PLANETS: CelestialBodySpec[] = [
+const PLANETS: CelestialBodySpecDeprecated[] = [
     {
         name: 'Cinder',
         radiusKm: 3_180,
@@ -194,7 +194,7 @@ function centroid(points: Vec2[]): Vec2 {
     return new Vec2(x, y);
 }
 
-function createBarycentricOrbitBody(spec: CelestialBodySpec, bodyType: BodyType, centralMassKg: number): Body {
+function createBarycentricOrbitBody(spec: CelestialBodySpecDeprecated, bodyType: BodyType, centralMassKg: number): Body {
     const position = getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0);
     const body = new Body(position.x, position.y, spec.radiusKm, spec.massKg, bodyType);
     const orbitRadiusKm = position.magnitude();

@@ -7,7 +7,6 @@
     "clean": "rm -rf .parcel-cache & find dist -maxdepth 1 -type f -exec rm {} +",
     "benchmark": "rm -rf .benchmark-dist && tsc --outDir .benchmark-dist --rootDir . --module commonjs --target es2020 benchmark/index.ts && node .benchmark-dist/benchmark/index.js",
     "test": "jest",
-    "test:perf": "jest -- --runTestsByPath __tests__/Performance.test.ts --runInBand",
     "lint": "eslint . --ext .js,.ts",
     "lint:fix": "eslint . --ext .js,.ts --fix",
     "build": "parcel build index.html --dist-dir dist --public-url ./"

@@ -2,13 +2,13 @@ import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM } from '../Constants';
 import { BodyType, bodyIndexById, mass, positionX, positionY } from '../PackedBody';
 import { Vec2 } from '../Vec2';
-import { BeltSpec, CelestialBodySpec } from './BodySpec';
+import { BeltSpec, CelestialBodySpecDeprecated } from './BodySpec';
 import { createBelt, createBody, createRenderStyle } from './PackedBodyGeneration';
 
 const ASTEROID_BELT_OBJECTS = 1000;
 const KUIPER_BELT_OBJECTS = 1500;
 
-const SUN: CelestialBodySpec = {
+const SUN: CelestialBodySpecDeprecated = {
     name: 'Sun',
     radiusKm: 695_700,
     massKg: 1.98847e30,
@@ -16,7 +16,7 @@ const SUN: CelestialBodySpec = {
     texture: 'planetSun',
 };
 
-const PLANETS: CelestialBodySpec[] = [
+const PLANETS: CelestialBodySpecDeprecated[] = [
     {
         name: 'Mercury',
         radiusKm: 2_439.7,

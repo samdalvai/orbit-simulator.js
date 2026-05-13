@@ -7,7 +7,10 @@ import { BodyId, addNewBody, bodyIndexById, mass, positionX, positionY, velocity
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpecDeprecated, SolarSystemSpec } from './BodySpec';
 
-export function createPackedSolarSystem(solarSystemSpec: SolarSystemSpec, renderStyles: Map<number, BodyRenderStyle>): void {
+export function createPackedSolarSystem(
+    solarSystemSpec: SolarSystemSpec,
+    renderStyles: Map<number, BodyRenderStyle>,
+): void {
     const starId = createPackedBody(solarSystemSpec.star, BodyType.STAR);
     renderStyles.set(starId, createRenderStyle(solarSystemSpec.star, BodyType.STAR));
 
@@ -29,18 +32,26 @@ export function createPackedSolarSystem(solarSystemSpec: SolarSystemSpec, render
     }
 }
 
-export function createPackedBody(spec: CelestialBodySpecDeprecated, bodyType: BodyType, parentId: number | null = null): BodyId {
+export function createPackedBody(
+    spec: CelestialBodySpecDeprecated,
+    bodyType: BodyType,
+    parentId: number | null = null,
+): BodyId {
     if (parentId === null) {
-        return addNewBody(0, 0, spec.radiusKm, spec.massKg, bodyType);
+        const zero = new Vec2();
+        const bodyPos = zero.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
+        return addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, spec.massKg, bodyType);
     }
 
     const parentIndex = bodyIndexById[parentId];
     const parentPos = new Vec2(positionX[parentIndex], positionY[parentIndex]);
     const parentVel = new Vec2(velocityX[parentIndex], velocityY[parentIndex]);
+    const parentMass = mass[parentIndex];
 
     const bodyPos = parentPos.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
     const bodyId = addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, spec.massKg, bodyType, new Vec2(), parentId);
-    const orbitalSpeed = parentVel.addNew(getOrbitalSpeedByParentId(parentId, bodyId, G));
+
+    const orbitalSpeed = parentVel.addNew(getOrbitalSpeedByBodyId(parentPos, parentMass, bodyId, G));
 
     const bodyIndex = bodyIndexById[bodyId];
     velocityX[bodyIndex] = orbitalSpeed.x;

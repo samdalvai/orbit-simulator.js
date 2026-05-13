@@ -9,6 +9,8 @@ export const solarSystem: SolarSystemSpec = {
         name: 'Sun',
         radiusKm: 695_700,
         massKg: 1.98847e30,
+        // orbitRadiusKm: 57_909_227,
+        // orbitAngleDegrees: 15,
         color: '#fff7b2',
         texture: 'planetSun',
     },

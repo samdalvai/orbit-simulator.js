@@ -2,37 +2,35 @@ import { AU_KM } from '../Constants';
 import { SolarSystemSpec } from './BodySpec';
 
 export const tripleStarSystem: SolarSystemSpec = {
-    stars: [
-        {
-            name: 'Aureon',
-            radiusKm: 720_000,
-            massKg: 1.35e30,
-            orbitRadiusKm: 0.1 * AU_KM,
-            orbitAngleDegrees: 90,
-            color: '#fff0a6',
-            labelFontSize: 18,
-            texture: 'planetSun',
-        },
+    mainStar: {
+        name: 'Aureon',
+        radiusKm: 720_000,
+        massKg: 1.35e30,
+        color: '#fff0a6',
+        labelFontSize: 18,
+        texture: 'planetSun',
+    },
+    secondaryStars: [
         {
             name: 'Vesper',
             radiusKm: 420_000,
             massKg: 1.35e30,
             orbitRadiusKm: 0.2 * AU_KM,
-            orbitAngleDegrees: -90,
+            orbitAngleDegrees: 0,
             color: '#ffb45f',
             labelFontSize: 18,
             texture: 'alphaCentauriB',
         },
-        // {
-        //     name: 'Sable',
-        //     radiusKm: 500_000,
-        //     massKg: 1.35e30,
-        //     orbitRadiusKm: 0.4 * AU_KM,
-        //     orbitAngleDegrees: 200,
-        //     color: '#ff7059',
-        //     labelFontSize: 18,
-        //     texture: 'proximaCentauri',
-        // },
+        {
+            name: 'Sable',
+            radiusKm: 500_000,
+            massKg: 1.35e30,
+            orbitRadiusKm: 0.4 * AU_KM,
+            orbitAngleDegrees: 180,
+            color: '#ff7059',
+            labelFontSize: 18,
+            texture: 'proximaCentauri',
+        },
     ],
     planets: [
         {

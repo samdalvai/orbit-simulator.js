@@ -27,23 +27,20 @@ export function createPackedSolarSystem(
     solarSystemSpec: SolarSystemSpec,
     renderStyles: Map<number, BodyRenderStyle>,
 ): void {
-    const barycenter = computeBarycenter(solarSystemSpec.stars);
-    const barycenterPos = barycenter.centerPos;
-    const barycenterMass = barycenter.massKg;
+    const mainStarId = createPackedBody(solarSystemSpec.mainStar, BodyType.STAR);
+    const mainStarIndex = bodyIndexById[mainStarId];
+    const mainStarPos = new Vec2(positionX[mainStarIndex], positionY[mainStarIndex]);
+    const mainStarVel = new Vec2(velocityX[mainStarIndex], velocityY[mainStarIndex]);
+    const mainStarMass = mass[mainStarIndex];
+    renderStyles.set(mainStarId, createRenderStyle(solarSystemSpec.mainStar, BodyType.STAR));
 
-    for (const star of solarSystemSpec.stars) {
-        const starId = createPackedBody(
-            star,
-            BodyType.STAR,
-            barycenterPos,
-            new Vec2(), // TODO: what if the barycenter has a velocity?
-            barycenterMass,
-        );
-        renderStyles.set(starId, createRenderStyle(star, BodyType.STAR));
+    for (const starSpec of solarSystemSpec.secondaryStars) {
+        const starId = createPackedBody(starSpec, BodyType.STAR, mainStarPos, mainStarVel, mainStarMass);
+        renderStyles.set(starId, createRenderStyle(starSpec, BodyType.STAR));
     }
 
     for (const planetSpec of solarSystemSpec.planets) {
-        const planetId = createPackedBody(planetSpec, BodyType.PLANET, barycenterPos, new Vec2(), barycenterMass);
+        const planetId = createPackedBody(planetSpec, BodyType.PLANET, mainStarPos, mainStarVel, mainStarMass);
         renderStyles.set(planetId, createRenderStyle(planetSpec, BodyType.PLANET));
 
         const planetIndex = bodyIndexById[planetId];
@@ -58,7 +55,8 @@ export function createPackedSolarSystem(
     }
 
     for (const beltSpec of solarSystemSpec.belts) {
-        createPackedBelt(barycenterPos, barycenterMass, beltSpec, renderStyles);
+        // TODO: velocity of main star is not considered
+        createPackedBelt(mainStarPos, mainStarMass, beltSpec, renderStyles);
     }
 }
 

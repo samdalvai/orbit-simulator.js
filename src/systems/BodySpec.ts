@@ -2,25 +2,29 @@ import { TextureName } from '../AssetStore';
 
 // TODO: update to support multiple stars orbiting iaround baricentric point
 export type SolarSystemSpec = {
-    stars: CelestialBodySpec[];
+    mainStar: CelestialBodySpecBase;
+    secondaryStars: CelestialBodySpec[];
     planets: PlanetBodySpec[];
     belts: BeltSpec[];
 };
 
-export type CelestialBodySpec = {
+export type CelestialBodySpecBase = {
     name: string;
     radiusKm: number;
     massKg: number;
-    orbitRadiusKm?: number;
-    orbitAngleDegrees?: number;
     color: string;
     labelColor?: string;
     labelFontSize?: number;
     texture?: TextureName;
 };
 
+export type CelestialBodySpec = {
+    orbitRadiusKm?: number;
+    orbitAngleDegrees?: number;
+} & CelestialBodySpecBase;
+
 export type PlanetBodySpec = {
-    moons?: CelestialBodySpecDeprecated[];
+    moons?: CelestialBodySpec[];
 } & CelestialBodySpec;
 
 export type CelestialBodySpecDeprecated = {

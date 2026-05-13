@@ -1,9 +1,6 @@
-import { Body } from './Body';
 import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
-import { G, MAX_BODIES } from './Constants';
+import { G } from './Constants';
 import {
-    NO_PARENT,
-    addNewBody,
     clearBodies,
     clearForces,
     getBodyCount,
@@ -19,26 +16,6 @@ import {
 import { applyPackedBarnesHutGravitationalForces } from './PackedGravityExtreme';
 
 export class Engine {
-    addBody(body: Body): number | null {
-        if (getBodyCount() >= MAX_BODIES) return null;
-
-        const packedId = addNewBody(
-            body.position.x,
-            body.position.y,
-            body.radius,
-            body.mass,
-            body.bodyType,
-            body.velocity,
-            body.parent ? body.parent.id : NO_PARENT,
-        );
-
-        return packedId;
-    }
-
-    getBodiesCount(): number {
-        return getBodyCount();
-    }
-
     update(dt: number): void {
         const bodyCount = getBodyCount();
 

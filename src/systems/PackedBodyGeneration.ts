@@ -1,5 +1,4 @@
 import AssetStore from '../AssetStore';
-import { BodyType } from '../Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../BodyRenderStyle';
 import { EARTH_RADIUS_KM, G } from '../Constants';
 import {
@@ -11,6 +10,7 @@ import {
 } from '../Math';
 import {
     BodyId,
+    BodyType,
     NO_PARENT,
     addNewBody,
     bodyIndexById,

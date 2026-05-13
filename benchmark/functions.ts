@@ -1,7 +1,7 @@
-import { Body, BodyType } from '../src/Body';
 import { SETTINGS } from '../src/Constants';
 import { Engine } from '../src/Engine';
 import { randomNumber } from '../src/Math';
+import { BodyType, NO_PARENT, addNewBody, getBodyCount } from '../src/PackedBody';
 import { mass, positionX, positionY } from '../src/PackedBody';
 import { Engine as EnginePacked } from '../src/PackedEngine';
 
@@ -22,7 +22,15 @@ for (let i = 0; i < numBodies; i++) {
     const b = new Body(x, y, radius, mass, BodyType.PLANET);
 
     engine.addBody(b);
-    enginePacked.addBody(b);
+    addNewBody(
+        b.position.x,
+        b.position.y,
+        b.radius,
+        b.mass,
+        b.bodyType,
+        b.velocity,
+        b.parent ? b.parent.id : NO_PARENT,
+    );
 }
 
 // const WARM_UP_ITERATIONS = 1_000;
@@ -47,7 +55,7 @@ export function runModified() {
 
 process.on('exit', () => {
     console.log('Body count engine: ', engine.getBodiesCount());
-    console.log('Body count engine packed: ', enginePacked.getBodiesCount());
+    console.log('Body count engine packed: ', getBodyCount());
 
     console.log('First body engine: ', engine.getBodies()[0]);
     console.log(`First body engine packed: posX ${positionX[0]} posY ${positionY[0]} mass ${mass[0]}`);

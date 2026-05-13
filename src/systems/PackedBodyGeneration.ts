@@ -10,7 +10,17 @@ import {
     getOrbitalSpeedByParentId,
     randomNumber,
 } from '../Math';
-import { BodyId, addNewBody, bodyIndexById, mass, positionX, positionY, velocityX, velocityY } from '../PackedBody';
+import {
+    BodyId,
+    NO_PARENT,
+    addNewBody,
+    bodyIndexById,
+    mass,
+    positionX,
+    positionY,
+    velocityX,
+    velocityY,
+} from '../PackedBody';
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpecDeprecated, SolarSystemSpec } from './BodySpec';
 
@@ -18,23 +28,30 @@ export function createPackedSolarSystem(
     solarSystemSpec: SolarSystemSpec,
     renderStyles: Map<number, BodyRenderStyle>,
 ): void {
-    const starId = createPackedBody(solarSystemSpec.star, BodyType.STAR);
-    renderStyles.set(starId, createRenderStyle(solarSystemSpec.star, BodyType.STAR));
+    const starId = createPackedBody(solarSystemSpec.stars[0], BodyType.STAR);
+    renderStyles.set(starId, createRenderStyle(solarSystemSpec.stars[0], BodyType.STAR));
+
+    const starIndex = bodyIndexById[starId];
+    const starPos = new Vec2(positionX[starIndex], positionY[starIndex]);
+    const starVel = new Vec2(velocityX[starIndex], velocityY[starIndex]);
+    const starMass = mass[starIndex];
 
     for (const planetSpec of solarSystemSpec.planets) {
-        const planetId = createPackedBody(planetSpec, BodyType.PLANET, starId);
+        const planetId = createPackedBody(planetSpec, BodyType.PLANET, starPos, starVel, starMass);
         renderStyles.set(planetId, createRenderStyle(planetSpec, BodyType.PLANET));
 
+        const planetIndex = bodyIndexById[planetId];
+        const planetPos = new Vec2(positionX[planetIndex], positionY[planetIndex]);
+        const planetVel = new Vec2(velocityX[planetIndex], velocityY[planetIndex]);
+        const planetMass = mass[planetIndex];
+        
         for (const moonSpec of planetSpec.moons ?? []) {
-            const moonId = createPackedBody(moonSpec, BodyType.MOON, planetId);
+            const moonId = createPackedBody(moonSpec, BodyType.MOON, planetPos, planetVel, planetMass, planetId);
             renderStyles.set(moonId, createRenderStyle(moonSpec, BodyType.MOON));
         }
     }
 
     for (const beltSpec of solarSystemSpec.belts) {
-        const starIndex = bodyIndexById[starId];
-        const starPos = new Vec2(positionX[starIndex], positionY[starIndex]);
-        const starMass = mass[starIndex];
         createPackedBelt(starPos, starMass, beltSpec, renderStyles);
     }
 }
@@ -42,18 +59,25 @@ export function createPackedSolarSystem(
 export function createPackedBody(
     spec: CelestialBodySpecDeprecated,
     bodyType: BodyType,
-    parentId: number | null = null,
+    parentPos: Vec2 = new Vec2(),
+    parentVel: Vec2 = new Vec2(),
+    parentMass: number = 0,
+    parentId: number = NO_PARENT,
 ): BodyId {
-    if (parentId === null) {
-        const zero = new Vec2();
-        const bodyPos = zero.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
-        return addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, spec.massKg, bodyType);
-    }
+    // if (parentId === null) {
+    //     const zero = new Vec2();
+    //     const bodyPos = zero.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
+    //     return addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, spec.massKg, bodyType);
+    // }
 
-    const parentIndex = bodyIndexById[parentId];
-    const parentPos = new Vec2(positionX[parentIndex], positionY[parentIndex]);
-    const parentVel = new Vec2(velocityX[parentIndex], velocityY[parentIndex]);
-    const parentMass = mass[parentIndex];
+    // if (parentPos === null || parentVel === null || parentMass === null) {
+    //     throw new Error('Some parent property is missing');
+    // }
+
+    // const parentIndex = bodyIndexById[parentId];
+    // const parentPos = new Vec2(positionX[parentIndex], positionY[parentIndex]);
+    // const parentVel = new Vec2(velocityX[parentIndex], velocityY[parentIndex]);
+    // const parentMass = mass[parentIndex];
 
     const bodyPos = parentPos.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
     const bodyMass = spec.massKg;

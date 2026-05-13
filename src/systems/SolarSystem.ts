@@ -5,15 +5,17 @@ const ASTEROID_BELT_OBJECTS = 1000;
 const KUIPER_BELT_OBJECTS = 1500;
 
 export const solarSystem: SolarSystemSpec = {
-    star: {
-        name: 'Sun',
-        radiusKm: 695_700,
-        massKg: 1.98847e30,
-        // orbitRadiusKm: 57_909_227,
-        // orbitAngleDegrees: 15,
-        color: '#fff7b2',
-        texture: 'planetSun',
-    },
+    stars: [
+        {
+            name: 'Sun',
+            radiusKm: 695_700,
+            massKg: 1.98847e30,
+            // orbitRadiusKm: 57_909_227,
+            // orbitAngleDegrees: 15,
+            color: '#fff7b2',
+            texture: 'planetSun',
+        },
+    ],
     planets: [
         {
             name: 'Mercury',

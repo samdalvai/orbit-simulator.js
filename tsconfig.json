@@ -9,8 +9,7 @@
   },
   "include": [
     "src/**/*",
-    "benchmark/**/*",
-    "main.ts"
+    "benchmark/**/*"
   ],
   "exclude": [
     "node_modules"

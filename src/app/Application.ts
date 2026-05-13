@@ -1,4 +1,4 @@
-import AssetStore from './AssetStore';
+import AssetStore from '../view/AssetStore';
 import {
     BodyType,
     addNewBody,
@@ -11,20 +11,20 @@ import {
     removeBody,
     velocityX,
     velocityY,
-} from './Body';
-import { BodyRenderStyle } from './BodyRenderStyle';
-import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
-import { Engine } from './Engine';
-import GUI from './GUI';
-import Graphics from './Graphics';
-import InputManager, { MouseButton } from './InputManager';
-import { clamp } from './Math';
-import { formatDuration } from './Utils';
-import { createSolarSystem } from './systems/BodyGeneration';
-import { createRandomGalaxy } from './systems/RandomGalaxy';
-import { createRandomSolarSystem } from './systems/RandomSolarSystem';
-import { solarSystem } from './systems/SolarSystem';
-import { tripleStarSystem } from './systems/TripleStarSystem';
+} from '../sim/Body';
+import { Engine } from '../sim/Engine';
+import { BodyRenderStyle } from '../view/BodyRenderStyle';
+import GUI from '../view/GUI';
+import Graphics from '../view/Graphics';
+import InputManager, { MouseButton } from '../view/InputManager';
+import { createSolarSystem } from '../scenarios/BodyGeneration';
+import { createRandomGalaxy } from '../scenarios/RandomGalaxy';
+import { createRandomSolarSystem } from '../scenarios/RandomSolarSystem';
+import { solarSystem } from '../scenarios/SolarSystem';
+import { tripleStarSystem } from '../scenarios/TripleStarSystem';
+import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from '../shared/Constants';
+import { clamp } from '../shared/Math';
+import { formatDuration } from '../shared/Utils';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;

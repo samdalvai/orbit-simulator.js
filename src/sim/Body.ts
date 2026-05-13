@@ -1,6 +1,6 @@
-import { MAX_BODIES } from './Constants';
-import * as Utils from './Utils';
-import { Vec2 } from './Vec2';
+import { MAX_BODIES } from '../shared/Constants';
+import * as Utils from '../shared/Utils';
+import { Vec2 } from '../shared/Vec2';
 
 export enum BodyType {
     STAR,

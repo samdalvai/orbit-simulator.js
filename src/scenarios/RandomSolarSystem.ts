@@ -1,8 +1,8 @@
-import { TextureName } from '../AssetStore';
-import { AU_KM, EARTH_RADIUS_KM } from '../Constants';
-import { randomNumber } from '../Math';
-import { assert } from '../Utils';
-import { Vec2 } from '../Vec2';
+import { TextureName } from '../view/AssetStore';
+import { AU_KM, EARTH_RADIUS_KM } from '../shared/Constants';
+import { randomNumber } from '../shared/Math';
+import { assert } from '../shared/Utils';
+import { Vec2 } from '../shared/Vec2';
 import { CelestialBodySpec, PlanetBodySpec, SolarSystemSpec } from './BodySpec';
 
 export type RandomSolarSystemProbabilities = {

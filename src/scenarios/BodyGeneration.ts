@@ -1,13 +1,13 @@
-import AssetStore from '../AssetStore';
-import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../BodyRenderStyle';
-import { EARTH_RADIUS_KM, G } from '../Constants';
+import AssetStore from '../view/AssetStore';
+import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../view/BodyRenderStyle';
+import { EARTH_RADIUS_KM, G } from '../shared/Constants';
 import {
     clamp,
     getOrbitPosition,
     getOrbitalSpeedByBodyId,
     getOrbitalSpeedByBodyPositionAndMass,
     randomNumber,
-} from '../Math';
+} from '../shared/Math';
 import {
     BodyId,
     BodyType,
@@ -19,8 +19,8 @@ import {
     positionY,
     velocityX,
     velocityY,
-} from '../Body';
-import { Vec2 } from '../Vec2';
+} from '../sim/Body';
+import { Vec2 } from '../shared/Vec2';
 import { BeltSpec, CelestialBodySpec, SolarSystemSpec } from './BodySpec';
 
 export function createSolarSystem(

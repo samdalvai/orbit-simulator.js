@@ -1,4 +1,4 @@
-import { bodyIndexById, mass, positionX, positionY } from './Body';
+import { bodyIndexById, mass, positionX, positionY } from '../sim/Body';
 import { G } from './Constants';
 import { Vec2 } from './Vec2';
 

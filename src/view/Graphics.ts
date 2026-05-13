@@ -11,7 +11,7 @@ import {
     PLANET_RADIUS_RENDERING_SCALE,
     RADIUS_RENDERING_EXPONENT,
     STAR_RADIUS_RENDERING_SCALE,
-} from './Constants';
+} from '../shared/Constants';
 import {
     BodyType,
     NO_PARENT,
@@ -26,8 +26,8 @@ import {
     positionX,
     positionY,
     radii,
-} from './Body';
-import { Vec2 } from './Vec2';
+} from '../sim/Body';
+import { Vec2 } from '../shared/Vec2';
 
 export type RenderViewport = {
     minX: number;

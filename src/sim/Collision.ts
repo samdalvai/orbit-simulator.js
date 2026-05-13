@@ -1,5 +1,5 @@
 import { applyImpulseLinear, invMass, mass, positionX, positionY, radii, updateAABB, velocityX, velocityY } from './Body';
-import { Vec2 } from './Vec2';
+import { Vec2 } from '../shared/Vec2';
 
 type Collision = {
     normal: Vec2;

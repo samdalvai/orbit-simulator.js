@@ -1,5 +1,5 @@
 import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
-import { G } from './Constants';
+import { G } from '../shared/Constants';
 import {
     clearBodies,
     clearForces,

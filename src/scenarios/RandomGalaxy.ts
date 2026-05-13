@@ -1,7 +1,7 @@
-import { BodyRenderStyle } from '../BodyRenderStyle';
-import { AU_KM, G } from '../Constants';
-import { getOrbitPosition, randomNumber } from '../Math';
-import { BodyType, bodyIndexById, mass } from '../Body';
+import { BodyType, bodyIndexById, mass } from '../sim/Body';
+import { BodyRenderStyle } from '../view/BodyRenderStyle';
+import { AU_KM, G } from '../shared/Constants';
+import { getOrbitPosition, randomNumber } from '../shared/Math';
 import { CelestialBodySpecBase } from './BodySpec';
 import { createRandomSolarSystem } from './RandomSolarSystem';
 import { createBody, createRenderStyle, createSolarSystem } from './BodyGeneration';

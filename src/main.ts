@@ -1,6 +1,6 @@
-import Application from './src/Application';
-import { FIXED_DELTA_TIME } from './src/Constants';
-import GUI from './src/GUI';
+import Application from './app/Application';
+import { FIXED_DELTA_TIME } from './shared/Constants';
+import GUI from './view/GUI';
 
 async function run() {
     const app = new Application();

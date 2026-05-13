@@ -1,4 +1,4 @@
-import { AU_KM } from '../Constants';
+import { AU_KM } from '../shared/Constants';
 import { SolarSystemSpec } from './BodySpec';
 
 export const tripleStarSystem: SolarSystemSpec = {

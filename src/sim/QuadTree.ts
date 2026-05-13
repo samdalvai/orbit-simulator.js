@@ -1,7 +1,7 @@
-import { MAX_BODIES } from './Constants';
+import { MAX_BODIES } from '../shared/Constants';
 import { forceSumX, forceSumY, getBodyCount, mass, positionX, positionY } from './Body';
-import * as Utils from './Utils';
-import { Vec2 } from './Vec2';
+import * as Utils from '../shared/Utils';
+import { Vec2 } from '../shared/Vec2';
 
 const ROOT = 0;
 

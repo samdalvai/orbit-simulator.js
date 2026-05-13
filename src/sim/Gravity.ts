@@ -1,6 +1,6 @@
 import { addForce, getBodyCount, mass, positionX, positionY } from './Body';
 import { applyForceOn, buildQuadTree } from './QuadTree';
-import { Vec2 } from './Vec2';
+import { Vec2 } from '../shared/Vec2';
 
 const DEFAULT_THETA = 0.5;
 const DEFAULT_EPSILON = 1;

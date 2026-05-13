@@ -1,9 +1,9 @@
-import { BodyType, NO_PARENT, addNewBody, getBodyCount } from '../src/Body';
-import { G, SETTINGS } from '../src/Constants';
-import { Engine } from '../src/Engine';
-import { applyBarnesHutGravitationalForces, applyGravitationalForces } from '../src/Gravity';
-import { randomNumber } from '../src/Math';
-import { Vec2 } from '../src/Vec2';
+import { BodyType, NO_PARENT, addNewBody, getBodyCount } from '../src/sim/Body';
+import { Engine } from '../src/sim/Engine';
+import { applyBarnesHutGravitationalForces, applyGravitationalForces } from '../src/sim/Gravity';
+import { G, SETTINGS } from '../src/shared/Constants';
+import { randomNumber } from '../src/shared/Math';
+import { Vec2 } from '../src/shared/Vec2';
 
 declare const process: {
     on(event: 'exit', listener: () => void): void;

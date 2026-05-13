@@ -3,8 +3,8 @@ import { AU_KM, G } from '../Constants';
 import { getOrbitPosition, randomNumber } from '../Math';
 import { BodyType, bodyIndexById, mass } from '../Body';
 import { CelestialBodySpecBase } from './BodySpec';
-import { createBody, createSolarSystem, createRenderStyle } from './BodyGeneration';
 import { createRandomSolarSystem } from './RandomSolarSystem';
+import { createBody, createRenderStyle, createSolarSystem } from './BodyGeneration';
 
 const SOLAR_SYSTEM_COUNT = 900;
 const SUPERMASSIVE_BLACK_HOLE_RADIUS_KM = 80_000_000;

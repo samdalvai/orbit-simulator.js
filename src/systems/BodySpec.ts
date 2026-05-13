@@ -11,6 +11,8 @@ export type CelestialBodySpec = {
     name: string;
     radiusKm: number;
     massKg: number;
+    orbitRadiusKm?: number;
+    orbitAngleDegrees?: number;
     color: string;
     labelColor?: string;
     labelFontSize?: number;
@@ -18,8 +20,6 @@ export type CelestialBodySpec = {
 };
 
 export type PlanetBodySpec = {
-    orbitRadiusKm?: number;
-    orbitAngleDegrees?: number;
     moons?: CelestialBodySpecDeprecated[];
 } & CelestialBodySpec;
 

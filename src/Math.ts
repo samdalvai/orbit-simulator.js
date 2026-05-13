@@ -1,5 +1,5 @@
-import { G } from './Constants';
 import { bodyIndexById, mass, positionX, positionY } from './Body';
+import { G } from './Constants';
 import { Vec2 } from './Vec2';
 
 /**
@@ -38,14 +38,6 @@ export function getOrbitalSpeedByBodyPositionAndMass(
     const tangent = dir.perpNew();
 
     return tangent.scaleNew(v);
-}
-
-export function getOrbitalSpeedByParentId(parentId: number, planetId: number, G: number): Vec2 {
-    const parentIndex = bodyIndexById[parentId];
-    const parentPos = new Vec2(positionX[parentIndex], positionY[parentIndex]);
-    const parentMass = mass[parentIndex];
-
-    return getOrbitalSpeedByBodyId(parentPos, parentMass, planetId, G);
 }
 
 /**

@@ -6,6 +6,7 @@ import { clamp, getOrbitPosition, getOrbitalSpeed, getOrbitalSpeedByParent, rand
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpecDeprecated } from './BodySpec';
 
+
 export function createBody(spec: CelestialBodySpecDeprecated, bodyType: BodyType, parent: Body | null = null): Body {
     const position = parent
         ? parent.position.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0))

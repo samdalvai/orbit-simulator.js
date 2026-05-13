@@ -3,9 +3,31 @@ import { BodyType } from '../Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../BodyRenderStyle';
 import { EARTH_RADIUS_KM, G } from '../Constants';
 import { clamp, getOrbitPosition, getOrbitalSpeedByBodyId, getOrbitalSpeedByParentId, randomNumber } from '../Math';
-import { BodyId, addNewBody, bodyIndexById, positionX, positionY, velocityX, velocityY } from '../PackedBody';
+import { BodyId, addNewBody, bodyIndexById, mass, positionX, positionY, velocityX, velocityY } from '../PackedBody';
 import { Vec2 } from '../Vec2';
-import { BeltSpec, CelestialBodySpecDeprecated } from './BodySpec';
+import { BeltSpec, CelestialBodySpecDeprecated, SolarSystemSpec } from './BodySpec';
+
+export function createSolarSystem(solarSystemSpec: SolarSystemSpec, renderStyles: Map<number, BodyRenderStyle>): void {
+    const starId = createBody(solarSystemSpec.star, BodyType.STAR);
+    renderStyles.set(starId, createRenderStyle(solarSystemSpec.star, BodyType.STAR));
+
+    for (const planetSpec of solarSystemSpec.planets) {
+        const planetId = createBody(planetSpec, BodyType.PLANET, starId);
+        renderStyles.set(planetId, createRenderStyle(planetSpec, BodyType.PLANET));
+        
+        for (const moonSpec of planetSpec.moons ?? []) {
+            const moonId = createBody(moonSpec, BodyType.MOON, planetId);
+            renderStyles.set(moonId, createRenderStyle(moonSpec, BodyType.MOON));
+        }
+    }
+
+    for (const beltSpec of solarSystemSpec.belts) {
+        const starIndex = bodyIndexById[starId];
+        const starPos = new Vec2(positionX[starIndex], positionY[starIndex]);
+        const starMass = mass[starIndex];
+        createBelt(starPos, starMass, beltSpec, renderStyles);
+    }
+}
 
 export function createBody(spec: CelestialBodySpecDeprecated, bodyType: BodyType, parentId: number | null = null): BodyId {
     if (parentId === null) {

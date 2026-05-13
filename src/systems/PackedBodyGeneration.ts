@@ -19,7 +19,7 @@ import {
     positionY,
     velocityX,
     velocityY,
-} from '../PackedBody';
+} from '../Body';
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec, SolarSystemSpec } from './BodySpec';
 

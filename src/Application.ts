@@ -16,9 +16,9 @@ import {
     removeBody,
     velocityX,
     velocityY,
-} from './PackedBody';
-import { Engine } from './PackedEngine';
-import Graphics from './PackedGraphics';
+} from './Body';
+import { Engine } from './Engine';
+import Graphics from './Graphics';
 import { formatDuration } from './Utils';
 import { Vec2 } from './Vec2';
 import { createPackedSolarSystem } from './systems/PackedBodyGeneration';

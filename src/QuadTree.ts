@@ -1,5 +1,5 @@
 import { MAX_BODIES } from './Constants';
-import { forceSumX, forceSumY, getBodyCount, mass, positionX, positionY } from './PackedBody';
+import { forceSumX, forceSumY, getBodyCount, mass, positionX, positionY } from './Body';
 import * as Utils from './Utils';
 import { Vec2 } from './Vec2';
 

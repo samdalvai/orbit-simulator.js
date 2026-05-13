@@ -1,4 +1,4 @@
-import { applyImpulseLinear, invMass, mass, positionX, positionY, radii, updateAABB, velocityX, velocityY } from './PackedBody';
+import { applyImpulseLinear, invMass, mass, positionX, positionY, radii, updateAABB, velocityX, velocityY } from './Body';
 import { Vec2 } from './Vec2';
 
 type Collision = {

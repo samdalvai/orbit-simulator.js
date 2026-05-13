@@ -26,7 +26,7 @@ import {
     positionX,
     positionY,
     radii,
-} from './PackedBody';
+} from './Body';
 import { Vec2 } from './Vec2';
 
 export type RenderViewport = {

@@ -1,9 +1,9 @@
 import { SETTINGS } from '../src/Constants';
 import { Engine } from '../src/Engine';
 import { randomNumber } from '../src/Math';
-import { BodyType, NO_PARENT, addNewBody, getBodyCount } from '../src/PackedBody';
-import { mass, positionX, positionY } from '../src/PackedBody';
-import { Engine as EnginePacked } from '../src/PackedEngine';
+import { BodyType, NO_PARENT, addNewBody, getBodyCount } from '../src/Body';
+import { mass, positionX, positionY } from '../src/Body';
+import { Engine as EnginePacked } from '../src/Engine';
 
 declare const process: {
     on(event: 'exit', listener: () => void): void;

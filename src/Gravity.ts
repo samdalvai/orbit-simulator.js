@@ -1,5 +1,5 @@
-import { getBodyCount, mass, positionX, positionY } from './PackedBody';
-import { applyForceOn, buildPackedQuadTree } from './PackedQuadTreeExtreme';
+import { getBodyCount, mass, positionX, positionY } from './Body';
+import { applyForceOn, buildPackedQuadTree } from './QuadTree';
 import { Vec2 } from './Vec2';
 
 const DEFAULT_THETA = 0.5;

@@ -12,8 +12,8 @@ import {
     aabbMinX,
     aabbMinY,
     swapBodies,
-} from './PackedBody';
-import { applyPackedBarnesHutGravitationalForces } from './PackedGravityExtreme';
+} from './Body';
+import { applyPackedBarnesHutGravitationalForces } from './Gravity';
 
 export class Engine {
     update(dt: number): void {

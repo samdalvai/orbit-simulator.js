@@ -1,5 +1,5 @@
 import { G } from './Constants';
-import { bodyIndexById, mass, positionX, positionY } from './PackedBody';
+import { bodyIndexById, mass, positionX, positionY } from './Body';
 import { Vec2 } from './Vec2';
 
 /**

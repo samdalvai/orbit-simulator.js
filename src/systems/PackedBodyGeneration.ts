@@ -44,7 +44,7 @@ export function createPackedSolarSystem(
         const planetPos = new Vec2(positionX[planetIndex], positionY[planetIndex]);
         const planetVel = new Vec2(velocityX[planetIndex], velocityY[planetIndex]);
         const planetMass = mass[planetIndex];
-        
+
         for (const moonSpec of planetSpec.moons ?? []) {
             const moonId = createPackedBody(moonSpec, BodyType.MOON, planetPos, planetVel, planetMass, planetId);
             renderStyles.set(moonId, createRenderStyle(moonSpec, BodyType.MOON));
@@ -83,9 +83,13 @@ export function createPackedBody(
     const bodyMass = spec.massKg;
     const bodyId = addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, bodyMass, bodyType, new Vec2(), parentId);
 
+    // TODO: if parent position is (0,0) this method produces Infinite orbital speed
     const orbitalSpeed = parentVel.addNew(
         getOrbitalSpeedByBodyPositionAndMass(parentPos, parentMass, bodyPos, bodyMass),
     );
+
+    console.log("orbitalSpeed: ", orbitalSpeed);
+    console.log("parentVel: ", parentVel);
 
     const bodyIndex = bodyIndexById[bodyId];
     velocityX[bodyIndex] = orbitalSpeed.x;
@@ -100,6 +104,7 @@ export function createPackedBelt(
     spec: BeltSpec,
     renderStyles: Map<number, BodyRenderStyle>,
 ): void {
+    // TODO: this method ignores centerPos for asteroid positioning
     for (let i = 0; i < spec.numBodies; i++) {
         const position = getOrbitPosition(
             randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm),

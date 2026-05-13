@@ -24,8 +24,7 @@ import { createPackedSolarSystem } from './systems/PackedBodyGeneration';
 import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
 import { solarSystem } from './systems/SolarSystem';
-import { createTripleStarSystem } from './systems/TripleStarSystem';
-import { tripleStarSystem } from './systems/TripleStarSystemBarycentric';
+import { tripleStarSystem } from './systems/TripleStarSystem';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;

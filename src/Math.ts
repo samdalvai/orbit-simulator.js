@@ -42,9 +42,14 @@ export function getOrbitalSpeedByBodyPositionAndMass(
     bodyPosition: Vec2,
     bodyMass: number,
 ): Vec2 {
+    console.log("bodyPosition: ", bodyPosition);
+    console.log("centerPos: ", centerPos);
     const rVec = bodyPosition.subNew(centerPos);
+    console.log("rVec: ", rVec);
     const r = rVec.magnitude();
+    console.log("r: ", r);
     const v = Math.sqrt((G * (centerMass + bodyMass)) / r);
+    console.log("v", v);
     const dir = bodyPosition.subNew(centerPos).unitVector();
     const tangent = dir.perpNew();
 

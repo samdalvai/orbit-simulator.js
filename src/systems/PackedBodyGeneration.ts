@@ -7,7 +7,6 @@ import {
     getOrbitPosition,
     getOrbitalSpeedByBodyId,
     getOrbitalSpeedByBodyPositionAndMass,
-    getOrbitalSpeedByParentId,
     randomNumber,
 } from '../Math';
 import {
@@ -29,31 +28,22 @@ export function createPackedSolarSystem(
     renderStyles: Map<number, BodyRenderStyle>,
 ): void {
     const barycenter = computeBarycenter(solarSystemSpec.stars);
-    console.log(barycenter.massKg);
-    console.log(barycenter.centerPos);
+    const barycenterPos = barycenter.centerPos;
+    const barycenterMass = barycenter.massKg;
 
-    const starId = createPackedBody(
-        solarSystemSpec.stars[0],
-        BodyType.STAR,
-        barycenter.centerPos,
-        new Vec2(),
-        barycenter.massKg,
-    );
-    renderStyles.set(starId, createRenderStyle(solarSystemSpec.stars[0], BodyType.STAR));
-
-    // const starIndex = bodyIndexById[starId];
-    // const starPos = new Vec2(positionX[starIndex], positionY[starIndex]);
-    // const starVel = new Vec2(velocityX[starIndex], velocityY[starIndex]);
-    // const starMass = mass[starIndex];
+    for (const star of solarSystemSpec.stars) {
+        const starId = createPackedBody(
+            star,
+            BodyType.STAR,
+            barycenterPos,
+            new Vec2(), // TODO: what if the barycenter has a velocity?
+            barycenterMass,
+        );
+        renderStyles.set(starId, createRenderStyle(star, BodyType.STAR));
+    }
 
     for (const planetSpec of solarSystemSpec.planets) {
-        const planetId = createPackedBody(
-            planetSpec,
-            BodyType.PLANET,
-            barycenter.centerPos,
-            new Vec2(),
-            barycenter.massKg,
-        );
+        const planetId = createPackedBody(planetSpec, BodyType.PLANET, barycenterPos, new Vec2(), barycenterMass);
         renderStyles.set(planetId, createRenderStyle(planetSpec, BodyType.PLANET));
 
         const planetIndex = bodyIndexById[planetId];
@@ -68,7 +58,7 @@ export function createPackedSolarSystem(
     }
 
     for (const beltSpec of solarSystemSpec.belts) {
-        createPackedBelt(barycenter.centerPos, barycenter.massKg, beltSpec, renderStyles);
+        createPackedBelt(barycenterPos, barycenterMass, beltSpec, renderStyles);
     }
 }
 
@@ -85,11 +75,11 @@ export function createPackedBody(
     const bodyId = addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, bodyMass, bodyType, new Vec2(), parentId);
 
     // If parent mass is 0 there is no parent to orbit around
+    // TODO: parent position may be 0,0 but it makes single stars system fail
     if (parentMass > 0 && parentPos.x !== 0 && parentPos.y !== 0) {
         const orbitalSpeed = parentVel.addNew(
             getOrbitalSpeedByBodyPositionAndMass(parentPos, parentMass, bodyPos, bodyMass),
         );
-        console.log('orbitalSpeed: ', orbitalSpeed);
 
         const bodyIndex = bodyIndexById[bodyId];
         velocityX[bodyIndex] = orbitalSpeed.x;
@@ -183,6 +173,9 @@ function computeBarycenter(stars: CelestialBodySpec[]) {
         x += starPos.x * star.massKg;
         y += starPos.y * star.massKg;
     }
+
+    x /= totalMass;
+    y /= totalMass;
 
     return {
         massKg: totalMass,

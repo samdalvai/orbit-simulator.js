@@ -1,4 +1,5 @@
 import { Body } from './Body';
+import { G } from './Constants';
 import { bodyIndexById, mass, positionX, positionY } from './PackedBody';
 import { Vec2 } from './Vec2';
 
@@ -30,6 +31,21 @@ export function getOrbitalSpeedByBodyId(centerPos: Vec2, centerMass: number, bod
     const r = rVec.magnitude();
     const v = Math.sqrt((G * (centerMass + mass[planetIndex])) / r);
     const dir = planetPos.subNew(centerPos).unitVector();
+    const tangent = dir.perpNew();
+
+    return tangent.scaleNew(v);
+}
+
+export function getOrbitalSpeedByBodyPositionAndMass(
+    centerPos: Vec2,
+    centerMass: number,
+    bodyPosition: Vec2,
+    bodyMass: number,
+): Vec2 {
+    const rVec = bodyPosition.subNew(centerPos);
+    const r = rVec.magnitude();
+    const v = Math.sqrt((G * (centerMass + bodyMass)) / r);
+    const dir = bodyPosition.subNew(centerPos).unitVector();
     const tangent = dir.perpNew();
 
     return tangent.scaleNew(v);

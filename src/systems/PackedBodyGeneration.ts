@@ -2,7 +2,14 @@ import AssetStore from '../AssetStore';
 import { BodyType } from '../Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../BodyRenderStyle';
 import { EARTH_RADIUS_KM, G } from '../Constants';
-import { clamp, getOrbitPosition, getOrbitalSpeedByBodyId, getOrbitalSpeedByParentId, randomNumber } from '../Math';
+import {
+    clamp,
+    getOrbitPosition,
+    getOrbitalSpeedByBodyId,
+    getOrbitalSpeedByBodyPositionAndMass,
+    getOrbitalSpeedByParentId,
+    randomNumber,
+} from '../Math';
 import { BodyId, addNewBody, bodyIndexById, mass, positionX, positionY, velocityX, velocityY } from '../PackedBody';
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpecDeprecated, SolarSystemSpec } from './BodySpec';
@@ -49,9 +56,12 @@ export function createPackedBody(
     const parentMass = mass[parentIndex];
 
     const bodyPos = parentPos.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
-    const bodyId = addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, spec.massKg, bodyType, new Vec2(), parentId);
+    const bodyMass = spec.massKg;
+    const bodyId = addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, bodyMass, bodyType, new Vec2(), parentId);
 
-    const orbitalSpeed = parentVel.addNew(getOrbitalSpeedByBodyId(parentPos, parentMass, bodyId, G));
+    const orbitalSpeed = parentVel.addNew(
+        getOrbitalSpeedByBodyPositionAndMass(parentPos, parentMass, bodyPos, bodyMass),
+    );
 
     const bodyIndex = bodyIndexById[bodyId];
     velocityX[bodyIndex] = orbitalSpeed.x;

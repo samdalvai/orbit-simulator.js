@@ -1,4 +1,3 @@
-import { Body } from './Body';
 import { G } from './Constants';
 import { bodyIndexById, mass, positionX, positionY } from './PackedBody';
 import { Vec2 } from './Vec2';
@@ -13,16 +12,6 @@ import { Vec2 } from './Vec2';
  *
  * The returned vector is perpendicular to the radius (tangential direction).
  */
-export function getOrbitalSpeed(centerPos: Vec2, centerMass: number, planet: Body, G: number): Vec2 {
-    const rVec = planet.position.subNew(centerPos);
-    const r = rVec.magnitude();
-    const v = Math.sqrt((G * (centerMass + planet.mass)) / r);
-    const dir = planet.position.subNew(centerPos).unitVector();
-    const tangent = dir.perpNew();
-
-    return tangent.scaleNew(v);
-}
-
 export function getOrbitalSpeedByBodyId(centerPos: Vec2, centerMass: number, bodyId: number, G: number): Vec2 {
     const planetIndex = bodyIndexById[bodyId];
     const planetPos = new Vec2(positionX[planetIndex], positionY[planetIndex]);
@@ -49,10 +38,6 @@ export function getOrbitalSpeedByBodyPositionAndMass(
     const tangent = dir.perpNew();
 
     return tangent.scaleNew(v);
-}
-
-export function getOrbitalSpeedByParent(parent: Body, planet: Body, G: number): Vec2 {
-    return getOrbitalSpeed(parent.position, parent.mass, planet, G);
 }
 
 export function getOrbitalSpeedByParentId(parentId: number, planetId: number, G: number): Vec2 {

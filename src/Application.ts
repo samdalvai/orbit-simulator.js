@@ -104,12 +104,7 @@ export default class Application {
 
             if (this.demoIndex === 1) {
                 Graphics.zoom = 0.3;
-                createPackedSolarSystem(
-                    solarSystem,
-                    this.bodyRenderStyles,
-                    new Vec2(100000000, 10000000),
-                    new Vec2(100, 100),
-                );
+                createPackedSolarSystem(solarSystem, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 2) {
@@ -125,8 +120,6 @@ export default class Application {
 
             if (this.demoIndex === 4) {
                 Graphics.zoom = 0.01;
-                // const solarSystem = createRandomGalaxy(this.engine);
-                // this.bodyRenderStyles = solarSystem.renderStyles;
                 createRandomGalaxy(this.bodyRenderStyles);
             }
 

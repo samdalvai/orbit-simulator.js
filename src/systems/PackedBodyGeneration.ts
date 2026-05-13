@@ -57,7 +57,6 @@ export function createPackedSolarSystem(
     }
 
     for (const beltSpec of solarSystemSpec.belts) {
-        // TODO: velocity of main star is not considered
         createPackedBelt(mainStarPos, mainStarMass, mainStarVel, beltSpec, renderStyles);
     }
 }

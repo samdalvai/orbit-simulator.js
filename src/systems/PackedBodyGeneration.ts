@@ -70,13 +70,12 @@ export function createPackedBody(
     parentMass: number = 0,
     parentId: number = NO_PARENT,
 ): BodyId {
+    // TODO: if we have a barycentric position orbit is added twice to the position
     const bodyPos = parentPos.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
     const bodyMass = spec.massKg;
     const bodyId = addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, bodyMass, bodyType, new Vec2(), parentId);
 
-    // If parent mass is 0 there is no parent to orbit around
-    // TODO: parent position may be 0,0 but it makes single stars system fail
-    if (parentMass > 0 && parentPos.x !== 0 && parentPos.y !== 0) {
+    if (spec.orbitRadiusKm) {
         const orbitalSpeed = parentVel.addNew(
             getOrbitalSpeedByBodyPositionAndMass(parentPos, parentMass, bodyPos, bodyMass),
         );

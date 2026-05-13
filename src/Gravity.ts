@@ -1,5 +1,5 @@
 import { getBodyCount, mass, positionX, positionY } from './Body';
-import { applyForceOn, buildPackedQuadTree } from './QuadTree';
+import { applyForceOn, buildQuadTree } from './QuadTree';
 import { Vec2 } from './Vec2';
 
 const DEFAULT_THETA = 0.5;
@@ -56,14 +56,14 @@ const DEFAULT_EPSILON = 1;
 // }
 
 /**
- * Builds the global (packed) quadtree and applies one gravitational force per body.
+ * Builds the global () quadtree and applies one gravitational force per body.
  */
-export function applyPackedBarnesHutGravitationalForces(
+export function applyBarnesHutGravitationalForces(
     G: number,
     theta = DEFAULT_THETA,
     epsilon = DEFAULT_EPSILON,
 ): void {
-    if (!buildPackedQuadTree(theta, epsilon)) {
+    if (!buildQuadTree(theta, epsilon)) {
         return;
     }
 

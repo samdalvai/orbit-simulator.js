@@ -23,13 +23,13 @@ import {
 import { Vec2 } from '../Vec2';
 import { BeltSpec, CelestialBodySpec, SolarSystemSpec } from './BodySpec';
 
-export function createPackedSolarSystem(
+export function createSolarSystem(
     solarSystemSpec: SolarSystemSpec,
     renderStyles: Map<number, BodyRenderStyle>,
     basePos = new Vec2(),
     baseVel = new Vec2(),
 ): void {
-    const mainStarId = createPackedBody(solarSystemSpec.mainStar, BodyType.STAR, basePos, baseVel);
+    const mainStarId = createBody(solarSystemSpec.mainStar, BodyType.STAR, basePos, baseVel);
     const mainStarIndex = bodyIndexById[mainStarId];
     const mainStarPos = new Vec2(positionX[mainStarIndex], positionY[mainStarIndex]);
     const mainStarVel = new Vec2(velocityX[mainStarIndex], velocityY[mainStarIndex]);
@@ -37,12 +37,12 @@ export function createPackedSolarSystem(
     renderStyles.set(mainStarId, createRenderStyle(solarSystemSpec.mainStar, BodyType.STAR));
 
     for (const starSpec of solarSystemSpec.secondaryStars) {
-        const starId = createPackedBody(starSpec, BodyType.STAR, mainStarPos, mainStarVel, mainStarMass);
+        const starId = createBody(starSpec, BodyType.STAR, mainStarPos, mainStarVel, mainStarMass);
         renderStyles.set(starId, createRenderStyle(starSpec, BodyType.STAR));
     }
 
     for (const planetSpec of solarSystemSpec.planets) {
-        const planetId = createPackedBody(planetSpec, BodyType.PLANET, mainStarPos, mainStarVel, mainStarMass);
+        const planetId = createBody(planetSpec, BodyType.PLANET, mainStarPos, mainStarVel, mainStarMass);
         renderStyles.set(planetId, createRenderStyle(planetSpec, BodyType.PLANET));
 
         const planetIndex = bodyIndexById[planetId];
@@ -51,17 +51,17 @@ export function createPackedSolarSystem(
         const planetMass = mass[planetIndex];
 
         for (const moonSpec of planetSpec.moons ?? []) {
-            const moonId = createPackedBody(moonSpec, BodyType.MOON, planetPos, planetVel, planetMass, planetId);
+            const moonId = createBody(moonSpec, BodyType.MOON, planetPos, planetVel, planetMass, planetId);
             renderStyles.set(moonId, createRenderStyle(moonSpec, BodyType.MOON));
         }
     }
 
     for (const beltSpec of solarSystemSpec.belts) {
-        createPackedBelt(mainStarPos, mainStarMass, mainStarVel, beltSpec, renderStyles);
+        createBelt(mainStarPos, mainStarMass, mainStarVel, beltSpec, renderStyles);
     }
 }
 
-export function createPackedBody(
+export function createBody(
     spec: CelestialBodySpec,
     bodyType: BodyType,
     parentPos: Vec2 = new Vec2(),
@@ -88,7 +88,7 @@ export function createPackedBody(
     return bodyId;
 }
 
-export function createPackedBelt(
+export function createBelt(
     centerPos: Vec2,
     centerMass: number,
     centerVel: Vec2,

@@ -13,7 +13,7 @@ import {
     aabbMinY,
     swapBodies,
 } from './Body';
-import { applyPackedBarnesHutGravitationalForces } from './Gravity';
+import { applyBarnesHutGravitationalForces } from './Gravity';
 
 export class Engine {
     update(dt: number): void {
@@ -24,7 +24,7 @@ export class Engine {
         }
 
         this.clearAllForces();
-        applyPackedBarnesHutGravitationalForces(G);
+        applyBarnesHutGravitationalForces(G);
 
         for (let i = 0; i < bodyCount; i++) {
             integrateVerletVelocity(i, dt);
@@ -36,7 +36,7 @@ export class Engine {
 
     initializeVerlet(): void {
         this.clearAllForces();
-        applyPackedBarnesHutGravitationalForces(G);
+        applyBarnesHutGravitationalForces(G);
 
         for (let i = 0; i < getBodyCount(); i++) {
             initializeAcceleration(i);

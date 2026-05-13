@@ -20,12 +20,11 @@ import {
 import { Engine } from './Engine';
 import Graphics from './Graphics';
 import { formatDuration } from './Utils';
-import { Vec2 } from './Vec2';
-import { createPackedSolarSystem } from './systems/PackedBodyGeneration';
 import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
 import { solarSystem } from './systems/SolarSystem';
 import { tripleStarSystem } from './systems/TripleStarSystem';
+import { createSolarSystem } from './systems/PackedBodyGeneration';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
@@ -104,18 +103,18 @@ export default class Application {
 
             if (this.demoIndex === 1) {
                 Graphics.zoom = 0.3;
-                createPackedSolarSystem(solarSystem, this.bodyRenderStyles);
+                createSolarSystem(solarSystem, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 2) {
                 Graphics.zoom = 0.2;
-                createPackedSolarSystem(tripleStarSystem, this.bodyRenderStyles);
+                createSolarSystem(tripleStarSystem, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 3) {
                 Graphics.zoom = 0.16;
                 const randomSolarSystemSpec = createRandomSolarSystem();
-                createPackedSolarSystem(randomSolarSystemSpec, this.bodyRenderStyles);
+                createSolarSystem(randomSolarSystemSpec, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 4) {

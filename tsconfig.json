@@ -9,7 +9,6 @@
   },
   "include": [
     "src/**/*",
-    "src_packed/**/*",
     "benchmark/**/*",
     "main.ts"
   ],

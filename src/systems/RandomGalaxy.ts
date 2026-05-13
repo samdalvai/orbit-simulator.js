@@ -3,7 +3,7 @@ import { AU_KM, G } from '../Constants';
 import { getOrbitPosition, randomNumber } from '../Math';
 import { BodyType, bodyIndexById, mass } from '../Body';
 import { CelestialBodySpecBase } from './BodySpec';
-import { createPackedBody, createPackedSolarSystem, createRenderStyle } from './PackedBodyGeneration';
+import { createBody, createSolarSystem, createRenderStyle } from './BodyGeneration';
 import { createRandomSolarSystem } from './RandomSolarSystem';
 
 const SOLAR_SYSTEM_COUNT = 900;
@@ -23,7 +23,7 @@ const blackHoleSpec: CelestialBodySpecBase = {
 };
 
 export function createRandomGalaxy(renderStyles: Map<number, BodyRenderStyle>) {
-    const blackHoleId = createPackedBody(blackHoleSpec, BodyType.STAR);
+    const blackHoleId = createBody(blackHoleSpec, BodyType.STAR);
     const blackHoleIndex = bodyIndexById[blackHoleId];
     const blackHoleMass = mass[blackHoleIndex];
     renderStyles.set(blackHoleId, createRenderStyle(blackHoleSpec, BodyType.STAR));
@@ -34,6 +34,6 @@ export function createRandomGalaxy(renderStyles: Map<number, BodyRenderStyle>) {
         const speedKmS = Math.sqrt((G * blackHoleMass) / orbitRadiusKm);
         const velocityKmS = positionKm.unitVector().perpNew().scaleNew(speedKmS);
         const solarSystemSpec = createRandomSolarSystem();
-        createPackedSolarSystem(solarSystemSpec, renderStyles, positionKm, velocityKmS);
+        createSolarSystem(solarSystemSpec, renderStyles, positionKm, velocityKmS);
     }
 }

@@ -1,13 +1,9 @@
 import { TextureName } from '../AssetStore';
-import { Body, BodyType } from '../Body';
-import { BodyRenderStyle } from '../BodyRenderStyle';
 import { AU_KM, EARTH_RADIUS_KM } from '../Constants';
 import { randomNumber } from '../Math';
-import { Engine } from '../PackedEngine';
 import { assert } from '../Utils';
 import { Vec2 } from '../Vec2';
-import { createBody, createRenderStyle } from './BodyGeneration';
-import { CelestialBodySpecDeprecated } from './BodySpec';
+import { CelestialBodySpecDeprecated, SolarSystemSpec } from './BodySpec';
 
 export type RandomSolarSystemProbabilities = {
     starCount?: [number, number, number];
@@ -65,27 +61,25 @@ const PLANET_COLORS = ['#b7ada5', '#d8b16f', '#4a9fe8', '#c76245', '#d1a06f', '#
 const MOON_COLORS = ['#b8b8b1', '#8f7a69', '#d7cab6', '#9a8b7a', '#d0b48a', '#a8a097', '#d6e0dd'];
 const NAME_CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-export function createRandomSolarSystem(engine: Engine, config: RandomSolarSystemConfig = {}) {
-    const bodies: Body[] = [];
-    const renderStyles = new Map<number, BodyRenderStyle>();
-    const starCount =
-        weightedCount(config.probabilities?.starCount ?? DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.starCount) + 1;
-    const planetCount =
-        weightedCount(config.probabilities?.planetCount ?? DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.planetCount) + 1;
+export function createRandomSolarSystem() {
+    const starCount = weightedCount(DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.starCount) + 1;
+    const planetCount = weightedCount(DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.planetCount) + 1;
     const randomStarColor = Math.floor(randomNumber(0, STAR_COLORS.length));
     assert(STAR_COLORS.length === STAR_TEXTURES.length);
-    const primaryStarSpec: CelestialBodySpecDeprecated = {
-        name: randomName(),
-        radiusKm: randomNumber(120_000, 1_060_000),
-        massKg: randomNumber(8e29, 40e30),
-        color: STAR_COLORS[randomStarColor],
-        labelFontSize: 20,
-        texture: STAR_TEXTURES[randomStarColor],
-    };
-    const primaryStar = createBody(primaryStarSpec, BodyType.STAR);
 
-    bodies.push(primaryStar);
-    renderStyles.set(primaryStar.id, createRenderStyle(primaryStarSpec, BodyType.STAR));
+    const randomSolarSystemSpec: SolarSystemSpec = {
+        mainStar: {
+            name: randomName(),
+            radiusKm: randomNumber(120_000, 1_060_000),
+            massKg: randomNumber(8e29, 40e30),
+            color: STAR_COLORS[randomStarColor],
+            labelFontSize: 20,
+            texture: STAR_TEXTURES[randomStarColor],
+        },
+        secondaryStars: [],
+        planets: [],
+        belts: [],
+    };
 
     for (let i = 1; i < starCount; i++) {
         const starSpec: CelestialBodySpecDeprecated = {
@@ -98,10 +92,8 @@ export function createRandomSolarSystem(engine: Engine, config: RandomSolarSyste
             labelFontSize: 18,
             texture: STAR_TEXTURES[Math.floor(randomNumber(0, STAR_TEXTURES.length))],
         };
-        const star = createBody(starSpec, BodyType.STAR, primaryStar);
 
-        bodies.push(star);
-        renderStyles.set(star.id, createRenderStyle(starSpec, BodyType.STAR));
+        randomSolarSystemSpec.secondaryStars.push(starSpec);
     }
 
     let planetOrbitRadiusKm = randomNumber(0.45, 0.9) * AU_KM;
@@ -117,16 +109,11 @@ export function createRandomSolarSystem(engine: Engine, config: RandomSolarSyste
             orbitAngleDegrees: randomNumber(0, 360),
             color: PLANET_COLORS[Math.floor(randomNumber(0, PLANET_COLORS.length))],
             texture: PLANET_TEXTURES[Math.floor(randomNumber(0, PLANET_TEXTURES.length))],
+            moons: [],
         };
-        const planet = createBody(planetSpec, BodyType.PLANET, primaryStar);
-
-        bodies.push(planet);
-        renderStyles.set(planet.id, createRenderStyle(planetSpec, BodyType.PLANET));
 
         let moonOrbitRadiusKm = Math.max(80_000, radiusKm * randomNumber(8, 18));
-        const moonCount = weightedCount(
-            config.probabilities?.moonCount ?? DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.moonCount,
-        );
+        const moonCount = weightedCount(DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.moonCount);
 
         for (let j = 0; j < moonCount; j++) {
             const moonRadiusKm = randomNumber(90, Math.min(2_900, radiusKm * 0.45));
@@ -139,30 +126,15 @@ export function createRandomSolarSystem(engine: Engine, config: RandomSolarSyste
                 color: MOON_COLORS[Math.floor(randomNumber(0, MOON_COLORS.length))],
                 texture: MOON_TEXTURES[Math.floor(randomNumber(0, MOON_TEXTURES.length))],
             };
-            const moon = createBody(moonSpec, BodyType.MOON, planet);
-
-            bodies.push(moon);
-            renderStyles.set(moon.id, createRenderStyle(moonSpec, BodyType.MOON));
             moonOrbitRadiusKm += Math.max(40_000, radiusKm * randomNumber(4, 12));
+            planetSpec.moons!.push(moonSpec);
         }
 
         planetOrbitRadiusKm += randomNumber(0.35, 0.9) * AU_KM;
+        randomSolarSystemSpec.planets.push(planetSpec);
     }
 
-    for (const body of bodies) {
-        if (config.positionKm) {
-            body.position.addAssign(config.positionKm);
-            body.updateAABB();
-        }
-
-        if (config.velocityKmS) {
-            body.velocity.addAssign(config.velocityKmS);
-        }
-
-        engine.addBody(body);
-    }
-
-    return { bodies, renderStyles };
+    return randomSolarSystemSpec;
 }
 
 function weightedCount(probabilities: number[]): number {

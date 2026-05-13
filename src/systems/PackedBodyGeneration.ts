@@ -21,7 +21,7 @@ import {
     velocityY,
 } from '../PackedBody';
 import { Vec2 } from '../Vec2';
-import { BeltSpec, CelestialBodySpec, CelestialBodySpecDeprecated, SolarSystemSpec } from './BodySpec';
+import { BeltSpec, CelestialBodySpecDeprecated, SolarSystemSpec } from './BodySpec';
 
 export function createPackedSolarSystem(
     solarSystemSpec: SolarSystemSpec,
@@ -153,29 +153,4 @@ export function getLabelFontSize(spec: CelestialBodySpecDeprecated, bodyType: Bo
     }
 
     return Math.round(clamp(10 + Math.sqrt(spec.radiusKm / EARTH_RADIUS_KM) * 2, 11, 17));
-}
-
-function computeBarycenter(stars: CelestialBodySpec[]) {
-    let totalMass = 0;
-
-    let x = 0;
-    let y = 0;
-    const center = new Vec2();
-
-    for (const star of stars) {
-        totalMass += star.massKg;
-
-        const starPos = center.addNew(getOrbitPosition(star.orbitRadiusKm ?? 0, star.orbitAngleDegrees ?? 0));
-
-        x += starPos.x * star.massKg;
-        y += starPos.y * star.massKg;
-    }
-
-    x /= totalMass;
-    y /= totalMass;
-
-    return {
-        massKg: totalMass,
-        centerPos: new Vec2(x, y),
-    };
 }

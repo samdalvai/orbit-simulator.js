@@ -113,14 +113,14 @@ export default class Application {
 
             if (this.demoIndex === 3) {
                 Graphics.zoom = 0.16;
-                const solarSystem = createRandomSolarSystem(this.engine);
-                this.bodyRenderStyles = solarSystem.renderStyles;
+                const randomSolarSystemSpec = createRandomSolarSystem();
+                createPackedSolarSystem(randomSolarSystemSpec, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 4) {
                 Graphics.zoom = 0.01;
-                const solarSystem = createRandomGalaxy(this.engine);
-                this.bodyRenderStyles = solarSystem.renderStyles;
+                // const solarSystem = createRandomGalaxy(this.engine);
+                // this.bodyRenderStyles = solarSystem.renderStyles;
             }
 
             this.engine.initializeVerlet();

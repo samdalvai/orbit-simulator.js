@@ -1,9 +1,4 @@
 import AssetStore from './AssetStore';
-import { BodyRenderStyle } from './BodyRenderStyle';
-import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
-import GUI from './GUI';
-import InputManager, { MouseButton } from './InputManager';
-import { clamp } from './Math';
 import {
     BodyType,
     addNewBody,
@@ -17,20 +12,25 @@ import {
     velocityX,
     velocityY,
 } from './Body';
+import { BodyRenderStyle } from './BodyRenderStyle';
+import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from './Constants';
 import { Engine } from './Engine';
+import GUI from './GUI';
 import Graphics from './Graphics';
+import InputManager, { MouseButton } from './InputManager';
+import { clamp } from './Math';
 import { formatDuration } from './Utils';
+import { createSolarSystem } from './systems/BodyGeneration';
 import { createRandomGalaxy } from './systems/RandomGalaxy';
 import { createRandomSolarSystem } from './systems/RandomSolarSystem';
 import { solarSystem } from './systems/SolarSystem';
 import { tripleStarSystem } from './systems/TripleStarSystem';
-import { createSolarSystem } from './systems/PackedBodyGeneration';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
 const BODY_HOVER_TOLERANCE_PIXELS = 10;
 
-const DEMO_LABELS = ['Solar system', /*'Alpha centauri',*/ 'Triple star system', 'Random system', 'Random galaxy'];
+const DEMO_LABELS = ['Solar system', 'Triple star system', 'Random system', 'Random galaxy'];
 
 export default class Application {
     private engine: Engine;

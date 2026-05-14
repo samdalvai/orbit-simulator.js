@@ -202,31 +202,49 @@ export default class Application {
 
                                 const debrieRadius = radius / Math.sqrt(numOfDebries);
                                 const debrieMass = bodyMass / numOfDebries;
-                                // console.log('radius: ', radius);
-                                // console.log('main area: ', Math.PI * radius * radius);
-                                // console.log('mass: ', debrieMass);
 
-                                let totalDebrieArea = 0;
-
-                                for (let i = 0; i < numOfDebries; i++) {
-                                    totalDebrieArea += Math.PI * debrieRadius * debrieRadius;
-                                }
-                                // console.log('debrieRadius: ', debrieRadius);
-                                // console.log('debrie area: ', totalDebrieArea);
-                                // console.log('debrie mass: ', debrieMass);
-                                // console.log('total debrie mass: ', debrieMass * numOfDebries);
                                 const posX = positionX[index];
                                 const posY = positionY[index];
                                 const velX = velocityX[index];
                                 const velY = velocityY[index];
-                                const bodyType = bodyTypes[index];
+
+                                const angleStep = (Math.PI * 2) / numOfDebries;
+
+                                // Distance from original center.
+                                // Needs to be at least debrieRadius * 2 to avoid overlap between neighbors.
+                                // Clamp inside original radius.
+                                const spawnRadius = radius - debrieRadius;
 
                                 removeBody(id);
-                                // const newId = addNewBody(posX, posY, debrieRadius, debrieMass, bodyType, new Vec2(velX, velY));
-                                // Test adding the same body again
-                                const newId = addNewBody(posX, posY, radius, bodyMass, bodyType, new Vec2(velX, velY));
                                 this.bodyRenderStyles.delete(id);
-                                this.bodyRenderStyles.set(newId, style);
+
+                                for (let i = 0; i < numOfDebries; i++) {
+                                    const angle = i * angleStep;
+
+                                    const debrisX = posX + Math.cos(angle) * spawnRadius;
+                                    const debrisY = posY + Math.sin(angle) * spawnRadius;
+
+                                    const newId = addNewBody(
+                                        debrisX,
+                                        debrisY,
+                                        debrieRadius,
+                                        debrieMass,
+                                        BodyType.PLANET,
+                                        new Vec2(velX, velY),
+                                    );
+                                    const colors = ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'];
+                                    const colorIndex = Math.floor(Math.random() * 4);
+
+                                    const debrieStyle: BodyRenderStyle = {
+                                        fillColor: colors[colorIndex],
+                                        texture: null,
+                                        label: '',
+                                        labelColor: '',
+                                        labelFontSize: 0,
+                                    };
+
+                                    this.bodyRenderStyles.set(newId, debrieStyle);
+                                }
 
                                 break;
                             }

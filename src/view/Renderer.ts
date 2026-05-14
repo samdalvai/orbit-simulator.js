@@ -306,6 +306,21 @@ export default class Renderer {
             return;
         }
 
+        const screenRadius = lightRadius * this.zoom;
+        if (screenRadius < 0.5) {
+            // total size of the glow is less than 1 px, skip drawing glow
+            const screenPixel = 1 / this.zoom;
+            const halfScreenPixel = -screenPixel / 2;
+            this.drawFillRect(
+                x + halfScreenPixel,
+                y + halfScreenPixel,
+                screenPixel,
+                screenPixel,
+                renderStyle.fillColor,
+            );
+            return;
+        }
+
         const gradient = this.ctx.createRadialGradient(x, y, radius, x, y, lightRadius);
         gradient.addColorStop(0, renderStyle.fillColor);
         gradient.addColorStop(0.1, renderStyle.fillColor);
@@ -371,7 +386,8 @@ export default class Renderer {
         if (screenRadius < 0.5) {
             // total size of the body is less than 1 px, skip drawing textures
             const screenPixel = 1 / this.zoom;
-            this.drawFillRect(0, 0, screenPixel, screenPixel, fillColor);
+            const halfScreenPixel = -screenPixel / 2;
+            this.drawFillRect(halfScreenPixel, halfScreenPixel, screenPixel, screenPixel, fillColor);
         } else if (!showTextures) {
             this.drawCircle(radius, strokeColor);
         } else if (texture) {

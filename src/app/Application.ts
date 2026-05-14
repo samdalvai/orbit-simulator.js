@@ -473,8 +473,7 @@ export default class Application {
         const mouseScreenX =
             (this.inputManager.mousePosition.x - this.renderer.pan.x) * this.renderer.zoom + this.renderer.width() / 2;
         const mouseScreenY =
-            this.renderer.height() / 2 -
-            (this.inputManager.mousePosition.y - this.renderer.pan.y) * this.renderer.zoom;
+            this.renderer.height() / 2 - (this.inputManager.mousePosition.y - this.renderer.pan.y) * this.renderer.zoom;
         const x = Math.max(12, Math.min(mouseScreenX + 18, this.renderer.width() - width - 12));
         const y = Math.max(12, Math.min(mouseScreenY + 18, this.renderer.height() - height - 12));
 

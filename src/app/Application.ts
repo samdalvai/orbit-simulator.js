@@ -194,7 +194,7 @@ export default class Application {
 
                     if (inputEvent.key === 'z') {
                         for (const [id, style] of this.bodyRenderStyles) {
-                            if (style.label === 'Earth') {
+                            if (style.label === 'Moon') {
                                 const index = bodyIndexById[id];
                                 const radius = radii[index];
                                 const bodyMass = mass[index];
@@ -207,6 +207,7 @@ export default class Application {
                                 const posY = positionY[index];
                                 const velX = velocityX[index];
                                 const velY = velocityY[index];
+                                const bodyType = bodyTypes[index];
 
                                 const angleStep = (Math.PI * 2) / numOfDebries;
 
@@ -229,7 +230,8 @@ export default class Application {
                                         debrisY,
                                         debrieRadius,
                                         debrieMass,
-                                        BodyType.PLANET,
+                                        // bodyType,
+                                        BodyType.ASTEROID,
                                         new Vec2(velX, velY),
                                     );
                                     const colors = ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'];
@@ -237,6 +239,7 @@ export default class Application {
 
                                     const debrieStyle: BodyRenderStyle = {
                                         fillColor: colors[colorIndex],
+                                        // fillColor: style.fillColor,
                                         texture: null,
                                         label: '',
                                         labelColor: '',

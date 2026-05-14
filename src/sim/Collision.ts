@@ -1,5 +1,15 @@
-import { applyImpulseLinear, invMass, mass, positionX, positionY, radii, updateAABB, velocityX, velocityY } from './Body';
 import { Vec2 } from '../shared/Vec2';
+import {
+    applyImpulseLinear,
+    invMass,
+    mass,
+    positionX,
+    positionY,
+    radii,
+    updateAABB,
+    velocityX,
+    velocityY,
+} from './Body';
 
 type Collision = {
     normal: Vec2;
@@ -62,8 +72,10 @@ export function resolveCollision(
 }
 
 export function positionalCorrection(aIndex: number, bIndex: number, collision: Collision): void {
-    const percent = 0.8; // correction strength
-    const slop = 0.01; // small tolerance
+    const minRadius = Math.min(radii[aIndex], radii[bIndex]);
+
+    const percent = 0.2; // correction strength
+    const slop = minRadius * 0.01; // 1% of smaller body's radius
 
     const invMassSum = invMass[aIndex] + invMass[bIndex];
     if (invMassSum === 0) return;

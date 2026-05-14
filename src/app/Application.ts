@@ -193,44 +193,43 @@ export default class Application {
                     }
 
                     if (inputEvent.key === 'z') {
-                        const index = 3;
-                        const radius = radii[index];
-                        const bodyMass = mass[index];
-                        const numOfDebries = 10;
+                        for (const [id, style] of this.bodyRenderStyles) {
+                            if (style.label === 'Earth') {
+                                const index = bodyIndexById[id];
+                                const radius = radii[index];
+                                const bodyMass = mass[index];
+                                const numOfDebries = 10;
 
-                        const debrieRadius = radius / Math.sqrt(numOfDebries);
-                        const debrieMass = bodyMass / numOfDebries;
-                        // console.log('radius: ', radius);
-                        // console.log('main area: ', Math.PI * radius * radius);
-                        // console.log('mass: ', debrieMass);
+                                const debrieRadius = radius / Math.sqrt(numOfDebries);
+                                const debrieMass = bodyMass / numOfDebries;
+                                // console.log('radius: ', radius);
+                                // console.log('main area: ', Math.PI * radius * radius);
+                                // console.log('mass: ', debrieMass);
 
-                        let totalDebrieArea = 0;
+                                let totalDebrieArea = 0;
 
-                        for (let i = 0; i < numOfDebries; i++) {
-                            totalDebrieArea += Math.PI * debrieRadius * debrieRadius;
-                        }
-                        // console.log('debrieRadius: ', debrieRadius);
-                        // console.log('debrie area: ', totalDebrieArea);
-                        // console.log('debrie mass: ', debrieMass);
-                        // console.log('total debrie mass: ', debrieMass * numOfDebries);
-                        const posX = positionX[index];
-                        const posY = positionY[index];
-                        const velX = velocityX[index];
-                        const velY = velocityY[index];
-                        const bodyType = bodyTypes[index];
-                        const id = bodyIds[index];
+                                for (let i = 0; i < numOfDebries; i++) {
+                                    totalDebrieArea += Math.PI * debrieRadius * debrieRadius;
+                                }
+                                // console.log('debrieRadius: ', debrieRadius);
+                                // console.log('debrie area: ', totalDebrieArea);
+                                // console.log('debrie mass: ', debrieMass);
+                                // console.log('total debrie mass: ', debrieMass * numOfDebries);
+                                const posX = positionX[index];
+                                const posY = positionY[index];
+                                const velX = velocityX[index];
+                                const velY = velocityY[index];
+                                const bodyType = bodyTypes[index];
 
-                        console.log('Body count before: ', getBodyCount());
-                        removeBody(index);
-                        // const newId = addNewBody(posX, posY, debrieRadius, debrieMass, bodyType, new Vec2(velX, velY));
-                        // Test adding the same body again
-                        const newId = addNewBody(posX, posY, radius, bodyMass, bodyType, new Vec2(velX, velY));
-                        const currentStyle = this.bodyRenderStyles.get(id);
-                        console.log('Body count after: ', getBodyCount());
+                                removeBody(id);
+                                // const newId = addNewBody(posX, posY, debrieRadius, debrieMass, bodyType, new Vec2(velX, velY));
+                                // Test adding the same body again
+                                const newId = addNewBody(posX, posY, radius, bodyMass, bodyType, new Vec2(velX, velY));
+                                this.bodyRenderStyles.delete(id);
+                                this.bodyRenderStyles.set(newId, style);
 
-                        if (currentStyle) {
-                            this.bodyRenderStyles.delete(id);
-                            this.bodyRenderStyles.set(newId, currentStyle);
+                                break;
+                            }
                         }
                     }
 

@@ -207,7 +207,7 @@ export default class Application {
                                 25,
                             );
 
-                            const debrieRadius = radius / Math.sqrt(numOfDebries) * 0.05;
+                            const debrieRadius = radius / Math.sqrt(numOfDebries);
                             const debrieMass = bodyMass / numOfDebries;
 
                             const posX = positionX[index];

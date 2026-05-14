@@ -46,6 +46,13 @@ export default class Renderer {
 
     static zoom = 1;
     static pan = new Vec2(0, 0);
+    static viewPort: RenderViewport = {
+        minX: 0,
+        minY: 0,
+        maxX: 0,
+        maxY: 0,
+        labelMargin: 0,
+    };
 
     // Cached values for rendering
     static bodyRenderPositionX = 0;
@@ -118,6 +125,17 @@ export default class Renderer {
 
     static clearScreen(): void {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    static updateViewport(): void {
+        const halfViewWidth = this.windowWidth / (2 * this.zoom);
+        const halfViewHeight = this.windowHeight / (2 * this.zoom);
+
+        this.viewPort.minX = this.pan.x - halfViewWidth;
+        this.viewPort.minY = this.pan.y - halfViewHeight;
+        this.viewPort.maxX = this.pan.x + halfViewWidth;
+        this.viewPort.maxY = this.pan.y + halfViewHeight;
+        this.viewPort.labelMargin = 160 / this.zoom;
     }
 
     static getRenderViewport(): RenderViewport {
@@ -279,7 +297,7 @@ export default class Renderer {
         return bodyType === BodyType.ASTEROID ? ASTEROID_MIN_RENDERING_RADIUS : MIN_BODY_RENDERING_RADIUS;
     }
 
-    static drawStarGlow(bodyIndex: number, style: BodyRenderStyle | undefined, viewport: RenderViewport): void {
+    static drawStarGlow(bodyIndex: number, style: BodyRenderStyle | undefined): void {
         if (bodyTypes[bodyIndex] !== BodyType.STAR) {
             return;
         }
@@ -293,10 +311,10 @@ export default class Renderer {
         const lightRadius = radius * (20 + massFactor * 0.1);
 
         if (
-            x + lightRadius < viewport.minX ||
-            x - lightRadius > viewport.maxX ||
-            y + lightRadius < viewport.minY ||
-            y - lightRadius > viewport.maxY
+            x + lightRadius < Renderer.viewPort.minX ||
+            x - lightRadius > Renderer.viewPort.maxX ||
+            y + lightRadius < Renderer.viewPort.minY ||
+            y - lightRadius > Renderer.viewPort.maxY
         ) {
             return;
         }
@@ -322,7 +340,6 @@ export default class Renderer {
         showTextures: boolean,
         showLabels: boolean,
         showMoonLabels: boolean,
-        viewport: RenderViewport,
     ): void {
         const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
         this.resolveBodyRenderPosition(bodyIndex);
@@ -339,7 +356,7 @@ export default class Renderer {
 
         // Viewport culling for objects outside viewport
         const drawLabel = showLabels && label && (showMoonLabels || bodyTypes[bodyIndex] !== BodyType.MOON);
-        const labelMargin = drawLabel ? viewport.labelMargin : 0;
+        const labelMargin = drawLabel ? Renderer.viewPort.labelMargin : 0;
         const renderOffsetX = renderPositionX - positionX[bodyIndex];
         const renderOffsetY = renderPositionY - positionY[bodyIndex];
         const minXScreen = (aabbMinX[bodyIndex] + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
@@ -352,10 +369,10 @@ export default class Renderer {
         const paddingY = Math.max(0, radius - aabbHalfHeight) + labelMargin;
 
         if (
-            maxXScreen + paddingX < viewport.minX ||
-            minXScreen - paddingX > viewport.maxX ||
-            maxYScreen + paddingY < viewport.minY ||
-            minYScreen - paddingY > viewport.maxY
+            maxXScreen + paddingX < Renderer.viewPort.minX ||
+            minXScreen - paddingX > Renderer.viewPort.maxX ||
+            maxYScreen + paddingY < Renderer.viewPort.minY ||
+            minYScreen - paddingY > Renderer.viewPort.maxY
         ) {
             return;
         }

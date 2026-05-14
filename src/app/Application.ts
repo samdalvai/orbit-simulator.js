@@ -261,11 +261,8 @@ export default class Application {
                                     const bodyId = this.getHoveredBody();
                                     if (bodyId === null) return;
                                     const bodyIndex = bodyIndexById[bodyId];
-                                    const pos = Renderer.getBodyRenderPosition(bodyIndex).scaleNew(
-                                        KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-                                    );
                                     this.selectedPlanet = bodyId;
-                                    Renderer.pan = pos;
+                                    this.panToBody(bodyIndex);
                                     if (Renderer.zoom < 1) {
                                         Renderer.zoom = 1;
                                     }
@@ -319,13 +316,13 @@ export default class Application {
 
     render(): void {
         Renderer.clearScreen();
-        Renderer.beginWorld();
 
-        if (this.selectedPlanet) {
+        if (this.selectedPlanet !== null) {
             const index = bodyIndexById[this.selectedPlanet];
-            const pos = Renderer.getBodyRenderPosition(index).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
-            Renderer.pan = pos;
+            this.panToBody(index);
         }
+
+        Renderer.beginWorld();
 
         const viewport = Renderer.getRenderViewport();
 
@@ -535,12 +532,17 @@ export default class Application {
         }
 
         const nextBodyId = bodyIds[nextIndex];
-        const pos = Renderer.getBodyRenderPosition(nextIndex).scaleNew(KILOMETERS_TO_PIXELS_RENDERING_SCALE);
-        Renderer.pan = pos;
+        this.panToBody(nextIndex);
         if (Renderer.zoom < 1) {
             Renderer.zoom = 1;
         }
         this.selectedPlanet = nextBodyId;
+    }
+
+    private panToBody(bodyIndex: number): void {
+        const pos = Renderer.getBodyRenderPosition(bodyIndex);
+        Renderer.pan.x = pos.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        Renderer.pan.y = pos.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
     }
 
     private createBlackHoleAtMouse(): void {

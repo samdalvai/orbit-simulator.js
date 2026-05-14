@@ -283,7 +283,7 @@ export default class Renderer {
         return bodyType === BodyType.ASTEROID ? ASTEROID_MIN_RENDERING_RADIUS : MIN_BODY_RENDERING_RADIUS;
     }
 
-    static drawStarLight(bodyIndex: number, style: BodyRenderStyle | undefined, viewport: RenderViewport): void {
+    static drawStarGlow(bodyIndex: number, style: BodyRenderStyle | undefined, viewport: RenderViewport): void {
         if (bodyTypes[bodyIndex] !== BodyType.STAR) {
             return;
         }
@@ -294,7 +294,7 @@ export default class Renderer {
         const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const radius = this.getBodyRenderRadius(bodyIndex);
         const massFactor = Math.max(0.5, Math.min(4, Math.pow(mass[bodyIndex] / SOLAR_MASS_KG, 0.2)));
-        const lightRadius = radius * (10 + massFactor * 0.1);
+        const lightRadius = radius * (20 + massFactor * 0.1);
 
         if (
             x + lightRadius < viewport.minX ||
@@ -307,7 +307,7 @@ export default class Renderer {
 
         const gradient = this.ctx.createRadialGradient(x, y, radius, x, y, lightRadius);
         gradient.addColorStop(0, renderStyle.fillColor);
-        gradient.addColorStop(0.15, renderStyle.fillColor);
+        gradient.addColorStop(0.1, renderStyle.fillColor);
         gradient.addColorStop(1, 'transparent');
 
         this.ctx.save();

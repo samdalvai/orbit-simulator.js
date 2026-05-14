@@ -331,7 +331,7 @@ export default class Application {
 
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {
-                Renderer.drawStarLight(i, this.bodyRenderStyles.get(bodyIds[i]), viewport);
+                Renderer.drawStarGlow(i, this.bodyRenderStyles.get(bodyIds[i]), viewport);
             }
         }
 

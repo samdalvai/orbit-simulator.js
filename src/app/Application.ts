@@ -328,15 +328,12 @@ export default class Application {
 
         this.renderer.beginWorld();
 
-        // console.time('drawGlow');
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {
                 this.renderer.drawStarGlow(i, this.bodyRenderStyles.get(bodyIds[i]));
             }
         }
-        // console.timeEnd('drawGlow');
 
-        console.time('drawBody');
         // Draw all bodies
         for (let i = 0; i < getBodyCount(); i++) {
             this.renderer.drawBody(
@@ -347,7 +344,6 @@ export default class Application {
                 this.showMoonLabels,
             );
         }
-        console.timeEnd('drawBody');
 
         this.renderer.endWorld();
 

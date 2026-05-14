@@ -47,6 +47,10 @@ export default class Renderer {
     static zoom = 1;
     static pan = new Vec2(0, 0);
 
+    // Cached values for rendering
+    static bodyRenderPositionX = 0;
+    static bodyRenderPositionY = 0;
+
     static initialize(): boolean {
         const canvas = document.createElement('canvas') as HTMLCanvasElement;
         document.body.appendChild(canvas);
@@ -218,31 +222,35 @@ export default class Renderer {
         this.ctx.restore();
     }
 
-    // TODO: handle moon orbit position
-    static getBodyRenderPosition(bodyIndex: number): Vec2 {
+    static resolveBodyRenderPosition(bodyIndex: number): void {
         if (bodyTypes[bodyIndex] !== BodyType.MOON || parentBodyIds[bodyIndex] === NO_PARENT) {
-            return new Vec2(positionX[bodyIndex], positionY[bodyIndex]);
+            this.bodyRenderPositionX = positionX[bodyIndex];
+            this.bodyRenderPositionY = positionY[bodyIndex];
+            return;
         }
 
-        // TOOD: consider making these methods scalar only, no Vec2 allocations
-        const parendIndex = bodyIndexById[parentBodyIds[bodyIndex]];
-
-        const parentPosition = this.getBodyRenderPosition(parendIndex);
-        const bodyPos = new Vec2(positionX[bodyIndex], positionY[bodyIndex]);
-        const parentPos = new Vec2(positionX[parendIndex], positionY[parendIndex]);
-        const moonOffset = bodyPos.subNew(parentPos).scaleNew(MOON_ORBIT_RENDERING_SCALE);
-        const moonOffsetMagnitude = moonOffset.magnitude();
+        const parentIndex = bodyIndexById[parentBodyIds[bodyIndex]];
+        this.resolveBodyRenderPosition(parentIndex);
+        const parentRenderX = this.bodyRenderPositionX;
+        const parentRenderY = this.bodyRenderPositionY;
+        let moonOffsetX = (positionX[bodyIndex] - positionX[parentIndex]) * MOON_ORBIT_RENDERING_SCALE;
+        let moonOffsetY = (positionY[bodyIndex] - positionY[parentIndex]) * MOON_ORBIT_RENDERING_SCALE;
         const minMoonOrbitDistance =
-            (this.getBodyRenderRadius(parendIndex) +
+            (this.getBodyRenderRadius(parentIndex) +
                 this.getBodyRenderRadius(bodyIndex) +
                 MIN_MOON_ORBIT_RENDERING_GAP) /
             KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const moonOffsetMagnitudeSq = moonOffsetX * moonOffsetX + moonOffsetY * moonOffsetY;
+        const minMoonOrbitDistanceSq = minMoonOrbitDistance * minMoonOrbitDistance;
 
-        if (moonOffsetMagnitude > 0 && moonOffsetMagnitude < minMoonOrbitDistance) {
-            moonOffset.scaleAssign(minMoonOrbitDistance / moonOffsetMagnitude);
+        if (moonOffsetMagnitudeSq > 0 && moonOffsetMagnitudeSq < minMoonOrbitDistanceSq) {
+            const orbitScale = minMoonOrbitDistance / Math.sqrt(moonOffsetMagnitudeSq);
+            moonOffsetX *= orbitScale;
+            moonOffsetY *= orbitScale;
         }
 
-        return parentPosition.addNew(moonOffset);
+        this.bodyRenderPositionX = parentRenderX + moonOffsetX;
+        this.bodyRenderPositionY = parentRenderY + moonOffsetY;
     }
 
     static getBodyRenderRadius(bodyIndex: number): number {
@@ -277,9 +285,9 @@ export default class Renderer {
         }
 
         const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
-        const renderPosition = this.getBodyRenderPosition(bodyIndex);
-        const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        this.resolveBodyRenderPosition(bodyIndex);
+        const x = this.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const y = this.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const radius = this.getBodyRenderRadius(bodyIndex);
         const massFactor = Math.max(0.5, Math.min(4, Math.pow(mass[bodyIndex] / SOLAR_MASS_KG, 0.2)));
         const lightRadius = radius * (20 + massFactor * 0.1);
@@ -317,9 +325,11 @@ export default class Renderer {
         viewport: RenderViewport,
     ): void {
         const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
-        const renderPosition = this.getBodyRenderPosition(bodyIndex);
-        const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        this.resolveBodyRenderPosition(bodyIndex);
+        const renderPositionX = this.bodyRenderPositionX;
+        const renderPositionY = this.bodyRenderPositionY;
+        const x = renderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const y = renderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const radius = this.getBodyRenderRadius(bodyIndex);
 
         const strokeColor = 'white';
@@ -330,8 +340,8 @@ export default class Renderer {
         // Viewport culling for objects outside viewport
         const drawLabel = showLabels && label && (showMoonLabels || bodyTypes[bodyIndex] !== BodyType.MOON);
         const labelMargin = drawLabel ? viewport.labelMargin : 0;
-        const renderOffsetX = renderPosition.x - positionX[bodyIndex];
-        const renderOffsetY = renderPosition.y - positionY[bodyIndex];
+        const renderOffsetX = renderPositionX - positionX[bodyIndex];
+        const renderOffsetY = renderPositionY - positionY[bodyIndex];
         const minXScreen = (aabbMinX[bodyIndex] + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const minYScreen = (aabbMinY[bodyIndex] + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const maxXScreen = (aabbMaxX[bodyIndex] + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;

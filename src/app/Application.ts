@@ -35,6 +35,7 @@ const DEMO_LABELS = ['Solar system', 'Triple star system', 'Random system', 'Ran
 export default class Application {
     private engine: Engine;
     private renderer: Renderer;
+    private inputManager: InputManager;
 
     private bodyRenderStyles = new Map<number, BodyRenderStyle>();
     private running = false;
@@ -64,6 +65,7 @@ export default class Application {
     constructor() {
         this.engine = new Engine();
         this.renderer = new Renderer();
+        this.inputManager = new InputManager();
     }
 
     isRunning(): boolean {
@@ -76,7 +78,6 @@ export default class Application {
 
     async setup(): Promise<void> {
         GUI.setLoadingMessage('Loading simulation...');
-        InputManager.initialize();
         GUI.initialize();
 
         await AssetStore.loadTextures();
@@ -134,8 +135,8 @@ export default class Application {
 
     input(): void {
         // Handle keyboard events
-        while (InputManager.keyboardInputBuffer.length > 0) {
-            const inputEvent = InputManager.keyboardInputBuffer.shift();
+        while (this.inputManager.keyboardInputBuffer.length > 0) {
+            const inputEvent = this.inputManager.keyboardInputBuffer.shift();
             if (!inputEvent) return;
 
             switch (inputEvent.type) {
@@ -227,8 +228,8 @@ export default class Application {
         }
 
         // Handle mouse move events
-        while (InputManager.mouseMoveBuffer.length > 0) {
-            const inputEvent = InputManager.mouseMoveBuffer.shift();
+        while (this.inputManager.mouseMoveBuffer.length > 0) {
+            const inputEvent = this.inputManager.mouseMoveBuffer.shift();
             if (!inputEvent) return;
 
             if (this.middleMousePressed || this.controlPressed) {
@@ -244,8 +245,8 @@ export default class Application {
         }
 
         // Handle mouse click events
-        while (InputManager.mouseInputBuffer.length > 0) {
-            const inputEvent = InputManager.mouseInputBuffer.shift();
+        while (this.inputManager.mouseInputBuffer.length > 0) {
+            const inputEvent = this.inputManager.mouseInputBuffer.shift();
             if (!inputEvent) return;
 
             this.updateMouseWorldPosition(inputEvent);
@@ -292,8 +293,8 @@ export default class Application {
         }
 
         // Handle wheel events
-        while (InputManager.mouseWheelBuffer.length > 0) {
-            const inputEvent = InputManager.mouseWheelBuffer.shift();
+        while (this.inputManager.mouseWheelBuffer.length > 0) {
+            const inputEvent = this.inputManager.mouseWheelBuffer.shift();
             if (!inputEvent) return;
 
             this.renderer.zoomAt(inputEvent.x, inputEvent.y, inputEvent.deltaY > 0 ? 1 / 1.1 : 1.1);
@@ -355,8 +356,8 @@ export default class Application {
             return;
         }
 
-        const x = InputManager.mousePosition.x;
-        const y = InputManager.mousePosition.y;
+        const x = this.inputManager.mousePosition.x;
+        const y = this.inputManager.mousePosition.y;
         const simulationSecondsPerSecond = (SETTINGS.dt * SETTINGS.subSteps) / FIXED_DELTA_TIME;
 
         const stats: Array<[string, string]> = [
@@ -420,8 +421,8 @@ export default class Application {
         const screenX = inputEvent.x - this.renderer.width() / 2;
         const screenY = -(inputEvent.y - this.renderer.height() / 2);
 
-        InputManager.mousePosition.x = screenX / this.renderer.zoom + this.renderer.pan.x;
-        InputManager.mousePosition.y = screenY / this.renderer.zoom + this.renderer.pan.y;
+        this.inputManager.mousePosition.x = screenX / this.renderer.zoom + this.renderer.pan.x;
+        this.inputManager.mousePosition.y = screenY / this.renderer.zoom + this.renderer.pan.y;
         this.hasMousePosition = true;
     }
 
@@ -436,8 +437,8 @@ export default class Application {
             this.renderer.resolveBodyRenderPosition(i);
             const x = this.renderer.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
             const y = this.renderer.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-            const dx = InputManager.mousePosition.x - x;
-            const dy = InputManager.mousePosition.y - y;
+            const dx = this.inputManager.mousePosition.x - x;
+            const dy = this.inputManager.mousePosition.y - y;
             const hitRadius = this.renderer.getBodyRenderRadius(i) + tolerance;
             const distanceSq = dx * dx + dy * dy;
 
@@ -474,9 +475,10 @@ export default class Application {
         const padding = 14;
         const imageSize = 54;
         const mouseScreenX =
-            (InputManager.mousePosition.x - this.renderer.pan.x) * this.renderer.zoom + this.renderer.width() / 2;
+            (this.inputManager.mousePosition.x - this.renderer.pan.x) * this.renderer.zoom + this.renderer.width() / 2;
         const mouseScreenY =
-            this.renderer.height() / 2 - (InputManager.mousePosition.y - this.renderer.pan.y) * this.renderer.zoom;
+            this.renderer.height() / 2 -
+            (this.inputManager.mousePosition.y - this.renderer.pan.y) * this.renderer.zoom;
         const x = Math.max(12, Math.min(mouseScreenX + 18, this.renderer.width() - width - 12));
         const y = Math.max(12, Math.min(mouseScreenY + 18, this.renderer.height() - height - 12));
 
@@ -563,8 +565,8 @@ export default class Application {
     private createBlackHoleAtMouse(): void {
         this.removeBlackHole();
 
-        const x = InputManager.mousePosition.x / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const y = InputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const x = this.inputManager.mousePosition.x / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const y = this.inputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const blackHoleId = addNewBody(x, y, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.STAR);
 
         if (blackHoleId !== null) {

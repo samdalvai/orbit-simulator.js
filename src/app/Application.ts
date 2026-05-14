@@ -6,6 +6,7 @@ import { tripleStarSystem } from '../scenarios/TripleStarSystem';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from '../shared/Constants';
 import { clamp } from '../shared/Math';
 import { formatDuration } from '../shared/Utils';
+import { Vec2 } from '../shared/Vec2';
 import {
     BodyType,
     addNewBody,
@@ -14,6 +15,8 @@ import {
     bodyTypes,
     getBodyCount,
     mass,
+    positionX,
+    positionY,
     radii,
     removeBody,
     velocityX,
@@ -190,7 +193,45 @@ export default class Application {
                     }
 
                     if (inputEvent.key === 'z') {
-                        // For testing
+                        const index = 3;
+                        const radius = radii[index];
+                        const bodyMass = mass[index];
+                        const numOfDebries = 10;
+
+                        const debrieRadius = radius / Math.sqrt(numOfDebries);
+                        const debrieMass = bodyMass / numOfDebries;
+                        // console.log('radius: ', radius);
+                        // console.log('main area: ', Math.PI * radius * radius);
+                        // console.log('mass: ', debrieMass);
+
+                        let totalDebrieArea = 0;
+
+                        for (let i = 0; i < numOfDebries; i++) {
+                            totalDebrieArea += Math.PI * debrieRadius * debrieRadius;
+                        }
+                        // console.log('debrieRadius: ', debrieRadius);
+                        // console.log('debrie area: ', totalDebrieArea);
+                        // console.log('debrie mass: ', debrieMass);
+                        // console.log('total debrie mass: ', debrieMass * numOfDebries);
+                        const posX = positionX[index];
+                        const posY = positionY[index];
+                        const velX = velocityX[index];
+                        const velY = velocityY[index];
+                        const bodyType = bodyTypes[index];
+                        const id = bodyIds[index];
+
+                        console.log('Body count before: ', getBodyCount());
+                        removeBody(index);
+                        // const newId = addNewBody(posX, posY, debrieRadius, debrieMass, bodyType, new Vec2(velX, velY));
+                        // Test adding the same body again
+                        const newId = addNewBody(posX, posY, radius, bodyMass, bodyType, new Vec2(velX, velY));
+                        const currentStyle = this.bodyRenderStyles.get(id);
+                        console.log('Body count after: ', getBodyCount());
+
+                        if (currentStyle) {
+                            this.bodyRenderStyles.delete(id);
+                            this.bodyRenderStyles.set(newId, currentStyle);
+                        }
                     }
 
                     if (key === 'r' && inputEvent.shiftKey) {

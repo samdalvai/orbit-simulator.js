@@ -30,7 +30,6 @@ export class Engine {
             integrateVerletVelocity(i, dt);
         }
 
-        // TODO: Skipped for now, sorting breaks body/parent relation
         this.broadPhase();
     }
 

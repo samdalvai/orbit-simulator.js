@@ -1,4 +1,11 @@
-import AssetStore from '../view/AssetStore';
+import { createSolarSystem } from '../scenarios/BodyGeneration';
+import { createRandomGalaxy } from '../scenarios/RandomGalaxy';
+import { createRandomSolarSystem } from '../scenarios/RandomSolarSystem';
+import { solarSystem } from '../scenarios/SolarSystem';
+import { tripleStarSystem } from '../scenarios/TripleStarSystem';
+import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from '../shared/Constants';
+import { clamp } from '../shared/Math';
+import { formatDuration } from '../shared/Utils';
 import {
     BodyType,
     addNewBody,
@@ -13,18 +20,11 @@ import {
     velocityY,
 } from '../sim/Body';
 import { Engine } from '../sim/Engine';
+import AssetStore from '../view/AssetStore';
 import { BodyRenderStyle } from '../view/BodyRenderStyle';
 import GUI from '../view/GUI';
-import Renderer from '../view/Renderer';
 import InputManager, { MouseButton } from '../view/InputManager';
-import { createSolarSystem } from '../scenarios/BodyGeneration';
-import { createRandomGalaxy } from '../scenarios/RandomGalaxy';
-import { createRandomSolarSystem } from '../scenarios/RandomSolarSystem';
-import { solarSystem } from '../scenarios/SolarSystem';
-import { tripleStarSystem } from '../scenarios/TripleStarSystem';
-import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from '../shared/Constants';
-import { clamp } from '../shared/Math';
-import { formatDuration } from '../shared/Utils';
+import Renderer from '../view/Renderer';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
@@ -34,6 +34,8 @@ const DEMO_LABELS = ['Solar system', 'Triple star system', 'Random system', 'Ran
 
 export default class Application {
     private engine: Engine;
+    private renderer: Renderer;
+
     private bodyRenderStyles = new Map<number, BodyRenderStyle>();
     private running = false;
     private paused = false;
@@ -61,6 +63,7 @@ export default class Application {
 
     constructor() {
         this.engine = new Engine();
+        this.renderer = new Renderer();
     }
 
     isRunning(): boolean {
@@ -75,7 +78,6 @@ export default class Application {
         GUI.setLoadingMessage('Loading simulation...');
         InputManager.initialize();
         GUI.initialize();
-        Renderer.initialize();
 
         await AssetStore.loadTextures();
         await this.loadDemo();
@@ -98,27 +100,27 @@ export default class Application {
             this.blackHole = null;
             this.selectedPlanet = null;
 
-            Renderer.pan.x = 0;
-            Renderer.pan.y = 0;
+            this.renderer.pan.x = 0;
+            this.renderer.pan.y = 0;
 
             if (this.demoIndex === 1) {
-                Renderer.zoom = 0.3;
+                this.renderer.zoom = 0.3;
                 createSolarSystem(solarSystem, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 2) {
-                Renderer.zoom = 0.2;
+                this.renderer.zoom = 0.2;
                 createSolarSystem(tripleStarSystem, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 3) {
-                Renderer.zoom = 0.16;
+                this.renderer.zoom = 0.16;
                 const randomSolarSystemSpec = createRandomSolarSystem();
                 createSolarSystem(randomSolarSystemSpec, this.bodyRenderStyles);
             }
 
             if (this.demoIndex === 4) {
-                Renderer.zoom = 0.01;
+                this.renderer.zoom = 0.01;
                 createRandomGalaxy(this.bodyRenderStyles);
             }
 
@@ -232,8 +234,8 @@ export default class Application {
             if (this.middleMousePressed || this.controlPressed) {
                 document.body.style.cursor = 'pointer';
                 // Drag the camera opposite to mouse movement
-                Renderer.pan.x -= inputEvent.movementX / Renderer.zoom;
-                Renderer.pan.y += inputEvent.movementY / Renderer.zoom;
+                this.renderer.pan.x -= inputEvent.movementX / this.renderer.zoom;
+                this.renderer.pan.y += inputEvent.movementY / this.renderer.zoom;
             } else {
                 document.body.style.cursor = 'default';
             }
@@ -263,8 +265,8 @@ export default class Application {
                                     const bodyIndex = bodyIndexById[bodyId];
                                     this.selectedPlanet = bodyId;
                                     this.panToBody(bodyIndex);
-                                    if (Renderer.zoom < 1) {
-                                        Renderer.zoom = 1;
+                                    if (this.renderer.zoom < 1) {
+                                        this.renderer.zoom = 1;
                                     }
                                     this.selectedPlanet = bodyId;
                                 }
@@ -294,7 +296,7 @@ export default class Application {
             const inputEvent = InputManager.mouseWheelBuffer.shift();
             if (!inputEvent) return;
 
-            Renderer.zoomAt(inputEvent.x, inputEvent.y, inputEvent.deltaY > 0 ? 1 / 1.1 : 1.1);
+            this.renderer.zoomAt(inputEvent.x, inputEvent.y, inputEvent.deltaY > 0 ? 1 / 1.1 : 1.1);
             this.updateMouseWorldPosition(inputEvent);
         }
     }
@@ -315,36 +317,38 @@ export default class Application {
     }
 
     render(): void {
-        Renderer.clearScreen();
+        this.renderer.clearScreen();
+        this.renderer.updateViewport();
 
         if (this.selectedPlanet !== null) {
             const index = bodyIndexById[this.selectedPlanet];
             this.panToBody(index);
         }
 
-        Renderer.beginWorld();
+        this.renderer.beginWorld();
 
-        const viewport = Renderer.getRenderViewport();
-
+        // console.time('drawGlow');
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {
-                Renderer.drawStarGlow(i, this.bodyRenderStyles.get(bodyIds[i]), viewport);
+                this.renderer.drawStarGlow(i, this.bodyRenderStyles.get(bodyIds[i]));
             }
         }
+        // console.timeEnd('drawGlow');
 
+        console.time('drawBody');
         // Draw all bodies
         for (let i = 0; i < getBodyCount(); i++) {
-            Renderer.drawBody(
+            this.renderer.drawBody(
                 i,
                 this.bodyRenderStyles.get(bodyIds[i]),
                 this.showTextures,
                 this.showLabels,
                 this.showMoonLabels,
-                viewport,
             );
         }
+        console.timeEnd('drawBody');
 
-        Renderer.endWorld();
+        this.renderer.endWorld();
 
         if (!this.debug) {
             this.drawHoveredBodyPopup();
@@ -360,7 +364,7 @@ export default class Application {
             ['Paused', this.paused ? 'ON' : 'OFF'],
             ['Bodies', `${getBodyCount()}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
-            ['Zoom', Renderer.zoom.toFixed(4)],
+            ['Zoom', this.renderer.zoom.toFixed(4)],
             ['Labels', this.showLabels ? 'ON' : 'OFF'],
             ['Moon labels', this.showMoonLabels ? 'ON' : 'OFF'],
             ['Mouse (x)', `${(x / KILOMETERS_TO_PIXELS_RENDERING_SCALE).toExponential(5)} km`],
@@ -381,12 +385,12 @@ export default class Application {
         const rowHeight = 22;
         const panelHeight = panelPaddingY * 2 + titleHeight + subtitleHeight + stats.length * rowHeight;
 
-        Renderer.drawFillRect(panelX, panelY, panelWidth, panelHeight, 'rgba(10, 12, 16, 0.78)');
-        Renderer.drawStrokeRect(panelX, panelY, panelWidth, panelHeight, 'rgba(255, 255, 255, 0.14)');
-        Renderer.drawFillRect(panelX, panelY, panelWidth, 3, '#ff9d2e');
+        this.renderer.drawFillRect(panelX, panelY, panelWidth, panelHeight, 'rgba(10, 12, 16, 0.78)');
+        this.renderer.drawStrokeRect(panelX, panelY, panelWidth, panelHeight, 'rgba(255, 255, 255, 0.14)');
+        this.renderer.drawFillRect(panelX, panelY, panelWidth, 3, '#ff9d2e');
 
-        Renderer.drawText('DEBUG', panelX + panelPaddingX, panelY + 18, 15, 'Arial', '#ffb15c', 'left', 'middle');
-        Renderer.drawText(
+        this.renderer.drawText('DEBUG', panelX + panelPaddingX, panelY + 18, 15, 'Arial', '#ffb15c', 'left', 'middle');
+        this.renderer.drawText(
             'Runtime Stats',
             panelX + panelPaddingX,
             panelY + 40,
@@ -405,19 +409,19 @@ export default class Application {
             const [label, value] = stats[i];
             const rowY = rowsTop + i * rowHeight;
 
-            Renderer.drawText(label, labelX, rowY, 14, 'Arial', 'rgba(255, 255, 255, 0.72)', 'left', 'middle');
-            Renderer.drawText(value, valueX, rowY, 14, 'Arial', '#ffffff', 'right', 'middle');
+            this.renderer.drawText(label, labelX, rowY, 14, 'Arial', 'rgba(255, 255, 255, 0.72)', 'left', 'middle');
+            this.renderer.drawText(value, valueX, rowY, 14, 'Arial', '#ffffff', 'right', 'middle');
         }
 
         this.drawHoveredBodyPopup();
     }
 
     private updateMouseWorldPosition(inputEvent: MouseEvent): void {
-        const screenX = inputEvent.x - Renderer.width() / 2;
-        const screenY = -(inputEvent.y - Renderer.height() / 2);
+        const screenX = inputEvent.x - this.renderer.width() / 2;
+        const screenY = -(inputEvent.y - this.renderer.height() / 2);
 
-        InputManager.mousePosition.x = screenX / Renderer.zoom + Renderer.pan.x;
-        InputManager.mousePosition.y = screenY / Renderer.zoom + Renderer.pan.y;
+        InputManager.mousePosition.x = screenX / this.renderer.zoom + this.renderer.pan.x;
+        InputManager.mousePosition.y = screenY / this.renderer.zoom + this.renderer.pan.y;
         this.hasMousePosition = true;
     }
 
@@ -426,15 +430,15 @@ export default class Application {
 
         let hoveredBody: number | null = null;
         let bestDistanceSq = Number.POSITIVE_INFINITY;
-        const tolerance = BODY_HOVER_TOLERANCE_PIXELS / Renderer.zoom;
+        const tolerance = BODY_HOVER_TOLERANCE_PIXELS / this.renderer.zoom;
 
         for (let i = 0; i < getBodyCount(); i++) {
-            const renderPosition = Renderer.getBodyRenderPosition(i);
-            const x = renderPosition.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-            const y = renderPosition.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+            this.renderer.resolveBodyRenderPosition(i);
+            const x = this.renderer.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+            const y = this.renderer.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
             const dx = InputManager.mousePosition.x - x;
             const dy = InputManager.mousePosition.y - y;
-            const hitRadius = Renderer.getBodyRenderRadius(i) + tolerance;
+            const hitRadius = this.renderer.getBodyRenderRadius(i) + tolerance;
             const distanceSq = dx * dx + dy * dy;
 
             if (distanceSq <= hitRadius * hitRadius && distanceSq < bestDistanceSq) {
@@ -469,19 +473,21 @@ export default class Application {
         const height = 178;
         const padding = 14;
         const imageSize = 54;
-        const mouseScreenX = (InputManager.mousePosition.x - Renderer.pan.x) * Renderer.zoom + Renderer.width() / 2;
-        const mouseScreenY = Renderer.height() / 2 - (InputManager.mousePosition.y - Renderer.pan.y) * Renderer.zoom;
-        const x = Math.max(12, Math.min(mouseScreenX + 18, Renderer.width() - width - 12));
-        const y = Math.max(12, Math.min(mouseScreenY + 18, Renderer.height() - height - 12));
+        const mouseScreenX =
+            (InputManager.mousePosition.x - this.renderer.pan.x) * this.renderer.zoom + this.renderer.width() / 2;
+        const mouseScreenY =
+            this.renderer.height() / 2 - (InputManager.mousePosition.y - this.renderer.pan.y) * this.renderer.zoom;
+        const x = Math.max(12, Math.min(mouseScreenX + 18, this.renderer.width() - width - 12));
+        const y = Math.max(12, Math.min(mouseScreenY + 18, this.renderer.height() - height - 12));
 
-        Renderer.drawFillRect(x, y, width, height, 'rgba(10, 12, 16, 0.88)');
-        Renderer.drawStrokeRect(x, y, width, height, 'rgba(255, 255, 255, 0.18)');
-        Renderer.drawFillRect(x, y, width, 3, style?.fillColor || '#ffffff');
+        this.renderer.drawFillRect(x, y, width, height, 'rgba(10, 12, 16, 0.88)');
+        this.renderer.drawStrokeRect(x, y, width, height, 'rgba(255, 255, 255, 0.18)');
+        this.renderer.drawFillRect(x, y, width, 3, style?.fillColor || '#ffffff');
 
         if (style?.texture) {
-            Renderer.ctx.drawImage(style.texture, x + padding, y + padding + 4, imageSize, imageSize);
+            this.renderer.ctx.drawImage(style.texture, x + padding, y + padding + 4, imageSize, imageSize);
         } else {
-            Renderer.drawFillCircle(
+            this.renderer.drawFillCircle(
                 x + padding + imageSize / 2,
                 y + padding + imageSize / 2 + 4,
                 imageSize / 2,
@@ -489,15 +495,24 @@ export default class Application {
             );
         }
 
-        Renderer.drawText(title, x + padding + imageSize + 12, y + 28, 16, 'Arial', '#ffffff', 'left', 'middle');
+        this.renderer.drawText(title, x + padding + imageSize + 12, y + 28, 16, 'Arial', '#ffffff', 'left', 'middle');
 
         const rowsTop = y + padding + imageSize + 22;
         for (let i = 0; i < rows.length; i++) {
             const [label, value] = rows[i];
             const rowY = rowsTop + i * 22;
 
-            Renderer.drawText(label, x + padding, rowY, 13, 'Arial', 'rgba(255, 255, 255, 0.72)', 'left', 'middle');
-            Renderer.drawText(value, x + width - padding, rowY, 13, 'Arial', '#ffffff', 'right', 'middle');
+            this.renderer.drawText(
+                label,
+                x + padding,
+                rowY,
+                13,
+                'Arial',
+                'rgba(255, 255, 255, 0.72)',
+                'left',
+                'middle',
+            );
+            this.renderer.drawText(value, x + width - padding, rowY, 13, 'Arial', '#ffffff', 'right', 'middle');
         }
     }
 
@@ -533,16 +548,16 @@ export default class Application {
 
         const nextBodyId = bodyIds[nextIndex];
         this.panToBody(nextIndex);
-        if (Renderer.zoom < 1) {
-            Renderer.zoom = 1;
+        if (this.renderer.zoom < 1) {
+            this.renderer.zoom = 1;
         }
         this.selectedPlanet = nextBodyId;
     }
 
     private panToBody(bodyIndex: number): void {
-        const pos = Renderer.getBodyRenderPosition(bodyIndex);
-        Renderer.pan.x = pos.x * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        Renderer.pan.y = pos.y * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        this.renderer.resolveBodyRenderPosition(bodyIndex);
+        this.renderer.pan.x = this.renderer.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        this.renderer.pan.y = this.renderer.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
     }
 
     private createBlackHoleAtMouse(): void {

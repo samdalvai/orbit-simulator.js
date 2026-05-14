@@ -39,14 +39,14 @@ export type RenderViewport = {
 };
 
 export default class Renderer {
-    static windowWidth: number;
-    static windowHeight: number;
-    static canvas: HTMLCanvasElement;
-    static ctx: CanvasRenderingContext2D;
+    private windowWidth: number;
+    private windowHeight: number;
+    private canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
 
-    static zoom = 1;
-    static pan = new Vec2(0, 0);
-    static viewPort: RenderViewport = {
+    zoom = 1;
+    pan = new Vec2(0, 0);
+    viewPort: RenderViewport = {
         minX: 0,
         minY: 0,
         maxX: 0,
@@ -55,51 +55,51 @@ export default class Renderer {
     };
 
     // Cached values for rendering
-    static bodyRenderPositionX = 0;
-    static bodyRenderPositionY = 0;
+    bodyRenderPositionX = 0;
+    bodyRenderPositionY = 0;
 
-    static initialize(): boolean {
+    constructor() {
         const canvas = document.createElement('canvas') as HTMLCanvasElement;
         document.body.appendChild(canvas);
 
         const ctx = canvas.getContext('2d');
 
         if (!ctx) {
-            console.error('Failed to get 2D context for the canvas.');
-            return false;
+            throw new Error('Failed to get 2D context for the canvas.');
         }
 
         this.canvas = canvas;
         this.ctx = ctx;
-        this.resize(canvas);
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        this.windowWidth = window.innerWidth;
+        this.windowHeight = window.innerHeight;
 
         window.addEventListener('resize', () => {
             this.resize(canvas);
         });
-
-        return true;
     }
 
-    static resize(canvas: HTMLCanvasElement): void {
+    private resize(canvas: HTMLCanvasElement): void {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         this.windowWidth = window.innerWidth;
         this.windowHeight = window.innerHeight;
     }
 
-    static width(): number {
+    width(): number {
         return this.windowWidth;
     }
 
-    static height(): number {
+    height(): number {
         return this.windowHeight;
     }
 
-    static increaseZoom(): void {
+    increaseZoom(): void {
         this.zoom += 0.05;
     }
 
-    static decreaseZoom(): void {
+    decreaseZoom(): void {
         this.zoom -= 0.05;
 
         if (this.zoom < 0.05) {
@@ -107,7 +107,7 @@ export default class Renderer {
         }
     }
 
-    static zoomAt(screenX: number, screenY: number, factor: number): void {
+    zoomAt(screenX: number, screenY: number, factor: number): void {
         const worldXBeforeZoom = this.pan.x + (screenX - this.windowWidth / 2) / this.zoom;
         const worldYBeforeZoom = this.pan.y - (screenY - this.windowHeight / 2) / this.zoom;
 
@@ -117,17 +117,17 @@ export default class Renderer {
         this.pan.y = worldYBeforeZoom + (screenY - this.windowHeight / 2) / this.zoom;
     }
 
-    static resetView(): void {
+    resetView(): void {
         this.zoom = 1;
         this.pan.x = 0;
         this.pan.y = 0;
     }
 
-    static clearScreen(): void {
+    clearScreen(): void {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    static updateViewport(): void {
+    updateViewport(): void {
         const halfViewWidth = this.windowWidth / (2 * this.zoom);
         const halfViewHeight = this.windowHeight / (2 * this.zoom);
 
@@ -144,7 +144,7 @@ export default class Renderer {
      * This is used because box 2d uses a standard coordinate system for objects
      * positions and dimensions
      */
-    static beginWorld(): void {
+    beginWorld(): void {
         const ctx = this.ctx;
 
         ctx.save();
@@ -162,12 +162,12 @@ export default class Renderer {
     }
 
     /** Restore coordinates to screen conversion */
-    static endWorld(): void {
+    endWorld(): void {
         this.ctx.restore();
     }
 
     // TODO: move width as second last parameter
-    static drawLine(x0: number, y0: number, x1: number, y1: number, color = 'white', width = 1): void {
+    drawLine(x0: number, y0: number, x1: number, y1: number, color = 'white', width = 1): void {
         this.ctx.strokeStyle = color;
         this.ctx.lineWidth = width;
         this.ctx.beginPath();
@@ -176,18 +176,18 @@ export default class Renderer {
         this.ctx.stroke();
     }
 
-    static drawFillRect(x: number, y: number, width: number, height: number, color = 'white'): void {
+    drawFillRect(x: number, y: number, width: number, height: number, color = 'white'): void {
         this.ctx.fillStyle = color;
         this.ctx.fillRect(x, y, width, height);
     }
 
-    static drawStrokeRect(x: number, y: number, width: number, height: number, color = 'white', lineWidth = 1): void {
+    drawStrokeRect(x: number, y: number, width: number, height: number, color = 'white', lineWidth = 1): void {
         this.ctx.strokeStyle = color;
         this.ctx.lineWidth = lineWidth;
         this.ctx.strokeRect(x, y, width, height);
     }
 
-    static drawCircle(radius: number, color = 'white'): void {
+    drawCircle(radius: number, color = 'white'): void {
         // Draw the circle
         this.ctx.beginPath();
         this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
@@ -195,20 +195,20 @@ export default class Renderer {
         this.ctx.stroke();
     }
 
-    static drawFillCircle(x: number, y: number, radius: number, color = 'white'): void {
+    drawFillCircle(x: number, y: number, radius: number, color = 'white'): void {
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, Math.PI * 2);
         this.ctx.fillStyle = color;
         this.ctx.fill();
     }
 
-    static drawTexture(width: number, height: number, texture: CanvasImageSource, textureScale = 1): void {
+    drawTexture(width: number, height: number, texture: CanvasImageSource, textureScale = 1): void {
         // This is needed because we flip the canvas with beginWorld()
         this.ctx.scale(textureScale, -textureScale);
         this.ctx.drawImage(texture, -width / 2, -height / 2, width, height);
     }
 
-    static drawText(
+    drawText(
         text: string,
         x: number,
         y: number,
@@ -227,7 +227,7 @@ export default class Renderer {
         this.ctx.restore();
     }
 
-    static resolveBodyRenderPosition(bodyIndex: number): void {
+    resolveBodyRenderPosition(bodyIndex: number): void {
         if (bodyTypes[bodyIndex] !== BodyType.MOON || parentBodyIds[bodyIndex] === NO_PARENT) {
             this.bodyRenderPositionX = positionX[bodyIndex];
             this.bodyRenderPositionY = positionY[bodyIndex];
@@ -258,7 +258,7 @@ export default class Renderer {
         this.bodyRenderPositionY = parentRenderY + moonOffsetY;
     }
 
-    static getBodyRenderRadius(bodyIndex: number): number {
+    getBodyRenderRadius(bodyIndex: number): number {
         const radius =
             Math.pow(radii[bodyIndex] / EARTH_RADIUS_KM, RADIUS_RENDERING_EXPONENT) *
             this.getBodyRadiusRenderingScale(bodyTypes[bodyIndex]);
@@ -266,7 +266,7 @@ export default class Renderer {
         return Math.max(this.getBodyMinRenderingRadius(bodyTypes[bodyIndex]), radius);
     }
 
-    private static getBodyRadiusRenderingScale(bodyType: BodyType): number {
+    private getBodyRadiusRenderingScale(bodyType: BodyType): number {
         switch (bodyType) {
             case BodyType.STAR:
                 return STAR_RADIUS_RENDERING_SCALE;
@@ -280,11 +280,11 @@ export default class Renderer {
         }
     }
 
-    private static getBodyMinRenderingRadius(bodyType: BodyType): number {
+    private getBodyMinRenderingRadius(bodyType: BodyType): number {
         return bodyType === BodyType.ASTEROID ? ASTEROID_MIN_RENDERING_RADIUS : MIN_BODY_RENDERING_RADIUS;
     }
 
-    static drawStarGlow(bodyIndex: number, style: BodyRenderStyle | undefined): void {
+    drawStarGlow(bodyIndex: number, style: BodyRenderStyle | undefined): void {
         if (bodyTypes[bodyIndex] !== BodyType.STAR) {
             return;
         }
@@ -298,10 +298,10 @@ export default class Renderer {
         const lightRadius = radius * (20 + massFactor * 0.1);
 
         if (
-            x + lightRadius < Renderer.viewPort.minX ||
-            x - lightRadius > Renderer.viewPort.maxX ||
-            y + lightRadius < Renderer.viewPort.minY ||
-            y - lightRadius > Renderer.viewPort.maxY
+            x + lightRadius < this.viewPort.minX ||
+            x - lightRadius > this.viewPort.maxX ||
+            y + lightRadius < this.viewPort.minY ||
+            y - lightRadius > this.viewPort.maxY
         ) {
             return;
         }
@@ -321,7 +321,7 @@ export default class Renderer {
         this.ctx.restore();
     }
 
-    static drawBody(
+    drawBody(
         bodyIndex: number,
         style: BodyRenderStyle | undefined,
         showTextures: boolean,
@@ -343,7 +343,7 @@ export default class Renderer {
 
         // Viewport culling for objects outside viewport
         const drawLabel = showLabels && label && (showMoonLabels || bodyTypes[bodyIndex] !== BodyType.MOON);
-        const labelMargin = drawLabel ? Renderer.viewPort.labelMargin : 0;
+        const labelMargin = drawLabel ? this.viewPort.labelMargin : 0;
         const renderOffsetX = renderPositionX - positionX[bodyIndex];
         const renderOffsetY = renderPositionY - positionY[bodyIndex];
         const minXScreen = (aabbMinX[bodyIndex] + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
@@ -356,10 +356,10 @@ export default class Renderer {
         const paddingY = Math.max(0, radius - aabbHalfHeight) + labelMargin;
 
         if (
-            maxXScreen + paddingX < Renderer.viewPort.minX ||
-            minXScreen - paddingX > Renderer.viewPort.maxX ||
-            maxYScreen + paddingY < Renderer.viewPort.minY ||
-            minYScreen - paddingY > Renderer.viewPort.maxY
+            maxXScreen + paddingX < this.viewPort.minX ||
+            minXScreen - paddingX > this.viewPort.maxX ||
+            maxYScreen + paddingY < this.viewPort.minY ||
+            minYScreen - paddingY > this.viewPort.maxY
         ) {
             return;
         }
@@ -367,10 +367,10 @@ export default class Renderer {
         this.ctx.save();
         this.ctx.translate(x, y);
 
-        const screenRadius = radius * Renderer.zoom;
+        const screenRadius = radius * this.zoom;
         if (screenRadius < 0.5) {
             // total size of the body is less than 1 px, skip drawing textures
-            const screenPixel = 1 / Renderer.zoom;
+            const screenPixel = 1 / this.zoom;
             this.drawFillRect(0, 0, screenPixel, screenPixel, fillColor);
         } else if (!showTextures) {
             this.drawCircle(radius, strokeColor);

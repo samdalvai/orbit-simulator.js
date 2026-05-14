@@ -138,19 +138,6 @@ export default class Renderer {
         this.viewPort.labelMargin = 160 / this.zoom;
     }
 
-    static getRenderViewport(): RenderViewport {
-        const halfViewWidth = this.windowWidth / (2 * this.zoom);
-        const halfViewHeight = this.windowHeight / (2 * this.zoom);
-
-        return {
-            minX: this.pan.x - halfViewWidth,
-            minY: this.pan.y - halfViewHeight,
-            maxX: this.pan.x + halfViewWidth,
-            maxY: this.pan.y + halfViewHeight,
-            labelMargin: 160 / this.zoom,
-        };
-    }
-
     /**
      * Start world coordinates to screen conversion.
      *

@@ -363,7 +363,12 @@ export default class Renderer {
         this.ctx.save();
         this.ctx.translate(x, y);
 
-        if (!showTextures) {
+        const screenRadius = radius * Renderer.zoom;
+        if (screenRadius < 0.5) {
+            // total size of the body is less than 1 px, skip drawing textures
+            const screenPixel = 1 / Renderer.zoom;
+            this.drawFillRect(0, 0, screenPixel, screenPixel, fillColor);
+        } else if (!showTextures) {
             this.drawCircle(radius, strokeColor);
         } else if (texture) {
             this.drawTexture(radius * 2, radius * 2, texture, 1.2);

@@ -8,6 +8,7 @@ export const G = 6.6743e-20; // km^3 / kg / s^2
 
 export const AU_KM = 149_597_870.7;
 export const EARTH_RADIUS_KM = 6_371;
+export const SOLAR_MASS_KG = 1.98847e30;
 
 // Orbit/distance rendering scales.
 export const PLANET_ORBIT_RENDERING_SCALE = 500; // pixels per AU

@@ -1,4 +1,3 @@
-import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
 import {
     ASTEROID_MIN_RENDERING_RADIUS,
     ASTEROID_RADIUS_RENDERING_SCALE,
@@ -10,24 +9,26 @@ import {
     MOON_RADIUS_RENDERING_SCALE,
     PLANET_RADIUS_RENDERING_SCALE,
     RADIUS_RENDERING_EXPONENT,
+    SOLAR_MASS_KG,
     STAR_RADIUS_RENDERING_SCALE,
 } from '../shared/Constants';
+import { Vec2 } from '../shared/Vec2';
 import {
     BodyType,
     NO_PARENT,
-    bodyTypes,
-    bodyIndexById,
-    mass,
     aabbMaxX,
     aabbMaxY,
     aabbMinX,
     aabbMinY,
+    bodyIndexById,
+    bodyTypes,
+    mass,
     parentBodyIds,
     positionX,
     positionY,
     radii,
 } from '../sim/Body';
-import { Vec2 } from '../shared/Vec2';
+import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
 
 export type RenderViewport = {
     minX: number;
@@ -37,8 +38,7 @@ export type RenderViewport = {
     labelMargin: number;
 };
 
-const SOLAR_MASS_KG = 1.98847e30;
-export default class Graphics {
+export default class Renderer {
     static windowWidth: number;
     static windowHeight: number;
     static canvas: HTMLCanvasElement;
@@ -48,7 +48,9 @@ export default class Graphics {
     static pan = new Vec2(0, 0);
 
     static initialize(): boolean {
-        const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
+        const canvas = document.createElement('canvas') as HTMLCanvasElement;
+        document.body.appendChild(canvas);
+
         const ctx = canvas.getContext('2d');
 
         if (!ctx) {

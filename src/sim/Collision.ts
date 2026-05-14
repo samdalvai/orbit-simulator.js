@@ -108,3 +108,19 @@ export function computeImpactEnergy(aIndex: number, bIndex: number, normal: Vec2
 
     return 0.5 * reducedMass * impactSpeed * impactSpeed;
 }
+
+export function getDebrisCount(
+    radiusKm: number,
+    minRadiusKm: number,
+    maxRadiusKm: number,
+    minDebris: number,
+    maxDebris: number,
+): number {
+    const logMin = Math.log10(minRadiusKm);
+    const logMax = Math.log10(maxRadiusKm);
+    const logRadius = Math.log10(radiusKm);
+
+    const t = Math.min(Math.max((logRadius - logMin) / (logMax - logMin), 0), 1);
+
+    return Math.round(minDebris + t * (maxDebris - minDebris));
+}

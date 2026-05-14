@@ -22,6 +22,7 @@ import {
     velocityX,
     velocityY,
 } from '../sim/Body';
+import { getDebrisCount } from '../sim/Collision';
 import { Engine } from '../sim/Engine';
 import AssetStore from '../view/AssetStore';
 import { BodyRenderStyle } from '../view/BodyRenderStyle';
@@ -194,63 +195,71 @@ export default class Application {
 
                     if (inputEvent.key === 'z') {
                         for (const [id, style] of this.bodyRenderStyles) {
-                            if (style.label === 'Moon') {
-                                const index = bodyIndexById[id];
-                                const radius = radii[index];
-                                const bodyMass = mass[index];
-                                const numOfDebries = 10;
+                            // if (style.label === 'Moon') {
+                            const index = bodyIndexById[id];
+                            const radius = radii[index];
+                            const bodyMass = mass[index];
+                            const numOfDebries = getDebrisCount(
+                                radius,
+                                1, // 1 km
+                                700_000, // star radius
+                                4,
+                                25,
+                            );
 
-                                const debrieRadius = radius / Math.sqrt(numOfDebries);
-                                const debrieMass = bodyMass / numOfDebries;
+                            const debrieRadius = radius / Math.sqrt(numOfDebries);
+                            const debrieMass = bodyMass / numOfDebries;
 
-                                const posX = positionX[index];
-                                const posY = positionY[index];
-                                const velX = velocityX[index];
-                                const velY = velocityY[index];
-                                const bodyType = bodyTypes[index];
+                            const posX = positionX[index];
+                            const posY = positionY[index];
+                            const velX = velocityX[index];
+                            const velY = velocityY[index];
+                            const bodyType = bodyTypes[index];
 
-                                const angleStep = (Math.PI * 2) / numOfDebries;
+                            if (bodyType === BodyType.ASTEROID) continue;
 
-                                // Distance from original center.
-                                // Needs to be at least debrieRadius * 2 to avoid overlap between neighbors.
-                                // Clamp inside original radius.
-                                const spawnRadius = radius - debrieRadius;
+                            const angleStep = (Math.PI * 2) / numOfDebries;
 
-                                removeBody(id);
-                                this.bodyRenderStyles.delete(id);
+                            // Distance from original center.
+                            // Needs to be at least debrieRadius * 2 to avoid overlap between neighbors.
+                            // Clamp inside original radius.
+                            const spawnRadius = radius - debrieRadius;
 
-                                for (let i = 0; i < numOfDebries; i++) {
-                                    const angle = i * angleStep;
+                            removeBody(id);
+                            this.bodyRenderStyles.delete(id);
 
-                                    const debrisX = posX + Math.cos(angle) * spawnRadius;
-                                    const debrisY = posY + Math.sin(angle) * spawnRadius;
+                            for (let i = 0; i < numOfDebries; i++) {
+                                const angle = i * angleStep;
 
-                                    const newId = addNewBody(
-                                        debrisX,
-                                        debrisY,
-                                        debrieRadius,
-                                        debrieMass,
-                                        // bodyType,
-                                        BodyType.ASTEROID,
-                                        new Vec2(velX, velY),
-                                    );
-                                    const colors = ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'];
-                                    const colorIndex = Math.floor(Math.random() * 4);
+                                const debrisX = posX + Math.cos(angle) * spawnRadius;
+                                const debrisY = posY + Math.sin(angle) * spawnRadius;
 
-                                    const debrieStyle: BodyRenderStyle = {
-                                        fillColor: colors[colorIndex],
-                                        // fillColor: style.fillColor,
-                                        texture: null,
-                                        label: '',
-                                        labelColor: '',
-                                        labelFontSize: 0,
-                                    };
+                                const newId = addNewBody(
+                                    debrisX,
+                                    debrisY,
+                                    debrieRadius,
+                                    debrieMass,
+                                    // bodyType,
+                                    BodyType.ASTEROID,
+                                    new Vec2(velX, velY),
+                                );
+                                const colors = ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'];
+                                const colorIndex = Math.floor(Math.random() * 4);
 
-                                    this.bodyRenderStyles.set(newId, debrieStyle);
-                                }
+                                const debrieStyle: BodyRenderStyle = {
+                                    fillColor: colors[colorIndex],
+                                    // fillColor: style.fillColor,
+                                    texture: null,
+                                    label: '',
+                                    labelColor: '',
+                                    labelFontSize: 0,
+                                };
 
-                                break;
+                                this.bodyRenderStyles.set(newId, debrieStyle);
                             }
+
+                            break;
+                            // }
                         }
                     }
 

@@ -5,7 +5,7 @@ import { solarSystem } from '../scenarios/SolarSystem';
 import { testSystem } from '../scenarios/TestSystem';
 import { tripleStarSystem } from '../scenarios/TripleStarSystem';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from '../shared/Constants';
-import { clamp } from '../shared/Math';
+import { clamp, randomNumber } from '../shared/Math';
 import { formatDuration } from '../shared/Utils';
 import { Vec2 } from '../shared/Vec2';
 import {
@@ -205,16 +205,6 @@ export default class Application {
                             const index = bodyIndexById[id];
                             const radius = radii[index];
                             const bodyMass = mass[index];
-                            const numOfDebries = getDebrisCount(
-                                radius,
-                                1, // 1 km
-                                700_000, // star radius
-                                4,
-                                25,
-                            );
-
-                            const debrieRadius = radius / Math.sqrt(numOfDebries);
-                            const debrieMass = bodyMass / numOfDebries;
 
                             const posX = positionX[index];
                             const posY = positionY[index];
@@ -224,30 +214,69 @@ export default class Application {
 
                             if (bodyType === BodyType.ASTEROID) continue;
 
-                            removeBody(id);
-                            this.bodyRenderStyles.delete(id);
+                            const numOfDebries = getDebrisCount(
+                                radius,
+                                1, // 1 km
+                                radius, // star radius
+                                4,
+                                25,
+                            );
 
-                            const circles = this.createHoneycombInCircle(radius, debrieRadius);
+                            const circlesRadius = radius / Math.sqrt(numOfDebries);
+                            const circles = this.createHoneycombInCircle(radius, circlesRadius);
+                            const circlesMass = bodyMass / circles.length;
+
+                            // console.log('main raadius: ', radius);
+                            // console.log('main mass: ', bodyMass);
+
+                            // console.log('circlesRadius: ', circlesRadius);
+                            // console.log('circles: ', circles);
+                            // console.log('circles mass: ', circlesMass);
+                            const colors = ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'];
 
                             for (const c of circles) {
                                 const debrisId = addNewBody(
                                     posX + c.x,
                                     posY + c.y,
-                                    debrieRadius,
-                                    debrieMass,
-                                    bodyType,
+                                    circlesRadius,
+                                    circlesMass,
+                                    BodyType.ASTEROID,
                                     new Vec2(velX, velY),
                                 );
-
+                                const colorIndex = Math.floor(Math.random() * 4);
+                                console.log('Color index: ', colorIndex);
                                 this.bodyRenderStyles.set(debrisId, {
-                                    fillColor: style.fillColor,
+                                    fillColor: colors[colorIndex],
                                     texture: null,
                                     label: '',
                                     labelColor: '',
                                     labelFontSize: 0,
-                                    renderRadius: getBodyRenderRadius(debrieRadius, bodyType),
+                                    renderRadius: (style.renderRadius / radius) * circlesRadius,
                                 });
                             }
+
+                            removeBody(id);
+                            this.bodyRenderStyles.delete(id);
+
+                            // const newId = addNewBody(
+                            //     // c.x,
+                            //     // c.y,
+                            //     randomNumber(-1000000, 1000000) * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+                            //     randomNumber(-1000000, 1000000) * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+                            //     695_700,
+                            //     circlesMass,
+                            //     bodyType,
+                            //     new Vec2(velX, velY),
+                            // );
+
+                            // this.bodyRenderStyles.set(newId, {
+                            //     fillColor: style.fillColor,
+                            //     texture: null,
+                            //     label: '',
+                            //     labelColor: '',
+                            //     labelFontSize: 0,
+                            //     renderRadius: 695_700,
+                            // });
 
                             // const debRadius = radius / 2;
                             // const posX1 = posX - debRadius;
@@ -327,45 +356,6 @@ export default class Application {
 
                             break;
 
-                            const angleStep = (Math.PI * 2) / numOfDebries;
-
-                            // Distance from original center.
-                            // Needs to be at least debrieRadius * 2 to avoid overlap between neighbors.
-                            // Clamp inside original radius.
-                            const spawnRadius = radius - debrieRadius;
-
-                            for (let i = 0; i < numOfDebries; i++) {
-                                const angle = i * angleStep;
-
-                                const debrisX = posX + Math.cos(angle) * spawnRadius;
-                                const debrisY = posY + Math.sin(angle) * spawnRadius;
-
-                                const newId = addNewBody(
-                                    debrisX,
-                                    debrisY,
-                                    debrieRadius,
-                                    debrieMass,
-                                    // bodyType,
-                                    BodyType.ASTEROID,
-                                    new Vec2(velX, velY),
-                                );
-                                const colors = ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'];
-                                const colorIndex = Math.floor(Math.random() * 4);
-
-                                const debrieStyle: BodyRenderStyle = {
-                                    fillColor: colors[colorIndex],
-                                    // fillColor: style.fillColor,
-                                    texture: null,
-                                    label: '',
-                                    labelColor: '',
-                                    labelFontSize: 0,
-                                    renderRadius: 1,
-                                };
-
-                                this.bodyRenderStyles.set(newId, debrieStyle);
-                            }
-
-                            break;
                             // }
                         }
                     }
@@ -555,8 +545,17 @@ export default class Application {
 
         this.renderer.beginWorld();
 
-        // const areaRadius = 70;
-        // const circlesRadius = 5;
+        // const areaRadius = 695_700;
+        // const numOfDebries = getDebrisCount(
+        //     areaRadius,
+        //     1, // 1 km
+        //     areaRadius, // star radius
+        //     4,
+        //     25,
+        // );
+
+        // const circlesRadius = areaRadius / Math.sqrt(numOfDebries);
+
         // const circles = this.createHoneycombInCircle(areaRadius, circlesRadius);
         // for (const c of circles) {
         //     this.renderer.drawCircle(c.x, c.y, circlesRadius, 'white');

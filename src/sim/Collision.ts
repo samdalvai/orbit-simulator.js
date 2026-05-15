@@ -78,7 +78,7 @@ export function resolveCollision(
 export function positionalCorrection(aIndex: number, bIndex: number, collision: Collision): void {
     const minRadius = Math.min(radii[aIndex], radii[bIndex]);
 
-    const percent = 0.5; // correction strength
+    const percent = 1; // correction strength
     const slop = minRadius * 0.01; // 1% of smaller body's radius
 
     const invMassSum = invMass[aIndex] + invMass[bIndex];

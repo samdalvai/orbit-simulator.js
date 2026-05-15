@@ -131,7 +131,7 @@ export default class Application {
             }
 
             if (this.demoIndex === 5) {
-                this.renderer.zoom = 0.00003;
+                this.renderer.zoom = 5;
                 createSolarSystem(testSystem, this.bodyRenderStyles);
             }
 
@@ -227,12 +227,15 @@ export default class Application {
                             removeBody(id);
                             this.bodyRenderStyles.delete(id);
 
-                            const posX1 = posX - radius / 2;
-                            const posX2 = posX + radius / 2;
+                            const debRadius = radius / 2;
+                            const posX1 = posX - debRadius;
+                            const posX2 = posX + debRadius;
+                            const posY3 = posY - debRadius * Math.sqrt(3);
+                            const posY4 = posY + debRadius * Math.sqrt(3);
 
                             // Test debries near to each other, 2 debries
                             const debris1 = addNewBody(
-                                -695_700,
+                                posX1,
                                 posY,
                                 radius / 2,
                                 bodyMass / 2,
@@ -240,16 +243,32 @@ export default class Application {
                                 new Vec2(velX, velY),
                             );
                             const debris2 = addNewBody(
-                                695_700,
+                                posX2,
                                 posY,
                                 radius / 2,
                                 bodyMass / 2,
                                 BodyType.STAR,
                                 new Vec2(velX, velY),
                             );
+                            const debris3 = addNewBody(
+                                posX,
+                                posY3,
+                                radius / 2,
+                                bodyMass / 2,
+                                BodyType.STAR,
+                                new Vec2(velX, velY),
+                            );
+                            const debris4 = addNewBody(
+                                posX,
+                                posY4,
+                                radius / 2,
+                                bodyMass / 2,
+                                BodyType.STAR,
+                                new Vec2(velX, velY),
+                            );
 
-                            console.log('pos 1: ', posX1);
-                            console.log('pos 2: ', posX2);
+                            // console.log('pos 1: ', posX1);
+                            // console.log('pos 2: ', posX2);
 
                             this.bodyRenderStyles.set(debris1, {
                                 fillColor: style.fillColor,
@@ -259,6 +278,20 @@ export default class Application {
                                 labelFontSize: 0,
                             });
                             this.bodyRenderStyles.set(debris2, {
+                                fillColor: style.fillColor,
+                                texture: null,
+                                label: '',
+                                labelColor: '',
+                                labelFontSize: 0,
+                            });
+                            this.bodyRenderStyles.set(debris3, {
+                                fillColor: style.fillColor,
+                                texture: null,
+                                label: '',
+                                labelColor: '',
+                                labelFontSize: 0,
+                            });
+                            this.bodyRenderStyles.set(debris4, {
                                 fillColor: style.fillColor,
                                 texture: null,
                                 label: '',

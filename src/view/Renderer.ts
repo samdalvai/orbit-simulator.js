@@ -350,7 +350,7 @@ export default class Renderer {
         const x = renderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const y = renderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         // const radius = this.getBodyRenderRadius(bodyIndex);
-        const radius = radii[bodyIndex];
+        const radius = radii[bodyIndex] * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
 
         const strokeColor = 'white';
         const fillColor = renderStyle.fillColor;

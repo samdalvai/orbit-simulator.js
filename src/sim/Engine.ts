@@ -89,6 +89,10 @@ export class Engine {
 
                     // TODO: do something with impact energy, e.g. explode planets
                     // const impact = computeImpactEnergy(a, b, collision.normal);
+
+                    // TODO: explode planets in some cases, in other cases merge them
+                    // E.g. if mass difference is high enough the smaller planet/body should be merged in the bigger one
+                    // if energy impact is high enough and there is not enough mass difference we can explode planets
                 }
             }
         }

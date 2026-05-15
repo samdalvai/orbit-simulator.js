@@ -12,8 +12,6 @@ import {
 } from './Body';
 
 export type Collision = {
-    aIndex: number;
-    bIndex: number;
     normal: Vec2;
     penetration: number;
 };
@@ -36,19 +34,17 @@ export function detectCircleCollision(aIndex: number, bIndex: number): Collision
     const ny = dist > 0 ? dy / dist : 0;
 
     return {
-        aIndex: aIndex,
-        bIndex: bIndex,
         normal: new Vec2(nx, ny), // from A → B
         penetration: radiusSum - dist,
     };
 }
 
 export function resolveCollision(
+    aIndex: number,
+    bIndex: number,
     collision: Collision,
     restitution = 0.2, // 0 = inelastic, 1 = elastic
 ): void {
-    const aIndex = collision.aIndex;
-    const bIndex = collision.bIndex;
     const n = collision.normal;
 
     const rvx = velocityX[bIndex] - velocityX[aIndex];
@@ -75,21 +71,23 @@ export function resolveCollision(
     applyImpulseLinear(bIndex, new Vec2(impulseX, impulseY));
 }
 
-export function positionalCorrection(collision: Collision): void {
-    const aIndex = collision.aIndex;
-    const bIndex = collision.bIndex;
+export function resolvePosition(aIndex: number, bIndex: number, collision: Collision, bias = 0.5): void {
     const minRadius = Math.min(radii[aIndex], radii[bIndex]);
 
-    const percent = 1; // correction strength
     const slop = minRadius * 0.01; // 1% of smaller body's radius
 
     const invMassSum = invMass[aIndex] + invMass[bIndex];
     if (invMassSum === 0) return;
 
-    const correctionMag = (Math.max(collision.penetration - slop, 0) / invMassSum) * percent;
+    const correctionMag = (Math.max(collision.penetration - slop, 0) / invMassSum) * bias;
 
     const cx = correctionMag * collision.normal.x;
     const cy = correctionMag * collision.normal.y;
+
+    console.log('Correction a (x)', cx * invMass[aIndex]);
+    console.log('Correction a (y)', cy * invMass[aIndex]);
+    console.log('Correction b (x)', cx * invMass[bIndex]);
+    console.log('Correction b (y)', cy * invMass[bIndex]);
 
     positionX[aIndex] -= cx * invMass[aIndex];
     positionY[aIndex] -= cy * invMass[aIndex];

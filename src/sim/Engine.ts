@@ -12,10 +12,12 @@ import {
     integrateVerletVelocity,
     swapBodies,
 } from './Body';
-import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
+import { Collision, detectCircleCollision, resolvePosition, resolveCollision as resolveVelocity } from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
 
 export class Engine {
+    private readonly collisionPairs: [number, number][] = [];
+
     update(dt: number): void {
         const bodyCount = getBodyCount();
 
@@ -31,6 +33,7 @@ export class Engine {
         }
 
         this.broadPhase();
+        this.solveCollisions();
     }
 
     initializeVerlet(): void {
@@ -66,6 +69,7 @@ export class Engine {
         }
 
         // Broad phase check with prune & sweep algorithm
+        this.collisionPairs.length = 0;
         for (let i = 0, len = count; i < len; i++) {
             const maxXCurrent = aabbMaxX[i];
             const minYCurrent = aabbMinY[i];
@@ -80,20 +84,49 @@ export class Engine {
                     continue;
                 }
 
-                // Objects may be colliding: resolve collision
-                const collision = detectCircleCollision(i, j);
+                // Objects may be colliding
+                this.collisionPairs.push([i, j]);
 
-                if (collision) {
-                    resolveCollision(collision, 0.2);
-                    positionalCorrection(collision);
+                // const collision = detectCircleCollision(i, j);
 
-                    // TODO: do something with impact energy, e.g. explode planets
-                    // const impact = computeImpactEnergy(a, b, collision.normal);
+                // if (collision) {
+                //     this.collisions.push(collision);
+                //     // resolveCollision(collision, 0.2);
+                //     // resolvePosition(collision);
 
-                    // TODO: explode planets in some cases, in other cases merge them
-                    // E.g. if mass difference is high enough the smaller planet/body should be merged in the bigger one
-                    // if energy impact is high enough and there is not enough mass difference we can explode planets
-                }
+                //     // TODO: do something with impact energy, e.g. explode planets
+                //     // const impact = computeImpactEnergy(a, b, collision.normal);
+
+                //     // TODO: explode planets in some cases, in other cases merge them
+                //     // E.g. if mass difference is high enough the smaller planet/body should be merged in the bigger one
+                //     // if energy impact is high enough and there is not enough mass difference we can explode planets
+                // }
+            }
+        }
+    }
+
+    private solveCollisions() {
+        const velocityIterations = 1;
+        const positionIterations = 20;
+        const pairs = this.collisionPairs;
+
+        // 1. Velocity / impulse solve
+        for (let iter = 0; iter < velocityIterations; iter++) {
+            for (const [aIndex, bIndex] of pairs) {
+                const collision = detectCircleCollision(aIndex, bIndex);
+                if (!collision) continue;
+
+                resolveVelocity(aIndex, bIndex, collision);
+            }
+        }
+
+        // 2. Position solve
+        for (let iter = 0; iter < positionIterations; iter++) {
+            for (const [aIndex, bIndex] of pairs) {
+                const collision = detectCircleCollision(aIndex, bIndex);
+                if (!collision) continue;
+
+                resolvePosition(aIndex, bIndex, collision, 0.5);
             }
         }
     }

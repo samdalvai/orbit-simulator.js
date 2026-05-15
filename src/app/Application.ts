@@ -5,7 +5,7 @@ import { solarSystem } from '../scenarios/SolarSystem';
 import { testSystem } from '../scenarios/TestSystem';
 import { tripleStarSystem } from '../scenarios/TripleStarSystem';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from '../shared/Constants';
-import { clamp, randomNumber } from '../shared/Math';
+import { clamp } from '../shared/Math';
 import { formatDuration } from '../shared/Utils';
 import { Vec2 } from '../shared/Vec2';
 import {
@@ -59,7 +59,7 @@ export default class Application {
     private debug = true;
     private FPS = 0;
     private lastFPSUpdate = 0;
-    private showTextures = true;
+    private showTextures = false;
     private showLabels = true;
     private showMoonLabels = true;
     private totalTime = 0;
@@ -244,7 +244,6 @@ export default class Application {
                                     new Vec2(velX, velY),
                                 );
                                 const colorIndex = Math.floor(Math.random() * 4);
-                                console.log('Color index: ', colorIndex);
                                 this.bodyRenderStyles.set(debrisId, {
                                     fillColor: colors[colorIndex],
                                     texture: null,

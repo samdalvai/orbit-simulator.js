@@ -473,12 +473,12 @@ export default class Application {
         points.push(new Vec2());
 
         const directions = [
-            { q: 0, s: 1 },
             { q: -1, s: 1 },
             { q: -1, s: 0 },
             { q: 0, s: -1 },
             { q: 1, s: -1 },
             { q: 1, s: 0 },
+            { q: 0, s: 1 },
         ];
 
         for (let ring = 1; ring <= rings; ring++) {

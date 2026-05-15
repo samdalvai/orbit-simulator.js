@@ -43,7 +43,8 @@ export class Engine {
         }
 
         this.broadPhase();
-        this.checkCollisionDamage();
+        // TODO: disable until stale body id bug is resolved
+        // this.checkCollisionDamage();
         this.solvePositions();
 
         this.clearAllForces();
@@ -128,6 +129,7 @@ export class Engine {
 
     private solvePositions() {
         const pairs = this.collisionPairs;
+        console.log('collision pais: ', pairs.length);
 
         for (let iter = 0; iter < POSITION_ITERATIONS; iter++) {
             for (const [aIndex, bIndex] of pairs) {

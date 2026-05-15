@@ -1,5 +1,3 @@
-import AssetStore from '../view/AssetStore';
-import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../view/BodyRenderStyle';
 import { EARTH_RADIUS_KM, G } from '../shared/Constants';
 import {
     clamp,
@@ -8,6 +6,7 @@ import {
     getOrbitalSpeedByBodyPositionAndMass,
     randomNumber,
 } from '../shared/Math';
+import { Vec2 } from '../shared/Vec2';
 import {
     BodyId,
     BodyType,
@@ -20,7 +19,8 @@ import {
     velocityX,
     velocityY,
 } from '../sim/Body';
-import { Vec2 } from '../shared/Vec2';
+import AssetStore from '../view/AssetStore';
+import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE, getBodyRenderRadius } from '../view/BodyRenderStyle';
 import { BeltSpec, CelestialBodySpec, SolarSystemSpec } from './BodySpec';
 
 export function createSolarSystem(
@@ -129,6 +129,7 @@ export function createRenderStyle(spec: CelestialBodySpec, bodyType: BodyType): 
         label: spec.name,
         labelColor: spec.labelColor ?? getDefaultLabelColor(spec, bodyType),
         labelFontSize: spec.labelFontSize ?? getLabelFontSize(spec, bodyType),
+        renderRadius: getBodyRenderRadius(spec.radiusKm, bodyType),
     };
 }
 

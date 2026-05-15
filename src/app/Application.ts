@@ -14,14 +14,17 @@ import {
     bodyTypes,
     getBodyCount,
     mass,
+    positionX,
+    positionY,
     radii,
     removeBody,
     velocityX,
     velocityY,
 } from '../sim/Body';
+import { explodeBody } from '../sim/Collision';
 import { Engine } from '../sim/Engine';
 import AssetStore from '../view/AssetStore';
-import { BodyRenderStyle } from '../view/BodyRenderStyle';
+import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE, getBodyRenderRadius } from '../view/BodyRenderStyle';
 import GUI from '../view/GUI';
 import InputManager, { MouseButton } from '../view/InputManager';
 import Renderer from '../view/Renderer';
@@ -63,8 +66,8 @@ export default class Application {
     private blackHole: number | null = null;
 
     constructor() {
-        this.engine = new Engine();
-        this.renderer = new Renderer();
+        this.engine = new Engine(this.bodyRenderStyles);
+        this.renderer = new Renderer(this.bodyRenderStyles);
         this.inputManager = new InputManager();
     }
 
@@ -124,6 +127,21 @@ export default class Application {
                 this.renderer.zoom = 0.01;
                 createRandomGalaxy(this.bodyRenderStyles);
             }
+
+            // if (this.demoIndex === 5) {
+            //     this.renderer.zoom = 0.00005;
+            //     // this.renderer.zoom = 0.005;
+            //     createSolarSystem(testSystem, this.bodyRenderStyles);
+            //     // const id = addNewBody(-500_000 * 500, 0, 500_000, 98847e28, BodyType.PLANET);
+            //     // this.bodyRenderStyles.set(id, {
+            //     //     fillColor: '',
+            //     //     texture: AssetStore.getTexture('moonLuna'),
+            //     //     label: 'Planet',
+            //     //     labelColor: 'white',
+            //     //     labelFontSize: 12,
+            //     //     renderRadius: getBodyRenderRadius(500_000, BodyType.PLANET),
+            //     // });
+            // }
 
             this.engine.initializeVerlet();
         } finally {
@@ -190,7 +208,10 @@ export default class Application {
                     }
 
                     if (inputEvent.key === 'z') {
-                        // For testing
+                        for (const [id] of this.bodyRenderStyles) {
+                            explodeBody(id, this.bodyRenderStyles);
+                            break;
+                        }
                     }
 
                     if (key === 'r' && inputEvent.shiftKey) {
@@ -328,21 +349,33 @@ export default class Application {
 
         this.renderer.beginWorld();
 
+        // const areaRadius = 695_700;
+        // const numOfDebries = getDebrisCount(
+        //     areaRadius,
+        //     1, // 1 km
+        //     areaRadius, // star radius
+        //     4,
+        //     25,
+        // );
+
+        // const circlesRadius = areaRadius / Math.sqrt(numOfDebries);
+
+        // const circles = this.createHoneycombInCircle(areaRadius, circlesRadius);
+        // for (const c of circles) {
+        //     this.renderer.drawCircle(c.x, c.y, circlesRadius, 'white');
+        // }
+
+        // this.renderer.drawCircle(0, 0, areaRadius, 'red');
+
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {
-                this.renderer.drawStarGlow(i, this.bodyRenderStyles.get(bodyIds[i]));
+                this.renderer.drawStarGlow(i);
             }
         }
 
         // Draw all bodies
         for (let i = 0; i < getBodyCount(); i++) {
-            this.renderer.drawBody(
-                i,
-                this.bodyRenderStyles.get(bodyIds[i]),
-                this.showTextures,
-                this.showLabels,
-                this.showMoonLabels,
-            );
+            this.renderer.drawBody(i, this.showTextures, this.showLabels, this.showMoonLabels);
         }
 
         this.renderer.endWorld();
@@ -430,12 +463,14 @@ export default class Application {
         const tolerance = BODY_HOVER_TOLERANCE_PIXELS / this.renderer.zoom;
 
         for (let i = 0; i < getBodyCount(); i++) {
-            this.renderer.resolveBodyRenderPosition(i);
+            const bodyId = bodyIds[i];
+            const style = this.bodyRenderStyles.get(bodyId) ?? DEFAULT_BODY_RENDER_STYLE;
+            this.renderer.resolveBodyRenderPosition(i, style);
             const x = this.renderer.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
             const y = this.renderer.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
             const dx = this.inputManager.mousePosition.x - x;
             const dy = this.inputManager.mousePosition.y - y;
-            const hitRadius = this.renderer.getBodyRenderRadius(i) + tolerance;
+            const hitRadius = style.renderRadius + tolerance;
             const distanceSq = dx * dx + dy * dy;
 
             if (distanceSq <= hitRadius * hitRadius && distanceSq < bestDistanceSq) {
@@ -456,10 +491,13 @@ export default class Application {
         const bodyType = BodyType[bodyTypes[bodyIndex]];
         const type = bodyType[0] + bodyType.slice(1).toLowerCase();
         const title = style?.label || type;
+        const pX = positionX[bodyIndex];
+        const pY = positionY[bodyIndex];
         const vX = velocityX[bodyIndex];
         const vY = velocityY[bodyIndex];
         const velocityMag = Math.sqrt(vX * vX + vY * vY);
         const rows: Array<[string, string]> = [
+            ['Position', `x=${pX.toExponential(2)}, y=${pY.toExponential(2)} (km)`],
             ['Orbital speed', `${velocityMag.toFixed(2)} km/s`],
             ['Mass', `${mass[bodyIndex].toExponential(3)} kg`],
             ['Radius', `${radii[bodyIndex].toLocaleString(undefined, { maximumFractionDigits: 1 })} km`],
@@ -467,7 +505,7 @@ export default class Application {
         ];
 
         const width = 300;
-        const height = 178;
+        const height = 200;
         const padding = 14;
         const imageSize = 54;
         const mouseScreenX =
@@ -552,7 +590,9 @@ export default class Application {
     }
 
     private panToBody(bodyIndex: number): void {
-        this.renderer.resolveBodyRenderPosition(bodyIndex);
+        const bodyId = bodyIds[bodyIndex];
+        const style = this.bodyRenderStyles.get(bodyId) ?? DEFAULT_BODY_RENDER_STYLE;
+        this.renderer.resolveBodyRenderPosition(bodyIndex, style);
         this.renderer.pan.x = this.renderer.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         this.renderer.pan.y = this.renderer.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
     }
@@ -562,7 +602,7 @@ export default class Application {
 
         const x = this.inputManager.mousePosition.x / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const y = this.inputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const blackHoleId = addNewBody(x, y, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.STAR);
+        const blackHoleId = addNewBody(x, y, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.BLACK_HOLE);
 
         if (blackHoleId !== null) {
             this.bodyRenderStyles.set(blackHoleId, {
@@ -571,6 +611,7 @@ export default class Application {
                 label: 'Black Hole',
                 labelColor: '#d9b8ff',
                 labelFontSize: 16,
+                renderRadius: getBodyRenderRadius(BLACK_HOLE_RADIUS_KM, BodyType.STAR),
             });
 
             this.blackHole = blackHoleId;

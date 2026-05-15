@@ -62,3 +62,56 @@ export function clamp(value: number, low: number, high: number): number {
 export function degreesToRadians(degrees: number): number {
     return (degrees * Math.PI) / 180;
 }
+
+function createHoneycombCircles(radius: number, rings: number): Vec2[] {
+    const points: Vec2[] = [];
+
+    points.push(new Vec2());
+
+    const directions = [
+        { q: -1, s: 1 },
+        { q: -1, s: 0 },
+        { q: 0, s: -1 },
+        { q: 1, s: -1 },
+        { q: 1, s: 0 },
+        { q: 0, s: 1 },
+    ];
+
+    for (let ring = 1; ring <= rings; ring++) {
+        let q = ring;
+        let s = 0;
+
+        for (const dir of directions) {
+            for (let step = 0; step < ring; step++) {
+                const x = radius * 2 * (q + s / 2);
+                const y = radius * Math.sqrt(3) * s;
+
+                points.push(new Vec2(x, y));
+
+                q += dir.q;
+                s += dir.s;
+            }
+        }
+    }
+
+    return points;
+}
+
+/**
+ * Creates as many circles as possible in a honeycomb arrangement inside a body radius
+ */
+export function createHoneycombInCircle(circleRadius: number, bodyRadius: number): Vec2[] {
+    const points: Vec2[] = [];
+
+    const maxRings = Math.ceil(circleRadius / (bodyRadius * 2));
+
+    const candidates = createHoneycombCircles(bodyRadius, maxRings);
+
+    for (const p of candidates) {
+        if (Math.hypot(p.x, p.y) + bodyRadius <= circleRadius) {
+            points.push(p);
+        }
+    }
+
+    return points;
+}

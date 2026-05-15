@@ -7,6 +7,7 @@ export enum BodyType {
     PLANET,
     MOON,
     ASTEROID,
+    BLACK_HOLE,
 }
 
 export type BodyId = number;
@@ -45,6 +46,7 @@ export const aabbMinY = new Float64Array(CAPACITY);
 export const aabbMaxY = new Float64Array(CAPACITY);
 
 let bodyCount = 0;
+let nextBodyId = 0;
 
 export function getBodyCount(): number {
     return bodyCount;
@@ -52,6 +54,7 @@ export function getBodyCount(): number {
 
 export function clearBodies(): void {
     bodyCount = 0;
+    nextBodyId = 0;
 }
 
 export function addNewBody(
@@ -78,11 +81,11 @@ export function addNewBody(
     // - `bodyCount` tracks how many bodies are currently alive in the dense arrays.
     // - `nextBodyId` only generates unique IDs and never decreases during a simulation.
     // - removed IDs should be invalidated, so stale references cannot alias another body.
-    const index = bodyCount;
-    const bodyId = bodyCount++;
+    const index = bodyCount++;
+    const bodyId = nextBodyId++;
 
     bodyIds[index] = bodyId;
-    bodyIndexById[index] = bodyId;
+    bodyIndexById[bodyId] = index;
 
     parentBodyIds[index] = parentId;
     bodyTypes[index] = bodyType;

@@ -1,16 +1,8 @@
 import {
-    ASTEROID_MIN_RENDERING_RADIUS,
-    ASTEROID_RADIUS_RENDERING_SCALE,
-    EARTH_RADIUS_KM,
     KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-    MIN_BODY_RENDERING_RADIUS,
     MIN_MOON_ORBIT_RENDERING_GAP,
     MOON_ORBIT_RENDERING_SCALE,
-    MOON_RADIUS_RENDERING_SCALE,
-    PLANET_RADIUS_RENDERING_SCALE,
-    RADIUS_RENDERING_EXPONENT,
     SOLAR_MASS_KG,
-    STAR_RADIUS_RENDERING_SCALE,
 } from '../shared/Constants';
 import { Vec2 } from '../shared/Vec2';
 import {
@@ -20,13 +12,13 @@ import {
     aabbMaxY,
     aabbMinX,
     aabbMinY,
+    bodyIds,
     bodyIndexById,
     bodyTypes,
     mass,
     parentBodyIds,
     positionX,
     positionY,
-    radii,
 } from '../sim/Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
 
@@ -57,8 +49,9 @@ export default class Renderer {
     // Cached values for rendering
     bodyRenderPositionX = 0;
     bodyRenderPositionY = 0;
+    private bodyRenderStyles: Map<number, BodyRenderStyle>;
 
-    constructor() {
+    constructor(bodyRenderStyles: Map<number, BodyRenderStyle>) {
         const canvas = document.createElement('canvas') as HTMLCanvasElement;
         document.body.appendChild(canvas);
 
@@ -74,6 +67,7 @@ export default class Renderer {
         canvas.height = window.innerHeight;
         this.windowWidth = window.innerWidth;
         this.windowHeight = window.innerHeight;
+        this.bodyRenderStyles = bodyRenderStyles;
 
         window.addEventListener('resize', () => {
             this.resize(canvas);
@@ -187,10 +181,10 @@ export default class Renderer {
         this.ctx.strokeRect(x, y, width, height);
     }
 
-    drawCircle(radius: number, color = 'white'): void {
+    drawCircle(x: number, y: number, radius: number, color = 'white'): void {
         // Draw the circle
         this.ctx.beginPath();
-        this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
         this.ctx.strokeStyle = color;
         this.ctx.stroke();
     }
@@ -227,23 +221,25 @@ export default class Renderer {
         this.ctx.restore();
     }
 
-    resolveBodyRenderPosition(bodyIndex: number): void {
+    resolveBodyRenderPosition(bodyIndex: number, bodyStyle: BodyRenderStyle): void {
         if (bodyTypes[bodyIndex] !== BodyType.MOON || parentBodyIds[bodyIndex] === NO_PARENT) {
             this.bodyRenderPositionX = positionX[bodyIndex];
             this.bodyRenderPositionY = positionY[bodyIndex];
             return;
         }
 
-        const parentIndex = bodyIndexById[parentBodyIds[bodyIndex]];
-        this.resolveBodyRenderPosition(parentIndex);
+        const parentId = parentBodyIds[bodyIndex];
+        const parentIndex = bodyIndexById[parentId];
+        this.resolveBodyRenderPosition(parentIndex, bodyStyle);
+
         const parentRenderX = this.bodyRenderPositionX;
         const parentRenderY = this.bodyRenderPositionY;
         let moonOffsetX = (positionX[bodyIndex] - positionX[parentIndex]) * MOON_ORBIT_RENDERING_SCALE;
         let moonOffsetY = (positionY[bodyIndex] - positionY[parentIndex]) * MOON_ORBIT_RENDERING_SCALE;
+
+        const parentStyle = this.bodyRenderStyles.get(parentId) ?? DEFAULT_BODY_RENDER_STYLE;
         const minMoonOrbitDistance =
-            (this.getBodyRenderRadius(parentIndex) +
-                this.getBodyRenderRadius(bodyIndex) +
-                MIN_MOON_ORBIT_RENDERING_GAP) /
+            (parentStyle.renderRadius + bodyStyle.renderRadius + MIN_MOON_ORBIT_RENDERING_GAP) /
             KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const moonOffsetMagnitudeSq = moonOffsetX * moonOffsetX + moonOffsetY * moonOffsetY;
         const minMoonOrbitDistanceSq = minMoonOrbitDistance * minMoonOrbitDistance;
@@ -258,44 +254,18 @@ export default class Renderer {
         this.bodyRenderPositionY = parentRenderY + moonOffsetY;
     }
 
-    getBodyRenderRadius(bodyIndex: number): number {
-        const radius =
-            Math.pow(radii[bodyIndex] / EARTH_RADIUS_KM, RADIUS_RENDERING_EXPONENT) *
-            this.getBodyRadiusRenderingScale(bodyTypes[bodyIndex]);
-
-        return Math.max(this.getBodyMinRenderingRadius(bodyTypes[bodyIndex]), radius);
-    }
-
-    private getBodyRadiusRenderingScale(bodyType: BodyType): number {
-        switch (bodyType) {
-            case BodyType.STAR:
-                return STAR_RADIUS_RENDERING_SCALE;
-            case BodyType.MOON:
-                return MOON_RADIUS_RENDERING_SCALE;
-            case BodyType.ASTEROID:
-                return ASTEROID_RADIUS_RENDERING_SCALE;
-            case BodyType.PLANET:
-            default:
-                return PLANET_RADIUS_RENDERING_SCALE;
-        }
-    }
-
-    private getBodyMinRenderingRadius(bodyType: BodyType): number {
-        return bodyType === BodyType.ASTEROID ? ASTEROID_MIN_RENDERING_RADIUS : MIN_BODY_RENDERING_RADIUS;
-    }
-
-    drawStarGlow(bodyIndex: number, style: BodyRenderStyle | undefined): void {
+    drawStarGlow(bodyIndex: number): void {
         if (bodyTypes[bodyIndex] !== BodyType.STAR) {
             return;
         }
 
-        const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
-        this.resolveBodyRenderPosition(bodyIndex);
+        const renderStyle = this.bodyRenderStyles.get(bodyIds[bodyIndex]) ?? DEFAULT_BODY_RENDER_STYLE;
+        this.resolveBodyRenderPosition(bodyIndex, renderStyle);
         const x = this.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const y = this.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const radius = this.getBodyRenderRadius(bodyIndex);
+        const renderRadius = renderStyle.renderRadius;
         const massFactor = Math.max(0.5, Math.min(4, Math.pow(mass[bodyIndex] / SOLAR_MASS_KG, 0.2)));
-        const lightRadius = radius * (20 + massFactor * 0.1);
+        const lightRadius = renderRadius * (20 + massFactor * 0.1);
 
         if (
             x + lightRadius < this.viewPort.minX ||
@@ -321,7 +291,7 @@ export default class Renderer {
             return;
         }
 
-        const gradient = this.ctx.createRadialGradient(x, y, radius, x, y, lightRadius);
+        const gradient = this.ctx.createRadialGradient(x, y, renderRadius, x, y, lightRadius);
         gradient.addColorStop(0, renderStyle.fillColor);
         gradient.addColorStop(0.1, renderStyle.fillColor);
         gradient.addColorStop(1, 'transparent');
@@ -336,20 +306,14 @@ export default class Renderer {
         this.ctx.restore();
     }
 
-    drawBody(
-        bodyIndex: number,
-        style: BodyRenderStyle | undefined,
-        showTextures: boolean,
-        showLabels: boolean,
-        showMoonLabels: boolean,
-    ): void {
-        const renderStyle = style ?? DEFAULT_BODY_RENDER_STYLE;
-        this.resolveBodyRenderPosition(bodyIndex);
+    drawBody(bodyIndex: number, showTextures: boolean, showLabels: boolean, showMoonLabels: boolean): void {
+        const renderStyle = this.bodyRenderStyles.get(bodyIds[bodyIndex]) ?? DEFAULT_BODY_RENDER_STYLE;
+        this.resolveBodyRenderPosition(bodyIndex, renderStyle);
         const renderPositionX = this.bodyRenderPositionX;
         const renderPositionY = this.bodyRenderPositionY;
         const x = renderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const y = renderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const radius = this.getBodyRenderRadius(bodyIndex);
+        const renderRadius = renderStyle.renderRadius;
 
         const strokeColor = 'white';
         const fillColor = renderStyle.fillColor;
@@ -367,8 +331,8 @@ export default class Renderer {
         const maxYScreen = (aabbMaxY[bodyIndex] + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const aabbHalfWidth = (maxXScreen - minXScreen) * 0.5;
         const aabbHalfHeight = (maxYScreen - minYScreen) * 0.5;
-        const paddingX = Math.max(0, radius - aabbHalfWidth) + labelMargin;
-        const paddingY = Math.max(0, radius - aabbHalfHeight) + labelMargin;
+        const paddingX = Math.max(0, renderRadius - aabbHalfWidth) + labelMargin;
+        const paddingY = Math.max(0, renderRadius - aabbHalfHeight) + labelMargin;
 
         if (
             maxXScreen + paddingX < this.viewPort.minX ||
@@ -382,18 +346,18 @@ export default class Renderer {
         this.ctx.save();
         this.ctx.translate(x, y);
 
-        const screenRadius = radius * this.zoom;
+        const screenRadius = renderRadius * this.zoom;
         if (screenRadius < 0.5) {
             // total size of the body is less than 1 px, skip drawing textures
             const screenPixel = 1 / this.zoom;
             const halfScreenPixel = -screenPixel / 2;
             this.drawFillRect(halfScreenPixel, halfScreenPixel, screenPixel, screenPixel, fillColor);
         } else if (!showTextures) {
-            this.drawCircle(radius, strokeColor);
+            this.drawCircle(0, 0, renderRadius, strokeColor);
         } else if (texture) {
-            this.drawTexture(radius * 2, radius * 2, texture, 1.2);
+            this.drawTexture(renderRadius * 2, renderRadius * 2, texture, 1.2);
         } else {
-            this.drawFillCircle(0, 0, radius, fillColor);
+            this.drawFillCircle(0, 0, renderRadius, fillColor);
         }
 
         this.ctx.restore();
@@ -404,7 +368,7 @@ export default class Renderer {
             const labelGap = Math.max(8, labelFontSize * 0.6);
 
             this.ctx.save();
-            this.ctx.translate(x + radius, y + radius);
+            this.ctx.translate(x + renderRadius, y + renderRadius);
             this.ctx.scale(1 / this.zoom, -1 / this.zoom);
             this.ctx.fillStyle = labelColor;
             this.ctx.font = `${labelFontSize}px Arial`;

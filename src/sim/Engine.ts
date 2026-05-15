@@ -1,27 +1,50 @@
-import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
 import { G } from '../shared/Constants';
+import { BodyRenderStyle } from '../view/BodyRenderStyle';
 import {
+    aabbMaxX,
+    aabbMaxY,
+    aabbMinX,
+    aabbMinY,
+    bodyIds,
     clearBodies,
     clearForces,
     getBodyCount,
     initializeAcceleration,
     integrateVerletPosition,
     integrateVerletVelocity,
-    aabbMaxX,
-    aabbMaxY,
-    aabbMinX,
-    aabbMinY,
+    mass,
     swapBodies,
 } from './Body';
+import {
+    computeImpactEnergy,
+    detectCircleCollision,
+    explodeBody,
+    resolvePosition,
+    resolveCollision as resolveVelocity,
+} from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
 
+const POSITION_ITERATIONS = 4;
+const VELOCITY_ITERATIONS = 1;
+const DESTROY_THRESHOLD = 1e-1;
 export class Engine {
+    private bodyRenderStyles: Map<number, BodyRenderStyle>;
+    private readonly collisionPairs: [number, number][] = [];
+
+    constructor(bodyRenderStyles: Map<number, BodyRenderStyle>) {
+        this.bodyRenderStyles = bodyRenderStyles;
+    }
+
     update(dt: number): void {
         const bodyCount = getBodyCount();
 
         for (let i = 0; i < bodyCount; i++) {
             integrateVerletPosition(i, dt);
         }
+
+        this.broadPhase();
+        this.checkCollisionDamage();
+        this.solvePositions();
 
         this.clearAllForces();
         applyBarnesHutGravitationalForces(G);
@@ -30,7 +53,7 @@ export class Engine {
             integrateVerletVelocity(i, dt);
         }
 
-        this.broadPhase();
+        this.solveVelocities();
     }
 
     initializeVerlet(): void {
@@ -66,6 +89,7 @@ export class Engine {
         }
 
         // Broad phase check with prune & sweep algorithm
+        this.collisionPairs.length = 0;
         for (let i = 0, len = count; i < len; i++) {
             const maxXCurrent = aabbMaxX[i];
             const minYCurrent = aabbMinY[i];
@@ -80,16 +104,50 @@ export class Engine {
                     continue;
                 }
 
-                // Objects may be colliding: resolve collision
-                const collision = detectCircleCollision(i, j);
+                // Objects may be colliding
+                this.collisionPairs.push([i, j]);
+            }
+        }
+    }
 
-                if (collision) {
-                    resolveCollision(i, j, collision, 0.2);
-                    positionalCorrection(i, j, collision);
+    private checkCollisionDamage() {
+        const pairs = this.collisionPairs;
 
-                    // TODO: do something with impact energy, e.g. explode planets
-                    // const impact = computeImpactEnergy(a, b, collision.normal);
-                }
+        for (const [aIndex, bIndex] of pairs) {
+            const collision = detectCircleCollision(aIndex, bIndex);
+            if (!collision) continue;
+
+            const impactEnergy = computeImpactEnergy(aIndex, bIndex, collision.normal);
+            const energyPerKgA = impactEnergy / mass[aIndex];
+            const energyPerKgB = impactEnergy / mass[bIndex];
+
+            if (energyPerKgA > DESTROY_THRESHOLD) explodeBody(bodyIds[aIndex], this.bodyRenderStyles);
+            if (energyPerKgB > DESTROY_THRESHOLD) explodeBody(bodyIds[bIndex], this.bodyRenderStyles);
+        }
+    }
+
+    private solvePositions() {
+        const pairs = this.collisionPairs;
+
+        for (let iter = 0; iter < POSITION_ITERATIONS; iter++) {
+            for (const [aIndex, bIndex] of pairs) {
+                const collision = detectCircleCollision(aIndex, bIndex);
+                if (!collision) continue;
+
+                resolvePosition(aIndex, bIndex, collision, 0.5);
+            }
+        }
+    }
+
+    private solveVelocities() {
+        const pairs = this.collisionPairs;
+
+        for (let iter = 0; iter < VELOCITY_ITERATIONS; iter++) {
+            for (const [aIndex, bIndex] of pairs) {
+                const collision = detectCircleCollision(aIndex, bIndex);
+                if (!collision) continue;
+
+                resolveVelocity(aIndex, bIndex, collision);
             }
         }
     }

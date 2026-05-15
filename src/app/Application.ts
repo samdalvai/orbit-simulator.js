@@ -221,6 +221,41 @@ export default class Application {
                             removeBody(id);
                             this.bodyRenderStyles.delete(id);
 
+                            // Test debries near to each other, 2 debries
+                            const debris1 = addNewBody(
+                                posX - radius,
+                                posY,
+                                radius / 2,
+                                bodyMass / 2,
+                                BodyType.STAR,
+                                new Vec2(velX, velY),
+                            );
+                            const debris2 = addNewBody(
+                                posX + radius,
+                                posY,
+                                radius / 2,
+                                bodyMass / 2,
+                                BodyType.STAR,
+                                new Vec2(velX, velY),
+                            );
+
+                            this.bodyRenderStyles.set(debris1, {
+                                fillColor: style.fillColor,
+                                texture: null,
+                                label: '',
+                                labelColor: '',
+                                labelFontSize: 0,
+                            });
+                            this.bodyRenderStyles.set(debris2, {
+                                fillColor: style.fillColor,
+                                texture: null,
+                                label: '',
+                                labelColor: '',
+                                labelFontSize: 0,
+                            });
+
+                            break;
+
                             const angleStep = (Math.PI * 2) / numOfDebries;
 
                             // Distance from original center.

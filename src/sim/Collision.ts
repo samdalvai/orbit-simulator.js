@@ -28,6 +28,9 @@ export function detectCircleCollision(aIndex: number, bIndex: number): Collision
     }
 
     const dist = Math.sqrt(distSq);
+    console.log('radius 1: ', radii[aIndex]);
+    console.log('radius 2: ', radii[bIndex]);
+    console.log('penetration: ', dist - (radii[aIndex] + radii[bIndex]));
 
     // Safe normal (avoid NaN if perfectly overlapping)
     const nx = dist > 0 ? dx / dist : 1;

@@ -1,4 +1,4 @@
-import { G, MAX_BODIES } from '../shared/Constants';
+import { G } from '../shared/Constants';
 import { BodyRenderStyle } from '../view/BodyRenderStyle';
 import {
     aabbMaxX,

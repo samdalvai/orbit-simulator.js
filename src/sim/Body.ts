@@ -66,11 +66,6 @@ export function addNewBody(
     Utils.assert(bodyMass > 0, 'Mass needs to be greater than 0');
     Utils.assert(bodyCount < CAPACITY, 'Body capacity exceeded');
 
-    // Separate but important: there is a real id bug in Body.ts (line 69). 
-    // bodyId = bodyCount++ reuses ids after deletion. 
-    // That can make styles, deleted bodies, and bodyIndexById point at 
-    // the wrong thing after removeBody. Not the main velocity explosion, 
-    // but definitely confusing your debugging.
     const index = bodyCount;
     const bodyId = bodyCount++;
 

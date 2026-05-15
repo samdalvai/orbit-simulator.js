@@ -73,7 +73,7 @@ export function addNewBody(
     const bodyId = nextBodyId++;
 
     bodyIds[index] = bodyId;
-    bodyIndexById[index] = bodyId;
+    bodyIndexById[bodyId] = index;
 
     parentBodyIds[index] = parentId;
     bodyTypes[index] = bodyType;

@@ -218,15 +218,15 @@ export default class Application {
 
                             if (bodyType === BodyType.ASTEROID) continue;
 
+                            removeBody(id);
+                            this.bodyRenderStyles.delete(id);
+
                             const angleStep = (Math.PI * 2) / numOfDebries;
 
                             // Distance from original center.
                             // Needs to be at least debrieRadius * 2 to avoid overlap between neighbors.
                             // Clamp inside original radius.
                             const spawnRadius = radius - debrieRadius;
-
-                            removeBody(id);
-                            this.bodyRenderStyles.delete(id);
 
                             for (let i = 0; i < numOfDebries; i++) {
                                 const angle = i * angleStep;

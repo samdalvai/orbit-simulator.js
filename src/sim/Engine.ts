@@ -15,6 +15,9 @@ import {
 import { detectCircleCollision, resolvePosition, resolveCollision as resolveVelocity } from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
 
+const POSITION_ITERATIONS = 4;
+const VELOCITY_ITERATIONS = 1;
+
 export class Engine {
     private readonly collisionPairs: [number, number][] = [];
 
@@ -108,10 +111,9 @@ export class Engine {
     }
 
     private solvePositions() {
-        const positionIterations = 20;
         const pairs = this.collisionPairs;
 
-        for (let iter = 0; iter < positionIterations; iter++) {
+        for (let iter = 0; iter < POSITION_ITERATIONS; iter++) {
             for (const [aIndex, bIndex] of pairs) {
                 const collision = detectCircleCollision(aIndex, bIndex);
                 if (!collision) continue;
@@ -122,10 +124,9 @@ export class Engine {
     }
 
     private solveVelocities() {
-        const velocityIterations = 1;
         const pairs = this.collisionPairs;
 
-        for (let iter = 0; iter < velocityIterations; iter++) {
+        for (let iter = 0; iter < VELOCITY_ITERATIONS; iter++) {
             for (const [aIndex, bIndex] of pairs) {
                 const collision = detectCircleCollision(aIndex, bIndex);
                 if (!collision) continue;

@@ -134,15 +134,15 @@ export default class Application {
                 this.renderer.zoom = 0.00005;
                 // this.renderer.zoom = 0.005;
                 createSolarSystem(testSystem, this.bodyRenderStyles);
-                const id = addNewBody(-500_000 * 500, 0, 500_000, 98847e28, BodyType.PLANET);
-                this.bodyRenderStyles.set(id, {
-                    fillColor: '',
-                    texture: AssetStore.getTexture('moonLuna'),
-                    label: 'Planet',
-                    labelColor: 'white',
-                    labelFontSize: 12,
-                    renderRadius: getBodyRenderRadius(500_000, BodyType.PLANET),
-                });
+                // const id = addNewBody(-500_000 * 500, 0, 500_000, 98847e28, BodyType.PLANET);
+                // this.bodyRenderStyles.set(id, {
+                //     fillColor: '',
+                //     texture: AssetStore.getTexture('moonLuna'),
+                //     label: 'Planet',
+                //     labelColor: 'white',
+                //     labelFontSize: 12,
+                //     renderRadius: getBodyRenderRadius(500_000, BodyType.PLANET),
+                // });
             }
 
             this.engine.initializeVerlet();
@@ -222,7 +222,6 @@ export default class Application {
                             const velY = velocityY[index];
                             const bodyType = bodyTypes[index];
 
-                            //if (bodyType === BodyType.ASTEROID) continue;
 
                             const numOfDebries = getDebrisCount(
                                 radius,
@@ -236,12 +235,6 @@ export default class Application {
                             const circles = this.createHoneycombInCircle(radius, circlesRadius);
                             const circlesMass = bodyMass / circles.length;
 
-                            // console.log('main raadius: ', radius);
-                            // console.log('main mass: ', bodyMass);
-
-                            // console.log('circlesRadius: ', circlesRadius);
-                            // console.log('circles: ', circles);
-                            // console.log('circles mass: ', circlesMass);
                             const colors = ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'];
 
                             for (const c of circles) {
@@ -267,105 +260,7 @@ export default class Application {
                             removeBody(id);
                             this.bodyRenderStyles.delete(id);
 
-                            // const newId = addNewBody(
-                            //     // c.x,
-                            //     // c.y,
-                            //     randomNumber(-1000000, 1000000) * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-                            //     randomNumber(-1000000, 1000000) * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-                            //     695_700,
-                            //     circlesMass,
-                            //     bodyType,
-                            //     new Vec2(velX, velY),
-                            // );
-
-                            // this.bodyRenderStyles.set(newId, {
-                            //     fillColor: style.fillColor,
-                            //     texture: null,
-                            //     label: '',
-                            //     labelColor: '',
-                            //     labelFontSize: 0,
-                            //     renderRadius: 695_700,
-                            // });
-
-                            // const debRadius = radius / 2;
-                            // const posX1 = posX - debRadius;
-                            // const posX2 = posX + debRadius;
-                            // const posY3 = posY - debRadius * Math.sqrt(3);
-                            // const posY4 = posY + debRadius * Math.sqrt(3);
-
-                            // // Test debries near to each other, 2 debries
-                            // const debris1 = addNewBody(
-                            //     posX1,
-                            //     posY,
-                            //     radius / 2,
-                            //     bodyMass / 2,
-                            //     BodyType.STAR,
-                            //     new Vec2(velX, velY),
-                            // );
-                            // const debris2 = addNewBody(
-                            //     posX2,
-                            //     posY,
-                            //     radius / 2,
-                            //     bodyMass / 2,
-                            //     BodyType.STAR,
-                            //     new Vec2(velX, velY),
-                            // );
-                            // const debris3 = addNewBody(
-                            //     posX,
-                            //     posY3,
-                            //     radius / 2,
-                            //     bodyMass / 2,
-                            //     BodyType.STAR,
-                            //     new Vec2(velX, velY),
-                            // );
-                            // const debris4 = addNewBody(
-                            //     posX,
-                            //     posY4,
-                            //     radius / 2,
-                            //     bodyMass / 2,
-                            //     BodyType.STAR,
-                            //     new Vec2(velX, velY),
-                            // );
-
-                            // // console.log('pos 1: ', posX1);
-                            // // console.log('pos 2: ', posX2);
-
-                            // this.bodyRenderStyles.set(debris1, {
-                            //     fillColor: style.fillColor,
-                            //     texture: null,
-                            //     label: '',
-                            //     labelColor: '',
-                            //     labelFontSize: 0,
-                            //     renderRadius: 1,
-                            // });
-                            // this.bodyRenderStyles.set(debris2, {
-                            //     fillColor: style.fillColor,
-                            //     texture: null,
-                            //     label: '',
-                            //     labelColor: '',
-                            //     labelFontSize: 0,
-                            //     renderRadius: 1,
-                            // });
-                            // this.bodyRenderStyles.set(debris3, {
-                            //     fillColor: style.fillColor,
-                            //     texture: null,
-                            //     label: '',
-                            //     labelColor: '',
-                            //     labelFontSize: 0,
-                            //     renderRadius: 1,
-                            // });
-                            // this.bodyRenderStyles.set(debris4, {
-                            //     fillColor: style.fillColor,
-                            //     texture: null,
-                            //     label: '',
-                            //     labelColor: '',
-                            //     labelFontSize: 0,
-                            //     renderRadius: 1,
-                            // });
-
                             break;
-
-                            // }
                         }
                     }
 

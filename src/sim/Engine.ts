@@ -12,7 +12,7 @@ import {
     integrateVerletVelocity,
     swapBodies,
 } from './Body';
-import { Collision, detectCircleCollision, resolvePosition, resolveCollision as resolveVelocity } from './Collision';
+import { detectCircleCollision, resolvePosition, resolveCollision as resolveVelocity } from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
 
 export class Engine {
@@ -25,6 +25,9 @@ export class Engine {
             integrateVerletPosition(i, dt);
         }
 
+        this.broadPhase();
+        this.solvePositions();
+
         this.clearAllForces();
         applyBarnesHutGravitationalForces(G);
 
@@ -32,8 +35,7 @@ export class Engine {
             integrateVerletVelocity(i, dt);
         }
 
-        this.broadPhase();
-        this.solveCollisions();
+        this.solveVelocities();
     }
 
     initializeVerlet(): void {
@@ -105,28 +107,30 @@ export class Engine {
         }
     }
 
-    private solveCollisions() {
-        const velocityIterations = 1;
+    private solvePositions() {
         const positionIterations = 20;
         const pairs = this.collisionPairs;
 
-        // 1. Velocity / impulse solve
-        for (let iter = 0; iter < velocityIterations; iter++) {
-            for (const [aIndex, bIndex] of pairs) {
-                const collision = detectCircleCollision(aIndex, bIndex);
-                if (!collision) continue;
-
-                resolveVelocity(aIndex, bIndex, collision);
-            }
-        }
-
-        // 2. Position solve
         for (let iter = 0; iter < positionIterations; iter++) {
             for (const [aIndex, bIndex] of pairs) {
                 const collision = detectCircleCollision(aIndex, bIndex);
                 if (!collision) continue;
 
                 resolvePosition(aIndex, bIndex, collision, 0.5);
+            }
+        }
+    }
+
+    private solveVelocities() {
+        const velocityIterations = 1;
+        const pairs = this.collisionPairs;
+
+        for (let iter = 0; iter < velocityIterations; iter++) {
+            for (const [aIndex, bIndex] of pairs) {
+                const collision = detectCircleCollision(aIndex, bIndex);
+                if (!collision) continue;
+
+                resolveVelocity(aIndex, bIndex, collision);
             }
         }
     }

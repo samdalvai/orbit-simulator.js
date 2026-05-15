@@ -84,10 +84,10 @@ export function resolvePosition(aIndex: number, bIndex: number, collision: Colli
     const cx = correctionMag * collision.normal.x;
     const cy = correctionMag * collision.normal.y;
 
-    console.log('Correction a (x)', cx * invMass[aIndex]);
-    console.log('Correction a (y)', cy * invMass[aIndex]);
-    console.log('Correction b (x)', cx * invMass[bIndex]);
-    console.log('Correction b (y)', cy * invMass[bIndex]);
+    // console.log('Correction a (x)', cx * invMass[aIndex]);
+    // console.log('Correction a (y)', cy * invMass[aIndex]);
+    // console.log('Correction b (x)', cx * invMass[bIndex]);
+    // console.log('Correction b (y)', cy * invMass[bIndex]);
 
     positionX[aIndex] -= cx * invMass[aIndex];
     positionY[aIndex] -= cy * invMass[aIndex];

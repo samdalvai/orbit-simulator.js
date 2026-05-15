@@ -212,7 +212,7 @@ export default class Application {
                             const velY = velocityY[index];
                             const bodyType = bodyTypes[index];
 
-                            if (bodyType === BodyType.ASTEROID) continue;
+                            //if (bodyType === BodyType.ASTEROID) continue;
 
                             const numOfDebries = getDebrisCount(
                                 radius,

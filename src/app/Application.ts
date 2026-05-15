@@ -501,6 +501,22 @@ export default class Application {
         return points;
     }
 
+    createHoneycombInCircle(circleRadius: number, bodyRadius: number): Vec2[] {
+        const points: Vec2[] = [];
+
+        const maxRings = Math.ceil(circleRadius / (bodyRadius * 2));
+
+        const candidates = this.createHoneycombCircles(bodyRadius, maxRings);
+
+        for (const p of candidates) {
+            if (Math.hypot(p.x, p.y) + bodyRadius <= circleRadius) {
+                points.push(p);
+            }
+        }
+
+        return points;
+    }
+
     render(): void {
         this.renderer.clearScreen();
         this.renderer.updateViewport();
@@ -512,11 +528,14 @@ export default class Application {
 
         this.renderer.beginWorld();
 
-        const radius = 5;
-        const circles = this.createHoneycombCircles(radius, 5);
+        const areaRadius = 70;
+        const circlesRadius = 5;
+        const circles = this.createHoneycombInCircle(areaRadius, circlesRadius);
         for (const c of circles) {
-            this.renderer.drawCircle(c.x, c.y, radius, 'white');
+            this.renderer.drawCircle(c.x, c.y, circlesRadius, 'white');
         }
+
+        this.renderer.drawCircle(0, 0, areaRadius, 'red');
 
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {

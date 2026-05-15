@@ -230,10 +230,9 @@ export default class Application {
                             const circles = this.createHoneycombInCircle(radius, debrieRadius);
 
                             for (const c of circles) {
-                                console.log(`Creating circle at ${c.x}/${c.y}`);
                                 const debrisId = addNewBody(
-                                    c.x,
-                                    c.y,
+                                    posX + c.x,
+                                    posY + c.y,
                                     debrieRadius,
                                     debrieMass,
                                     bodyType,

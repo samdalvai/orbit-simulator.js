@@ -1,5 +1,6 @@
 import { createHoneycombInCircle } from '../shared/Math';
 import { Vec2 } from '../shared/Vec2';
+import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../view/BodyRenderStyle';
 import {
     BodyType,
     addNewBody,
@@ -89,11 +90,6 @@ export function resolvePosition(aIndex: number, bIndex: number, collision: Colli
     const cx = correctionMag * collision.normal.x;
     const cy = correctionMag * collision.normal.y;
 
-    // console.log('Correction a (x)', cx * invMass[aIndex]);
-    // console.log('Correction a (y)', cy * invMass[aIndex]);
-    // console.log('Correction b (x)', cx * invMass[bIndex]);
-    // console.log('Correction b (y)', cy * invMass[bIndex]);
-
     positionX[aIndex] -= cx * invMass[aIndex];
     positionY[aIndex] -= cy * invMass[aIndex];
 
@@ -134,7 +130,7 @@ export function getDebrisCount(
     return Math.round(minDebris + t * (maxDebris - minDebris));
 }
 
-export function explodeBody(bodyId: number) {
+export function explodeBody(bodyId: number, bodyRenderStyles: Map<number, BodyRenderStyle>) {
     const index = bodyIndexById[bodyId];
     const radius = radii[index];
     const bodyMass = mass[index];
@@ -144,10 +140,13 @@ export function explodeBody(bodyId: number) {
     const velX = velocityX[index];
     const velY = velocityY[index];
 
-    const numOfDebris = getDebrisCount(radius, 1, radius, 4, 25);
+    const numOfDebris = getDebrisCount(radius, 1, radius, 4, 100);
     const circlesRadius = radius / Math.sqrt(numOfDebris);
     const circles = createHoneycombInCircle(radius, circlesRadius);
     const circlesMass = bodyMass / circles.length;
+
+    const bodyStyle = bodyRenderStyles.get(bodyId) ?? DEFAULT_BODY_RENDER_STYLE;
+    const colors = ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'];
 
     for (const c of circles) {
         const debrisId = addNewBody(
@@ -158,16 +157,17 @@ export function explodeBody(bodyId: number) {
             BodyType.ASTEROID,
             new Vec2(velX, velY),
         );
-        // const colorIndex = Math.floor(Math.random() * 4);
-        // this.bodyRenderStyles.set(debrisId, {
-        //     fillColor: colors[colorIndex],
-        //     texture: null,
-        //     label: '',
-        //     labelColor: '',
-        //     labelFontSize: 0,
-        //     renderRadius: (style.renderRadius / radius) * circlesRadius,
-        // });
+        const colorIndex = Math.floor(Math.random() * 4);
+        bodyRenderStyles.set(debrisId, {
+            fillColor: colors[colorIndex],
+            texture: null,
+            label: bodyStyle.label ? 'Debris of ' + bodyStyle.label : 'Debris',
+            labelColor: '',
+            labelFontSize: 0,
+            renderRadius: (bodyStyle.renderRadius / radius) * circlesRadius,
+        });
     }
 
     removeBody(bodyId);
+    bodyRenderStyles.delete(bodyId);
 }

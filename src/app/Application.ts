@@ -2,12 +2,10 @@ import { createSolarSystem } from '../scenarios/BodyGeneration';
 import { createRandomGalaxy } from '../scenarios/RandomGalaxy';
 import { createRandomSolarSystem } from '../scenarios/RandomSolarSystem';
 import { solarSystem } from '../scenarios/SolarSystem';
-import { testSystem } from '../scenarios/TestSystem';
 import { tripleStarSystem } from '../scenarios/TripleStarSystem';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from '../shared/Constants';
-import { clamp, createHoneycombInCircle } from '../shared/Math';
+import { clamp } from '../shared/Math';
 import { formatDuration } from '../shared/Utils';
-import { Vec2 } from '../shared/Vec2';
 import {
     BodyType,
     addNewBody,
@@ -23,7 +21,7 @@ import {
     velocityX,
     velocityY,
 } from '../sim/Body';
-import { getDebrisCount } from '../sim/Collision';
+import { explodeBody, getDebrisCount } from '../sim/Collision';
 import { Engine } from '../sim/Engine';
 import AssetStore from '../view/AssetStore';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE, getBodyRenderRadius } from '../view/BodyRenderStyle';
@@ -47,7 +45,7 @@ export default class Application {
     private paused = false;
 
     // Demos
-    private demoIndex = 5;
+    private demoIndex = 1;
     private loadingDemo = false;
 
     // Inputs
@@ -68,7 +66,7 @@ export default class Application {
     private blackHole: number | null = null;
 
     constructor() {
-        this.engine = new Engine();
+        this.engine = new Engine(this.bodyRenderStyles);
         this.renderer = new Renderer(this.bodyRenderStyles);
         this.inputManager = new InputManager();
     }
@@ -130,20 +128,20 @@ export default class Application {
                 createRandomGalaxy(this.bodyRenderStyles);
             }
 
-            if (this.demoIndex === 5) {
-                this.renderer.zoom = 0.00005;
-                // this.renderer.zoom = 0.005;
-                createSolarSystem(testSystem, this.bodyRenderStyles);
-                // const id = addNewBody(-500_000 * 500, 0, 500_000, 98847e28, BodyType.PLANET);
-                // this.bodyRenderStyles.set(id, {
-                //     fillColor: '',
-                //     texture: AssetStore.getTexture('moonLuna'),
-                //     label: 'Planet',
-                //     labelColor: 'white',
-                //     labelFontSize: 12,
-                //     renderRadius: getBodyRenderRadius(500_000, BodyType.PLANET),
-                // });
-            }
+            // if (this.demoIndex === 5) {
+            //     this.renderer.zoom = 0.00005;
+            //     // this.renderer.zoom = 0.005;
+            //     createSolarSystem(testSystem, this.bodyRenderStyles);
+            //     // const id = addNewBody(-500_000 * 500, 0, 500_000, 98847e28, BodyType.PLANET);
+            //     // this.bodyRenderStyles.set(id, {
+            //     //     fillColor: '',
+            //     //     texture: AssetStore.getTexture('moonLuna'),
+            //     //     label: 'Planet',
+            //     //     labelColor: 'white',
+            //     //     labelFontSize: 12,
+            //     //     renderRadius: getBodyRenderRadius(500_000, BodyType.PLANET),
+            //     // });
+            // }
 
             this.engine.initializeVerlet();
         } finally {
@@ -210,54 +208,8 @@ export default class Application {
                     }
 
                     if (inputEvent.key === 'z') {
-                        for (const [id, style] of this.bodyRenderStyles) {
-                            // if (style.label === 'Moon') {
-                            const index = bodyIndexById[id];
-                            const radius = radii[index];
-                            const bodyMass = mass[index];
-
-                            const posX = positionX[index];
-                            const posY = positionY[index];
-                            const velX = velocityX[index];
-                            const velY = velocityY[index];
-
-                            const numOfDebries = getDebrisCount(
-                                radius,
-                                1, // 1 km
-                                radius, // star radius
-                                4,
-                                25,
-                            );
-
-                            const circlesRadius = radius / Math.sqrt(numOfDebries);
-                            const circles = createHoneycombInCircle(radius, circlesRadius);
-                            const circlesMass = bodyMass / circles.length;
-
-                            const colors = ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'];
-
-                            for (const c of circles) {
-                                const debrisId = addNewBody(
-                                    posX + c.x,
-                                    posY + c.y,
-                                    circlesRadius,
-                                    circlesMass,
-                                    BodyType.ASTEROID,
-                                    new Vec2(velX, velY),
-                                );
-                                const colorIndex = Math.floor(Math.random() * 4);
-                                this.bodyRenderStyles.set(debrisId, {
-                                    fillColor: colors[colorIndex],
-                                    texture: null,
-                                    label: '',
-                                    labelColor: '',
-                                    labelFontSize: 0,
-                                    renderRadius: (style.renderRadius / radius) * circlesRadius,
-                                });
-                            }
-
-                            removeBody(id);
-                            this.bodyRenderStyles.delete(id);
-
+                        for (const [id] of this.bodyRenderStyles) {
+                            explodeBody(id, this.bodyRenderStyles);
                             break;
                         }
                     }

@@ -1,4 +1,5 @@
 import { G } from '../shared/Constants';
+import { BodyRenderStyle } from '../view/BodyRenderStyle';
 import {
     aabbMaxX,
     aabbMaxY,
@@ -19,7 +20,12 @@ const POSITION_ITERATIONS = 4;
 const VELOCITY_ITERATIONS = 1;
 
 export class Engine {
+    private bodyRenderStyles: Map<number, BodyRenderStyle>;
     private readonly collisionPairs: [number, number][] = [];
+
+    constructor(bodyRenderStyles: Map<number, BodyRenderStyle>) {
+        this.bodyRenderStyles = bodyRenderStyles;
+    }
 
     update(dt: number): void {
         const bodyCount = getBodyCount();
@@ -92,12 +98,12 @@ export class Engine {
                 // Objects may be colliding
                 this.collisionPairs.push([i, j]);
 
-                //     // TODO: do something with impact energy, e.g. explode planets
-                //     // const impact = computeImpactEnergy(a, b, collision.normal);
+                // TODO: do something with impact energy, e.g. explode planets
+                // const impact = computeImpactEnergy(a, b, collision.normal);
 
-                //     // TODO: explode planets in some cases, in other cases merge them
-                //     // E.g. if mass difference is high enough the smaller planet/body should be merged in the bigger one
-                //     // if energy impact is high enough and there is not enough mass difference we can explode planets
+                // TODO: explode planets in some cases, in other cases merge them
+                // E.g. if mass difference is high enough the smaller planet/body should be merged in the bigger one
+                // if energy impact is high enough and there is not enough mass difference we can explode planets
             }
         }
     }

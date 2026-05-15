@@ -263,7 +263,8 @@ export default class Renderer {
             Math.pow(radii[bodyIndex] / EARTH_RADIUS_KM, RADIUS_RENDERING_EXPONENT) *
             this.getBodyRadiusRenderingScale(bodyTypes[bodyIndex]);
 
-        return Math.max(this.getBodyMinRenderingRadius(bodyTypes[bodyIndex]), radius);
+        return radius;
+        // return Math.max(this.getBodyMinRenderingRadius(bodyTypes[bodyIndex]), radius);
     }
 
     private getBodyRadiusRenderingScale(bodyType: BodyType): number {
@@ -349,8 +350,8 @@ export default class Renderer {
         const renderPositionY = this.bodyRenderPositionY;
         const x = renderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const y = renderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        // const radius = this.getBodyRenderRadius(bodyIndex);
-        const radius = radii[bodyIndex] * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const radius = this.getBodyRenderRadius(bodyIndex);
+        // const radius = radii[bodyIndex] * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
 
         const strokeColor = 'white';
         const fillColor = renderStyle.fillColor;

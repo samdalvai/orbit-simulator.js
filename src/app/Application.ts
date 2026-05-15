@@ -528,14 +528,14 @@ export default class Application {
 
         this.renderer.beginWorld();
 
-        const areaRadius = 70;
-        const circlesRadius = 5;
-        const circles = this.createHoneycombInCircle(areaRadius, circlesRadius);
-        for (const c of circles) {
-            this.renderer.drawCircle(c.x, c.y, circlesRadius, 'white');
-        }
+        // const areaRadius = 70;
+        // const circlesRadius = 5;
+        // const circles = this.createHoneycombInCircle(areaRadius, circlesRadius);
+        // for (const c of circles) {
+        //     this.renderer.drawCircle(c.x, c.y, circlesRadius, 'white');
+        // }
 
-        this.renderer.drawCircle(0, 0, areaRadius, 'red');
+        // this.renderer.drawCircle(0, 0, areaRadius, 'red');
 
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {

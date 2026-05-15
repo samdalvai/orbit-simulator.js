@@ -5,20 +5,29 @@ import {
     aabbMaxY,
     aabbMinX,
     aabbMinY,
+    bodyIds,
+    bodyIndexById,
     clearBodies,
     clearForces,
     getBodyCount,
     initializeAcceleration,
     integrateVerletPosition,
     integrateVerletVelocity,
+    mass,
     swapBodies,
 } from './Body';
-import { detectCircleCollision, resolvePosition, resolveCollision as resolveVelocity } from './Collision';
+import {
+    computeImpactEnergy,
+    detectCircleCollision,
+    explodeBody,
+    resolvePosition,
+    resolveCollision as resolveVelocity,
+} from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
 
 const POSITION_ITERATIONS = 4;
 const VELOCITY_ITERATIONS = 1;
-
+const DESTROY_THRESHOLD = 1e-1;
 export class Engine {
     private bodyRenderStyles: Map<number, BodyRenderStyle>;
     private readonly collisionPairs: [number, number][] = [];
@@ -35,6 +44,7 @@ export class Engine {
         }
 
         this.broadPhase();
+        this.checkCollisionDamage();
         this.solvePositions();
 
         this.clearAllForces();
@@ -97,14 +107,23 @@ export class Engine {
 
                 // Objects may be colliding
                 this.collisionPairs.push([i, j]);
-
-                // TODO: do something with impact energy, e.g. explode planets
-                // const impact = computeImpactEnergy(a, b, collision.normal);
-
-                // TODO: explode planets in some cases, in other cases merge them
-                // E.g. if mass difference is high enough the smaller planet/body should be merged in the bigger one
-                // if energy impact is high enough and there is not enough mass difference we can explode planets
             }
+        }
+    }
+
+    private checkCollisionDamage() {
+        const pairs = this.collisionPairs;
+
+        for (const [aIndex, bIndex] of pairs) {
+            const collision = detectCircleCollision(aIndex, bIndex);
+            if (!collision) continue;
+
+            const impactEnergy = computeImpactEnergy(aIndex, bIndex, collision.normal);
+            const energyPerKgA = impactEnergy / mass[aIndex];
+            const energyPerKgB = impactEnergy / mass[bIndex];
+
+            if (energyPerKgA > DESTROY_THRESHOLD) explodeBody(bodyIds[aIndex], this.bodyRenderStyles);
+            if (energyPerKgB > DESTROY_THRESHOLD) explodeBody(bodyIds[bIndex], this.bodyRenderStyles);
         }
     }
 

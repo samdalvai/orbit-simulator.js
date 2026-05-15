@@ -7,6 +7,7 @@ export enum BodyType {
     PLANET,
     MOON,
     ASTEROID,
+    BLACK_HOLE,
 }
 
 export type BodyId = number;

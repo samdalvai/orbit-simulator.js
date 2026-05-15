@@ -6,6 +6,7 @@ import {
     addNewBody,
     applyImpulseLinear,
     bodyIndexById,
+    bodyTypes,
     invMass,
     mass,
     positionX,
@@ -132,6 +133,9 @@ export function getDebrisCount(
 
 export function explodeBody(bodyId: number, bodyRenderStyles: Map<number, BodyRenderStyle>) {
     const index = bodyIndexById[bodyId];
+
+    if (bodyTypes[index] === BodyType.ASTEROID || bodyTypes[index] === BodyType.BLACK_HOLE) return;
+
     const radius = radii[index];
     const bodyMass = mass[index];
 

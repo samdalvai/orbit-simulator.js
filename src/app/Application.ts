@@ -236,14 +236,14 @@ export default class Application {
                                 BodyType.STAR,
                                 new Vec2(velX, velY),
                             );
-                            const debris2 = addNewBody(
-                                posX + radius,
-                                posY,
-                                radius / 2,
-                                bodyMass / 2,
-                                BodyType.STAR,
-                                new Vec2(velX, velY),
-                            );
+                            // const debris2 = addNewBody(
+                            //     posX + radius,
+                            //     posY,
+                            //     radius / 2,
+                            //     bodyMass / 2,
+                            //     BodyType.STAR,
+                            //     new Vec2(velX, velY),
+                            // );
 
                             this.bodyRenderStyles.set(debris1, {
                                 fillColor: style.fillColor,
@@ -252,13 +252,13 @@ export default class Application {
                                 labelColor: '',
                                 labelFontSize: 0,
                             });
-                            this.bodyRenderStyles.set(debris2, {
-                                fillColor: style.fillColor,
-                                texture: null,
-                                label: '',
-                                labelColor: '',
-                                labelFontSize: 0,
-                            });
+                            // this.bodyRenderStyles.set(debris2, {
+                            //     fillColor: style.fillColor,
+                            //     texture: null,
+                            //     label: '',
+                            //     labelColor: '',
+                            //     labelFontSize: 0,
+                            // });
 
                             break;
 
@@ -567,10 +567,13 @@ export default class Application {
         const bodyType = BodyType[bodyTypes[bodyIndex]];
         const type = bodyType[0] + bodyType.slice(1).toLowerCase();
         const title = style?.label || type;
+        const pX = positionX[bodyIndex];
+        const pY = positionY[bodyIndex];
         const vX = velocityX[bodyIndex];
         const vY = velocityY[bodyIndex];
         const velocityMag = Math.sqrt(vX * vX + vY * vY);
         const rows: Array<[string, string]> = [
+            ['Position', `x=${pX.toExponential(2)} km, y=${pY.toExponential(2)} km`],
             ['Orbital speed', `${velocityMag.toFixed(2)} km/s`],
             ['Mass', `${mass[bodyIndex].toExponential(3)} kg`],
             ['Radius', `${radii[bodyIndex].toLocaleString(undefined, { maximumFractionDigits: 1 })} km`],

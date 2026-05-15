@@ -66,6 +66,18 @@ export function addNewBody(
     Utils.assert(bodyMass > 0, 'Mass needs to be greater than 0');
     Utils.assert(bodyCount < CAPACITY, 'Body capacity exceeded');
 
+    // Stale ids bug summary:
+    // `bodyCount` was used both as the number of live bodies and as the next body ID.
+    // After `removeBody`, `bodyCount` decreases, so a later `addNewBody` could reuse
+    // an ID that still belonged to another live body. That made `bodyIndexById`,
+    // render styles, selected bodies, deleted bodies, and parent links potentially
+    // point to the wrong body.
+    //
+    // Fix:
+    // Keep live-array indexing separate from identity:
+    // - `bodyCount` tracks how many bodies are currently alive in the dense arrays.
+    // - `nextBodyId` only generates unique IDs and never decreases during a simulation.
+    // - removed IDs should be invalidated, so stale references cannot alias another body.
     const index = bodyCount;
     const bodyId = bodyCount++;
 

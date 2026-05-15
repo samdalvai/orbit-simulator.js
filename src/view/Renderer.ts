@@ -187,10 +187,10 @@ export default class Renderer {
         this.ctx.strokeRect(x, y, width, height);
     }
 
-    drawCircle(radius: number, color = 'white'): void {
+    drawCircle(x: number, y: number, radius: number, color = 'white'): void {
         // Draw the circle
         this.ctx.beginPath();
-        this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
         this.ctx.strokeStyle = color;
         this.ctx.stroke();
     }
@@ -390,7 +390,7 @@ export default class Renderer {
             const halfScreenPixel = -screenPixel / 2;
             this.drawFillRect(halfScreenPixel, halfScreenPixel, screenPixel, screenPixel, fillColor);
         } else if (!showTextures) {
-            this.drawCircle(radius, strokeColor);
+            this.drawCircle(0, 0, radius, strokeColor);
         } else if (texture) {
             this.drawTexture(radius * 2, radius * 2, texture, 1.2);
         } else {

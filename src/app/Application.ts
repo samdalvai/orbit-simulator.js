@@ -132,7 +132,7 @@ export default class Application {
 
             if (this.demoIndex === 5) {
                 this.renderer.zoom = 5;
-                createSolarSystem(testSystem, this.bodyRenderStyles);
+                // createSolarSystem(testSystem, this.bodyRenderStyles);
             }
 
             this.engine.initializeVerlet();
@@ -467,6 +467,40 @@ export default class Application {
         }
     }
 
+    createHoneycombCircles(radius: number, rings: number): Vec2[] {
+        const points: Vec2[] = [];
+
+        points.push(new Vec2());
+
+        const directions = [
+            { q: 1, s: 0 },
+            { q: 0, s: 1 },
+            { q: -1, s: 1 },
+            { q: -1, s: 0 },
+            { q: 0, s: -1 },
+            { q: 1, s: -1 },
+        ];
+
+        for (let ring = 1; ring <= rings; ring++) {
+            let q = ring;
+            let s = 0;
+
+            for (const dir of directions) {
+                for (let step = 0; step < ring; step++) {
+                    const x = radius * 2 * (q + s / 2);
+                    const y = radius * Math.sqrt(3) * s;
+
+                    points.push(new Vec2(x, y));
+
+                    q += dir.q;
+                    s += dir.s;
+                }
+            }
+        }
+
+        return points;
+    }
+
     render(): void {
         this.renderer.clearScreen();
         this.renderer.updateViewport();
@@ -477,6 +511,12 @@ export default class Application {
         }
 
         this.renderer.beginWorld();
+
+        const radius = 5;
+        const circles = this.createHoneycombCircles(radius, 5);
+        for (const c of circles) {
+            this.renderer.drawCircle(c.x, c.y, radius, 'white');
+        }
 
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {

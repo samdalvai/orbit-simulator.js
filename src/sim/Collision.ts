@@ -1,3 +1,4 @@
+import { MAX_BODIES } from '../shared/Constants';
 import { createHoneycombInCircle } from '../shared/Math';
 import { Vec2 } from '../shared/Vec2';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../view/BodyRenderStyle';
@@ -7,6 +8,7 @@ import {
     applyImpulseLinear,
     bodyIndexById,
     bodyTypes,
+    getBodyCount,
     invMass,
     mass,
     positionX,
@@ -145,6 +147,9 @@ export function explodeBody(bodyId: number, bodyRenderStyles: Map<number, BodyRe
     const velY = velocityY[index];
 
     const numOfDebris = getDebrisCount(radius, 1, radius, 4, 100);
+
+    if (getBodyCount() + numOfDebris >= MAX_BODIES) return;
+
     const circlesRadius = radius / Math.sqrt(numOfDebris);
     const circles = createHoneycombInCircle(radius, circlesRadius);
     const circlesMass = bodyMass / circles.length;

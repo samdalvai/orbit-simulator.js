@@ -5,7 +5,7 @@ import { solarSystem } from '../scenarios/SolarSystem';
 import { testSystem } from '../scenarios/TestSystem';
 import { tripleStarSystem } from '../scenarios/TripleStarSystem';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from '../shared/Constants';
-import { clamp } from '../shared/Math';
+import { clamp, createHoneycombInCircle } from '../shared/Math';
 import { formatDuration } from '../shared/Utils';
 import { Vec2 } from '../shared/Vec2';
 import {
@@ -220,8 +220,6 @@ export default class Application {
                             const posY = positionY[index];
                             const velX = velocityX[index];
                             const velY = velocityY[index];
-                            const bodyType = bodyTypes[index];
-
 
                             const numOfDebries = getDebrisCount(
                                 radius,
@@ -232,7 +230,7 @@ export default class Application {
                             );
 
                             const circlesRadius = radius / Math.sqrt(numOfDebries);
-                            const circles = this.createHoneycombInCircle(radius, circlesRadius);
+                            const circles = createHoneycombInCircle(radius, circlesRadius);
                             const circlesMass = bodyMass / circles.length;
 
                             const colors = ['#8f7a66', '#6f6258', '#a08b72', '#5a514c'];
@@ -386,56 +384,6 @@ export default class Application {
         for (let i = 0; i < SETTINGS.subSteps; i++) {
             this.stepSimulation();
         }
-    }
-
-    createHoneycombCircles(radius: number, rings: number): Vec2[] {
-        const points: Vec2[] = [];
-
-        points.push(new Vec2());
-
-        const directions = [
-            { q: -1, s: 1 },
-            { q: -1, s: 0 },
-            { q: 0, s: -1 },
-            { q: 1, s: -1 },
-            { q: 1, s: 0 },
-            { q: 0, s: 1 },
-        ];
-
-        for (let ring = 1; ring <= rings; ring++) {
-            let q = ring;
-            let s = 0;
-
-            for (const dir of directions) {
-                for (let step = 0; step < ring; step++) {
-                    const x = radius * 2 * (q + s / 2);
-                    const y = radius * Math.sqrt(3) * s;
-
-                    points.push(new Vec2(x, y));
-
-                    q += dir.q;
-                    s += dir.s;
-                }
-            }
-        }
-
-        return points;
-    }
-
-    createHoneycombInCircle(circleRadius: number, bodyRadius: number): Vec2[] {
-        const points: Vec2[] = [];
-
-        const maxRings = Math.ceil(circleRadius / (bodyRadius * 2));
-
-        const candidates = this.createHoneycombCircles(bodyRadius, maxRings);
-
-        for (const p of candidates) {
-            if (Math.hypot(p.x, p.y) + bodyRadius <= circleRadius) {
-                points.push(p);
-            }
-        }
-
-        return points;
     }
 
     render(): void {

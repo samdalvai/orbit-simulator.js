@@ -1,11 +1,16 @@
+import { createHoneycombInCircle } from '../shared/Math';
 import { Vec2 } from '../shared/Vec2';
 import {
+    BodyType,
+    addNewBody,
     applyImpulseLinear,
+    bodyIndexById,
     invMass,
     mass,
     positionX,
     positionY,
     radii,
+    removeBody,
     updateAABB,
     velocityX,
     velocityY,
@@ -127,4 +132,42 @@ export function getDebrisCount(
     const t = Math.min(Math.max((logRadius - logMin) / (logMax - logMin), 0), 1);
 
     return Math.round(minDebris + t * (maxDebris - minDebris));
+}
+
+export function explodeBody(bodyId: number) {
+    const index = bodyIndexById[bodyId];
+    const radius = radii[index];
+    const bodyMass = mass[index];
+
+    const posX = positionX[index];
+    const posY = positionY[index];
+    const velX = velocityX[index];
+    const velY = velocityY[index];
+
+    const numOfDebris = getDebrisCount(radius, 1, radius, 4, 25);
+    const circlesRadius = radius / Math.sqrt(numOfDebris);
+    const circles = createHoneycombInCircle(radius, circlesRadius);
+    const circlesMass = bodyMass / circles.length;
+
+    for (const c of circles) {
+        const debrisId = addNewBody(
+            posX + c.x,
+            posY + c.y,
+            circlesRadius,
+            circlesMass,
+            BodyType.ASTEROID,
+            new Vec2(velX, velY),
+        );
+        // const colorIndex = Math.floor(Math.random() * 4);
+        // this.bodyRenderStyles.set(debrisId, {
+        //     fillColor: colors[colorIndex],
+        //     texture: null,
+        //     label: '',
+        //     labelColor: '',
+        //     labelFontSize: 0,
+        //     renderRadius: (style.renderRadius / radius) * circlesRadius,
+        // });
+    }
+
+    removeBody(bodyId);
 }

@@ -59,7 +59,7 @@ export default class Application {
     private debug = true;
     private FPS = 0;
     private lastFPSUpdate = 0;
-    private showTextures = false;
+    private showTextures = true;
     private showLabels = true;
     private showMoonLabels = true;
     private totalTime = 0;
@@ -132,7 +132,17 @@ export default class Application {
 
             if (this.demoIndex === 5) {
                 this.renderer.zoom = 0.00005;
+                // this.renderer.zoom = 0.005;
                 createSolarSystem(testSystem, this.bodyRenderStyles);
+                const id = addNewBody(-500_000 * 500, 0, 500_000, 98847e28, BodyType.PLANET);
+                this.bodyRenderStyles.set(id, {
+                    fillColor: '',
+                    texture: AssetStore.getTexture('moonLuna'),
+                    label: 'Planet',
+                    labelColor: 'white',
+                    labelFontSize: 12,
+                    renderRadius: getBodyRenderRadius(500_000, BodyType.PLANET),
+                });
             }
 
             this.engine.initializeVerlet();

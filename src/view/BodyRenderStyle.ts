@@ -27,7 +27,6 @@ export const DEFAULT_BODY_RENDER_STYLE: BodyRenderStyle = {
 };
 
 export function getBodyRenderRadius(radius: number, bodyType: BodyType): number {
-    return radius;
     return Math.pow(radius / EARTH_RADIUS_KM, RADIUS_RENDERING_EXPONENT) * getBodyRadiusRenderingScale(bodyType);
 }
 

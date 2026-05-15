@@ -26,7 +26,7 @@ import {
 import { getDebrisCount } from '../sim/Collision';
 import { Engine } from '../sim/Engine';
 import AssetStore from '../view/AssetStore';
-import { BodyRenderStyle } from '../view/BodyRenderStyle';
+import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE, getBodyRenderRadius } from '../view/BodyRenderStyle';
 import GUI from '../view/GUI';
 import InputManager, { MouseButton } from '../view/InputManager';
 import Renderer from '../view/Renderer';
@@ -69,7 +69,7 @@ export default class Application {
 
     constructor() {
         this.engine = new Engine();
-        this.renderer = new Renderer();
+        this.renderer = new Renderer(this.bodyRenderStyles);
         this.inputManager = new InputManager();
     }
 
@@ -131,8 +131,8 @@ export default class Application {
             }
 
             if (this.demoIndex === 5) {
-                this.renderer.zoom = 5;
-                // createSolarSystem(testSystem, this.bodyRenderStyles);
+                this.renderer.zoom = 0.5;
+                createSolarSystem(testSystem, this.bodyRenderStyles);
             }
 
             this.engine.initializeVerlet();
@@ -276,6 +276,7 @@ export default class Application {
                                 label: '',
                                 labelColor: '',
                                 labelFontSize: 0,
+                                renderRadius: 1,
                             });
                             this.bodyRenderStyles.set(debris2, {
                                 fillColor: style.fillColor,
@@ -283,6 +284,7 @@ export default class Application {
                                 label: '',
                                 labelColor: '',
                                 labelFontSize: 0,
+                                renderRadius: 1,
                             });
                             this.bodyRenderStyles.set(debris3, {
                                 fillColor: style.fillColor,
@@ -290,6 +292,7 @@ export default class Application {
                                 label: '',
                                 labelColor: '',
                                 labelFontSize: 0,
+                                renderRadius: 1,
                             });
                             this.bodyRenderStyles.set(debris4, {
                                 fillColor: style.fillColor,
@@ -297,6 +300,7 @@ export default class Application {
                                 label: '',
                                 labelColor: '',
                                 labelFontSize: 0,
+                                renderRadius: 1,
                             });
 
                             break;
@@ -333,6 +337,7 @@ export default class Application {
                                     label: '',
                                     labelColor: '',
                                     labelFontSize: 0,
+                                    renderRadius: 1,
                                 };
 
                                 this.bodyRenderStyles.set(newId, debrieStyle);
@@ -539,19 +544,13 @@ export default class Application {
 
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {
-                this.renderer.drawStarGlow(i, this.bodyRenderStyles.get(bodyIds[i]));
+                this.renderer.drawStarGlow(i);
             }
         }
 
         // Draw all bodies
         for (let i = 0; i < getBodyCount(); i++) {
-            this.renderer.drawBody(
-                i,
-                this.bodyRenderStyles.get(bodyIds[i]),
-                this.showTextures,
-                this.showLabels,
-                this.showMoonLabels,
-            );
+            this.renderer.drawBody(i, this.showTextures, this.showLabels, this.showMoonLabels);
         }
 
         this.renderer.endWorld();
@@ -639,12 +638,14 @@ export default class Application {
         const tolerance = BODY_HOVER_TOLERANCE_PIXELS / this.renderer.zoom;
 
         for (let i = 0; i < getBodyCount(); i++) {
-            this.renderer.resolveBodyRenderPosition(i);
+            const bodyId = bodyIds[i];
+            const style = this.bodyRenderStyles.get(bodyId) ?? DEFAULT_BODY_RENDER_STYLE;
+            this.renderer.resolveBodyRenderPosition(i, style);
             const x = this.renderer.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
             const y = this.renderer.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
             const dx = this.inputManager.mousePosition.x - x;
             const dy = this.inputManager.mousePosition.y - y;
-            const hitRadius = this.renderer.getBodyRenderRadius(i) + tolerance;
+            const hitRadius = style.renderRadius + tolerance;
             const distanceSq = dx * dx + dy * dy;
 
             if (distanceSq <= hitRadius * hitRadius && distanceSq < bestDistanceSq) {
@@ -764,7 +765,9 @@ export default class Application {
     }
 
     private panToBody(bodyIndex: number): void {
-        this.renderer.resolveBodyRenderPosition(bodyIndex);
+        const bodyId = bodyIds[bodyIndex];
+        const style = this.bodyRenderStyles.get(bodyId) ?? DEFAULT_BODY_RENDER_STYLE;
+        this.renderer.resolveBodyRenderPosition(bodyIndex, style);
         this.renderer.pan.x = this.renderer.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         this.renderer.pan.y = this.renderer.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
     }
@@ -783,6 +786,7 @@ export default class Application {
                 label: 'Black Hole',
                 labelColor: '#d9b8ff',
                 labelFontSize: 16,
+                renderRadius: getBodyRenderRadius(BLACK_HOLE_RADIUS_KM, BodyType.STAR),
             });
 
             this.blackHole = blackHoleId;

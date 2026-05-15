@@ -1,18 +1,18 @@
-import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
 import { G } from '../shared/Constants';
 import {
+    aabbMaxX,
+    aabbMaxY,
+    aabbMinX,
+    aabbMinY,
     clearBodies,
     clearForces,
     getBodyCount,
     initializeAcceleration,
     integrateVerletPosition,
     integrateVerletVelocity,
-    aabbMaxX,
-    aabbMaxY,
-    aabbMinX,
-    aabbMinY,
     swapBodies,
 } from './Body';
+import { detectCircleCollision, positionalCorrection, resolveCollision } from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
 
 export class Engine {
@@ -84,8 +84,8 @@ export class Engine {
                 const collision = detectCircleCollision(i, j);
 
                 if (collision) {
-                    resolveCollision(i, j, collision, 0.2);
-                    positionalCorrection(i, j, collision);
+                    resolveCollision(collision, 0.2);
+                    positionalCorrection(collision);
 
                     // TODO: do something with impact energy, e.g. explode planets
                     // const impact = computeImpactEnergy(a, b, collision.normal);

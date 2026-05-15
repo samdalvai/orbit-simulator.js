@@ -11,7 +11,9 @@ import {
     velocityY,
 } from './Body';
 
-type Collision = {
+export type Collision = {
+    aIndex: number;
+    bIndex: number;
     normal: Vec2;
     penetration: number;
 };
@@ -34,17 +36,19 @@ export function detectCircleCollision(aIndex: number, bIndex: number): Collision
     const ny = dist > 0 ? dy / dist : 0;
 
     return {
+        aIndex: aIndex,
+        bIndex: bIndex,
         normal: new Vec2(nx, ny), // from A → B
         penetration: radiusSum - dist,
     };
 }
 
 export function resolveCollision(
-    aIndex: number,
-    bIndex: number,
     collision: Collision,
     restitution = 0.2, // 0 = inelastic, 1 = elastic
 ): void {
+    const aIndex = collision.aIndex;
+    const bIndex = collision.bIndex;
     const n = collision.normal;
 
     const rvx = velocityX[bIndex] - velocityX[aIndex];
@@ -71,7 +75,9 @@ export function resolveCollision(
     applyImpulseLinear(bIndex, new Vec2(impulseX, impulseY));
 }
 
-export function positionalCorrection(aIndex: number, bIndex: number, collision: Collision): void {
+export function positionalCorrection(collision: Collision): void {
+    const aIndex = collision.aIndex;
+    const bIndex = collision.bIndex;
     const minRadius = Math.min(radii[aIndex], radii[bIndex]);
 
     const percent = 1; // correction strength

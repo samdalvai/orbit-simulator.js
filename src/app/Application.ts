@@ -229,21 +229,21 @@ export default class Application {
 
                             // Test debries near to each other, 2 debries
                             const debris1 = addNewBody(
-                                posX - radius,
+                                posX - radius / 2,
                                 posY,
                                 radius / 2,
                                 bodyMass / 2,
                                 BodyType.STAR,
                                 new Vec2(velX, velY),
                             );
-                            // const debris2 = addNewBody(
-                            //     posX + radius,
-                            //     posY,
-                            //     radius / 2,
-                            //     bodyMass / 2,
-                            //     BodyType.STAR,
-                            //     new Vec2(velX, velY),
-                            // );
+                            const debris2 = addNewBody(
+                                posX + radius / 2,
+                                posY,
+                                radius / 2,
+                                bodyMass / 2,
+                                BodyType.STAR,
+                                new Vec2(velX, velY),
+                            );
 
                             this.bodyRenderStyles.set(debris1, {
                                 fillColor: style.fillColor,
@@ -252,13 +252,13 @@ export default class Application {
                                 labelColor: '',
                                 labelFontSize: 0,
                             });
-                            // this.bodyRenderStyles.set(debris2, {
-                            //     fillColor: style.fillColor,
-                            //     texture: null,
-                            //     label: '',
-                            //     labelColor: '',
-                            //     labelFontSize: 0,
-                            // });
+                            this.bodyRenderStyles.set(debris2, {
+                                fillColor: style.fillColor,
+                                texture: null,
+                                label: '',
+                                labelColor: '',
+                                labelFontSize: 0,
+                            });
 
                             break;
 
@@ -573,7 +573,7 @@ export default class Application {
         const vY = velocityY[bodyIndex];
         const velocityMag = Math.sqrt(vX * vX + vY * vY);
         const rows: Array<[string, string]> = [
-            ['Position', `x=${pX.toExponential(2)} km, y=${pY.toExponential(2)} km`],
+            ['Position', `x=${pX.toExponential(2)}, y=${pY.toExponential(2)} (km)`],
             ['Orbital speed', `${velocityMag.toFixed(2)} km/s`],
             ['Mass', `${mass[bodyIndex].toExponential(3)} kg`],
             ['Radius', `${radii[bodyIndex].toLocaleString(undefined, { maximumFractionDigits: 1 })} km`],
@@ -581,7 +581,7 @@ export default class Application {
         ];
 
         const width = 300;
-        const height = 178;
+        const height = 200;
         const padding = 14;
         const imageSize = 54;
         const mouseScreenX =

@@ -6,7 +6,7 @@ import {
     getOrbitalSpeedByBodyPositionAndMass,
     randomNumber,
 } from '../shared/Math';
-import { Vec2 } from '../shared/Vec2';
+import { Vec3 } from '../shared/Vec3';
 import {
     BodyId,
     BodyType,
@@ -26,13 +26,13 @@ import { BeltSpec, CelestialBodySpec, SolarSystemSpec } from './BodySpec';
 export function createSolarSystem(
     solarSystemSpec: SolarSystemSpec,
     renderStyles: Map<number, BodyRenderStyle>,
-    basePos = new Vec2(),
-    baseVel = new Vec2(),
+    basePos = new Vec3(),
+    baseVel = new Vec3(),
 ): void {
     const mainStarId = createBody(solarSystemSpec.mainStar, BodyType.STAR, basePos, baseVel);
     const mainStarIndex = bodyIndexById[mainStarId];
-    const mainStarPos = new Vec2(positionX[mainStarIndex], positionY[mainStarIndex]);
-    const mainStarVel = new Vec2(velocityX[mainStarIndex], velocityY[mainStarIndex]);
+    const mainStarPos = new Vec3(positionX[mainStarIndex], positionY[mainStarIndex]);
+    const mainStarVel = new Vec3(velocityX[mainStarIndex], velocityY[mainStarIndex]);
     const mainStarMass = mass[mainStarIndex];
     renderStyles.set(mainStarId, createRenderStyle(solarSystemSpec.mainStar, BodyType.STAR));
 
@@ -46,8 +46,8 @@ export function createSolarSystem(
         renderStyles.set(planetId, createRenderStyle(planetSpec, BodyType.PLANET));
 
         const planetIndex = bodyIndexById[planetId];
-        const planetPos = new Vec2(positionX[planetIndex], positionY[planetIndex]);
-        const planetVel = new Vec2(velocityX[planetIndex], velocityY[planetIndex]);
+        const planetPos = new Vec3(positionX[planetIndex], positionY[planetIndex]);
+        const planetVel = new Vec3(velocityX[planetIndex], velocityY[planetIndex]);
         const planetMass = mass[planetIndex];
 
         for (const moonSpec of planetSpec.moons ?? []) {
@@ -64,8 +64,8 @@ export function createSolarSystem(
 export function createBody(
     spec: CelestialBodySpec,
     bodyType: BodyType,
-    parentPos: Vec2 = new Vec2(),
-    parentVel: Vec2 = new Vec2(),
+    parentPos: Vec3 = new Vec3(),
+    parentVel: Vec3 = new Vec3(),
     parentMass: number = 0,
     parentId: number = NO_PARENT,
 ): BodyId {
@@ -89,9 +89,9 @@ export function createBody(
 }
 
 export function createBelt(
-    centerPos: Vec2,
+    centerPos: Vec3,
     centerMass: number,
-    centerVel: Vec2,
+    centerVel: Vec3,
     spec: BeltSpec,
     renderStyles: Map<number, BodyRenderStyle>,
 ): void {

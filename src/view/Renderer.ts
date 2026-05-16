@@ -4,7 +4,7 @@ import {
     MOON_ORBIT_RENDERING_SCALE,
     SOLAR_MASS_KG,
 } from '../shared/Constants';
-import { Vec2 } from '../shared/Vec2';
+import { Vec3 } from '../shared/Vec3';
 import {
     BodyType,
     NO_PARENT,
@@ -37,7 +37,7 @@ export default class Renderer {
     ctx: CanvasRenderingContext2D;
 
     zoom = 1;
-    pan = new Vec2(0, 0);
+    pan = new Vec3(0, 0);
     viewPort: RenderViewport = {
         minX: 0,
         minY: 0,

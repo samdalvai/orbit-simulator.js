@@ -1,6 +1,6 @@
 import { addForce, getBodyCount, mass, positionX, positionY } from './Body';
 import { applyForceOn, buildQuadTree } from './QuadTree';
-import { Vec2 } from '../shared/Vec2';
+import { Vec3 } from '../shared/Vec3';
 
 const DEFAULT_THETA = 0.5;
 const DEFAULT_EPSILON = 1;
@@ -8,24 +8,24 @@ const DEFAULT_EPSILON = 1;
 /**
  * Generates the gravitational force applied to `a` by `b`.
  */
-export function generateGravitationalForce(aIndex: number, bIndex: number, G: number): Vec2 {
+export function generateGravitationalForce(aIndex: number, bIndex: number, G: number): Vec3 {
     const dx = positionX[bIndex] - positionX[aIndex];
     const dy = positionY[bIndex] - positionY[aIndex];
     const distanceSquared = dx * dx + dy * dy;
 
     if (distanceSquared === 0) {
-        return new Vec2();
+        return new Vec3();
     }
 
     const scale = (G * mass[aIndex] * mass[bIndex]) / (distanceSquared * Math.sqrt(distanceSquared));
-    return new Vec2(dx * scale, dy * scale);
+    return new Vec3(dx * scale, dy * scale);
 }
 
 /**
  * Convenience version that applies all gravitational forces to all bodies.
  */
 export function applyGravitationalForces(G: number): void {
-    const force = new Vec2();
+    const force = new Vec3();
     const numBodies = getBodyCount();
 
     for (let i = 0; i < numBodies - 1; i++) {

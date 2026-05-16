@@ -1,6 +1,6 @@
 import { bodyIndexById, mass, positionX, positionY } from '../sim/Body';
 import { G } from './Constants';
-import { Vec2 } from './Vec2';
+import { Vec3 } from './Vec3';
 
 /**
  * Computes the tangential velocity for a circular orbit of `planet` around a point with mass (normally another body).
@@ -12,9 +12,9 @@ import { Vec2 } from './Vec2';
  *
  * The returned vector is perpendicular to the radius (tangential direction).
  */
-export function getOrbitalSpeedByBodyId(centerPos: Vec2, centerMass: number, bodyId: number, G: number): Vec2 {
+export function getOrbitalSpeedByBodyId(centerPos: Vec3, centerMass: number, bodyId: number, G: number): Vec3 {
     const planetIndex = bodyIndexById[bodyId];
-    const planetPos = new Vec2(positionX[planetIndex], positionY[planetIndex]);
+    const planetPos = new Vec3(positionX[planetIndex], positionY[planetIndex]);
 
     const rVec = planetPos.subNew(centerPos);
     const r = rVec.magnitude();
@@ -26,11 +26,11 @@ export function getOrbitalSpeedByBodyId(centerPos: Vec2, centerMass: number, bod
 }
 
 export function getOrbitalSpeedByBodyPositionAndMass(
-    centerPos: Vec2,
+    centerPos: Vec3,
     centerMass: number,
-    bodyPosition: Vec2,
+    bodyPosition: Vec3,
     bodyMass: number,
-): Vec2 {
+): Vec3 {
     const rVec = bodyPosition.subNew(centerPos);
     const r = rVec.magnitude();
     const v = Math.sqrt((G * (centerMass + bodyMass)) / r);
@@ -46,9 +46,9 @@ export function getOrbitalSpeedByBodyPositionAndMass(
  * @param angle In degrees
  * @returns Orbit distance with an angle
  */
-export function getOrbitPosition(distance: number, angle: number): Vec2 {
+export function getOrbitPosition(distance: number, angle: number): Vec3 {
     const radians = degreesToRadians(angle);
-    return new Vec2(Math.cos(radians) * distance, Math.sin(radians) * distance);
+    return new Vec3(Math.cos(radians) * distance, Math.sin(radians) * distance);
 }
 
 export function randomNumber(min: number = 1.0, max: number = 10.0): number {
@@ -63,10 +63,10 @@ export function degreesToRadians(degrees: number): number {
     return (degrees * Math.PI) / 180;
 }
 
-function createHoneycombCircles(radius: number, rings: number): Vec2[] {
-    const points: Vec2[] = [];
+function createHoneycombCircles(radius: number, rings: number): Vec3[] {
+    const points: Vec3[] = [];
 
-    points.push(new Vec2());
+    points.push(new Vec3());
 
     const directions = [
         { q: -1, s: 1 },
@@ -86,7 +86,7 @@ function createHoneycombCircles(radius: number, rings: number): Vec2[] {
                 const x = radius * 2 * (q + s / 2);
                 const y = radius * Math.sqrt(3) * s;
 
-                points.push(new Vec2(x, y));
+                points.push(new Vec3(x, y));
 
                 q += dir.q;
                 s += dir.s;
@@ -100,8 +100,8 @@ function createHoneycombCircles(radius: number, rings: number): Vec2[] {
 /**
  * Creates as many circles as possible in a honeycomb arrangement inside a body radius
  */
-export function createHoneycombInCircle(circleRadius: number, bodyRadius: number): Vec2[] {
-    const points: Vec2[] = [];
+export function createHoneycombInCircle(circleRadius: number, bodyRadius: number): Vec3[] {
+    const points: Vec3[] = [];
 
     const maxRings = Math.ceil(circleRadius / (bodyRadius * 2));
 

@@ -1,7 +1,7 @@
 import { MAX_BODIES } from '../shared/Constants';
 import { forceSumX, forceSumY, getBodyCount, mass, positionX, positionY } from './Body';
 import * as Utils from '../shared/Utils';
-import { Vec2 } from '../shared/Vec2';
+import { Vec3 } from '../shared/Vec3';
 
 const ROOT = 0;
 
@@ -79,7 +79,7 @@ export function clearQuadTree(rootCenterX: number, rootCenterY: number, rootSize
     pushNode(0, rootCenterX, rootCenterY, rootSize);
 }
 
-export function insertBody(pos: Vec2, bodyMass: number): void {
+export function insertBody(pos: Vec3, bodyMass: number): void {
     insertXYMass(pos.x, pos.y, bodyMass);
 }
 

@@ -1,6 +1,6 @@
 import { MAX_BODIES } from '../shared/Constants';
 import { createHoneycombInCircle } from '../shared/Math';
-import { Vec2 } from '../shared/Vec2';
+import { Vec3 } from '../shared/Vec3';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../view/BodyRenderStyle';
 import {
     BodyType,
@@ -21,7 +21,7 @@ import {
 } from './Body';
 
 export type Collision = {
-    normal: Vec2;
+    normal: Vec3;
     penetration: number;
 };
 
@@ -43,7 +43,7 @@ export function detectCircleCollision(aIndex: number, bIndex: number): Collision
     const ny = dist > 0 ? dy / dist : 0;
 
     return {
-        normal: new Vec2(nx, ny), // from A → B
+        normal: new Vec3(nx, ny), // from A → B
         penetration: radiusSum - dist,
     };
 }
@@ -76,8 +76,8 @@ export function resolveCollision(
     const impulseX = j * n.x;
     const impulseY = j * n.y;
 
-    applyImpulseLinear(aIndex, new Vec2(-impulseX, -impulseY));
-    applyImpulseLinear(bIndex, new Vec2(impulseX, impulseY));
+    applyImpulseLinear(aIndex, new Vec3(-impulseX, -impulseY));
+    applyImpulseLinear(bIndex, new Vec3(impulseX, impulseY));
 }
 
 export function resolvePosition(aIndex: number, bIndex: number, collision: Collision, bias = 0.5): void {
@@ -106,7 +106,7 @@ export function resolvePosition(aIndex: number, bIndex: number, collision: Colli
 /**
  * Impact energy in kg * (km/s)^2
  */
-export function computeImpactEnergy(aIndex: number, bIndex: number, normal: Vec2): number {
+export function computeImpactEnergy(aIndex: number, bIndex: number, normal: Vec3): number {
     const rvx = velocityX[bIndex] - velocityX[aIndex];
     const rvy = velocityY[bIndex] - velocityY[aIndex];
 
@@ -164,7 +164,7 @@ export function explodeBody(bodyId: number, bodyRenderStyles: Map<number, BodyRe
             circlesRadius,
             circlesMass,
             BodyType.ASTEROID,
-            new Vec2(velX, velY),
+            new Vec3(velX, velY),
         );
         const colorIndex = Math.floor(Math.random() * 4);
         bodyRenderStyles.set(debrisId, {

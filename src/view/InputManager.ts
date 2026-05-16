@@ -1,4 +1,4 @@
-import { Vec2 } from '../shared/Vec2';
+import { Vec3 } from '../shared/Vec3';
 
 export enum MouseButton {
     LEFT = 0,
@@ -11,7 +11,7 @@ export default class InputManager {
     mouseInputBuffer: MouseEvent[] = [];
     mouseMoveBuffer: MouseEvent[] = [];
     mouseWheelBuffer: WheelEvent[] = [];
-    mousePosition = new Vec2();
+    mousePosition = new Vec3();
 
     private lastWheelEventTime = 0;
 

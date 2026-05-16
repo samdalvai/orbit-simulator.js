@@ -1,6 +1,6 @@
 import { MAX_BODIES } from '../shared/Constants';
 import * as Utils from '../shared/Utils';
-import { Vec2 } from '../shared/Vec2';
+import { Vec3 } from '../shared/Vec3';
 
 export enum BodyType {
     STAR,
@@ -63,7 +63,7 @@ export function addNewBody(
     radius: number,
     bodyMass: number,
     bodyType: BodyType,
-    velocity: Vec2 = new Vec2(),
+    velocity: Vec3 = new Vec3(),
     parentId: number = NO_PARENT,
 ): BodyId {
     Utils.assert(bodyMass > 0, 'Mass needs to be greater than 0');
@@ -198,7 +198,7 @@ export function swapBodies(aIndex: number, bIndex: number): void {
     swapFloat64(aabbMaxY, aIndex, bIndex);
 }
 
-export function addForce(bodyIndex: number, force: Vec2) {
+export function addForce(bodyIndex: number, force: Vec3) {
     forceSumX[bodyIndex] += force.x;
     forceSumY[bodyIndex] += force.y;
 }
@@ -213,7 +213,7 @@ export function clearForces(bodyIndex: number) {
     forceSumY[bodyIndex] = 0;
 }
 
-export function applyImpulseLinear(bodyIndex: number, j: Vec2): void {
+export function applyImpulseLinear(bodyIndex: number, j: Vec3): void {
     const invM = invMass[bodyIndex];
     velocityX[bodyIndex] += j.x * invM;
     velocityY[bodyIndex] += j.y * invM;

@@ -2,7 +2,7 @@ import { TextureName } from '../view/AssetStore';
 import { AU_KM, EARTH_RADIUS_KM } from '../shared/Constants';
 import { randomNumber } from '../shared/Math';
 import { assert } from '../shared/Utils';
-import { Vec2 } from '../shared/Vec2';
+import { Vec3 } from '../shared/Vec3';
 import { CelestialBodySpec, PlanetBodySpec, SolarSystemSpec } from './BodySpec';
 
 export type RandomSolarSystemProbabilities = {
@@ -13,8 +13,8 @@ export type RandomSolarSystemProbabilities = {
 
 export type RandomSolarSystemConfig = {
     probabilities?: RandomSolarSystemProbabilities;
-    positionKm?: Vec2;
-    velocityKmS?: Vec2;
+    positionKm?: Vec3;
+    velocityKmS?: Vec3;
 };
 
 export const DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES: Required<RandomSolarSystemProbabilities> = {

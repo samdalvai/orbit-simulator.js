@@ -80,7 +80,8 @@ export function addNewBody(
     // Keep live-array indexing separate from identity:
     // - `bodyCount` tracks how many bodies are currently alive in the dense arrays.
     // - `nextBodyId` only generates unique IDs and never decreases during a simulation.
-    // - removed IDs should be invalidated, so stale references cannot alias another body.
+    // - removed IDs should be invalidated, so stale references cannot alias another body. ***
+    // *** this still needs to be explored
     const index = bodyCount++;
     const bodyId = nextBodyId++;
 

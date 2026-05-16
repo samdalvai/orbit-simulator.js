@@ -33,7 +33,7 @@ const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
 const BODY_HOVER_TOLERANCE_PIXELS = 10;
 
-const DEMO_LABELS = ['Solar system', 'Triple star system', 'Random system', 'Random galaxy'];
+const DEMO_LABELS = ['Solar system', 'Triple star system', 'Random system', 'Random galaxy', 'Test scenario'];
 
 export default class Application {
     private engine: Engine;
@@ -128,20 +128,11 @@ export default class Application {
                 createRandomGalaxy(this.bodyRenderStyles);
             }
 
-            // if (this.demoIndex === 5) {
-            //     this.renderer.zoom = 0.00005;
-            //     // this.renderer.zoom = 0.005;
-            //     createSolarSystem(testSystem, this.bodyRenderStyles);
-            //     // const id = addNewBody(-500_000 * 500, 0, 500_000, 98847e28, BodyType.PLANET);
-            //     // this.bodyRenderStyles.set(id, {
-            //     //     fillColor: '',
-            //     //     texture: AssetStore.getTexture('moonLuna'),
-            //     //     label: 'Planet',
-            //     //     labelColor: 'white',
-            //     //     labelFontSize: 12,
-            //     //     renderRadius: getBodyRenderRadius(500_000, BodyType.PLANET),
-            //     // });
-            // }
+            if (this.demoIndex === 5) {
+                this.renderer.zoom = 0.3;
+
+                // Test scewnario
+            }
 
             this.engine.initializeVerlet();
         } finally {
@@ -348,24 +339,6 @@ export default class Application {
         }
 
         this.renderer.beginWorld();
-
-        // const areaRadius = 695_700;
-        // const numOfDebries = getDebrisCount(
-        //     areaRadius,
-        //     1, // 1 km
-        //     areaRadius, // star radius
-        //     4,
-        //     25,
-        // );
-
-        // const circlesRadius = areaRadius / Math.sqrt(numOfDebries);
-
-        // const circles = this.createHoneycombInCircle(areaRadius, circlesRadius);
-        // for (const c of circles) {
-        //     this.renderer.drawCircle(c.x, c.y, circlesRadius, 'white');
-        // }
-
-        // this.renderer.drawCircle(0, 0, areaRadius, 'red');
 
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {

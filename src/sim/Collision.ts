@@ -13,6 +13,7 @@ import {
     mass,
     positionX,
     positionY,
+    positionZ,
     radii,
     removeBody,
     updateAABB,
@@ -28,6 +29,7 @@ export type Collision = {
 export function detectCircleCollision(aIndex: number, bIndex: number): Collision | null {
     const dx = positionX[bIndex] - positionX[aIndex];
     const dy = positionY[bIndex] - positionY[aIndex];
+    const dz = positionZ[bIndex] - positionZ[aIndex];
 
     const radiusSum = radii[aIndex] + radii[bIndex];
     const distSq = dx * dx + dy * dy;

@@ -3,8 +3,10 @@ import { BodyRenderStyle } from '../view/BodyRenderStyle';
 import {
     aabbMaxX,
     aabbMaxY,
+    aabbMaxZ,
     aabbMinX,
     aabbMinY,
+    aabbMinZ,
     bodyIds,
     clearBodies,
     clearForces,
@@ -13,6 +15,7 @@ import {
     integrateVerletPosition,
     integrateVerletVelocity,
     mass,
+    positionZ,
     swapBodies,
 } from './Body';
 import {
@@ -42,7 +45,7 @@ export class Engine {
             integrateVerletPosition(i, dt);
         }
 
-        // this.broadPhase();
+        this.broadPhase();
         // this.checkCollisionDamage();
         // this.solvePositions();
 
@@ -92,8 +95,12 @@ export class Engine {
         this.collisionPairs.length = 0;
         for (let i = 0, len = count; i < len; i++) {
             const maxXCurrent = aabbMaxX[i];
+
             const minYCurrent = aabbMinY[i];
             const maxYCurrent = aabbMaxY[i];
+
+            const minZCurrent = aabbMinZ[i];
+            const maxZCurrent = aabbMaxZ[i];
 
             for (let j = i + 1; j < len; j++) {
                 // If objects don't overlap on X axis they cannot collide
@@ -104,8 +111,19 @@ export class Engine {
                     continue;
                 }
 
+                // If objects overlap on X and Y axis but don't overlap on Z axis the cannot collide
+                if (maxZCurrent < aabbMinZ[j] || minZCurrent > aabbMaxZ[j]) {
+                    continue;
+                }
+
                 // Objects may be colliding
-                this.collisionPairs.push([i, j]);
+                // this.collisionPairs.push([i, j]);
+                const collision = detectCircleCollision(i, j);
+
+                if (collision) {
+                    resolvePosition(i, j, collision, 1);
+                    resolveVelocity(i, j, collision);
+                }
             }
         }
     }

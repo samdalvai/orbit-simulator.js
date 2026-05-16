@@ -42,9 +42,9 @@ export class Engine {
             integrateVerletPosition(i, dt);
         }
 
-        this.broadPhase();
-        this.checkCollisionDamage();
-        this.solvePositions();
+        // this.broadPhase();
+        // this.checkCollisionDamage();
+        // this.solvePositions();
 
         this.clearAllForces();
         applyBarnesHutGravitationalForces(G);
@@ -53,7 +53,7 @@ export class Engine {
             integrateVerletVelocity(i, dt);
         }
 
-        this.solveVelocities();
+        // this.solveVelocities();
     }
 
     initializeVerlet(): void {

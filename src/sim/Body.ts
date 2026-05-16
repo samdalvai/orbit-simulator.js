@@ -127,7 +127,7 @@ export function addNewBody(
     aabbMinY[index] = 0;
     aabbMaxY[index] = 0;
 
-    aabbMaxZ[index] = 0;
+    aabbMinZ[index] = 0;
     aabbMaxZ[index] = 0;
 
     updateAABB(index);
@@ -182,8 +182,8 @@ export function removeBody(bodyId: number): void {
     aabbMinY[index] = aabbMinY[lastIndex];
     aabbMaxY[index] = aabbMaxY[lastIndex];
 
+    aabbMinZ[index] = aabbMinZ[lastIndex];
     aabbMaxZ[index] = aabbMaxZ[lastIndex];
-    aabbMaxY[index] = aabbMaxY[lastIndex];
 
     bodyCount--;
 
@@ -241,13 +241,13 @@ export function swapBodies(aIndex: number, bIndex: number): void {
 export function addForce(bodyIndex: number, force: Vec3) {
     forceSumX[bodyIndex] += force.x;
     forceSumY[bodyIndex] += force.y;
-    forceSumZ[bodyIndex] += force.y;
+    forceSumZ[bodyIndex] += force.z;
 }
 
-export function addForceXY(bodyIndex: number, x: number, y: number) {
+export function addForceXY(bodyIndex: number, x: number, y: number, z: number) {
     forceSumX[bodyIndex] += x;
     forceSumY[bodyIndex] += y;
-    forceSumZ[bodyIndex] += y;
+    forceSumZ[bodyIndex] += z;
 }
 
 export function clearForces(bodyIndex: number) {
@@ -260,7 +260,7 @@ export function applyImpulseLinear(bodyIndex: number, j: Vec3): void {
     const invM = invMass[bodyIndex];
     velocityX[bodyIndex] += j.x * invM;
     velocityY[bodyIndex] += j.y * invM;
-    velocityZ[bodyIndex] += j.y * invM;
+    velocityZ[bodyIndex] += j.z * invM;
 }
 
 export function initializeAcceleration(bodyIndex: number): void {
@@ -268,7 +268,7 @@ export function initializeAcceleration(bodyIndex: number): void {
     const invM = invMass[bodyIndex];
     accelerationX[bodyIndex] = forceSumX[bodyIndex] * invM;
     accelerationY[bodyIndex] = forceSumY[bodyIndex] * invM;
-    accelerationZ[bodyIndex] = forceSumY[bodyIndex] * invM;
+    accelerationZ[bodyIndex] = forceSumZ[bodyIndex] * invM;
 
     // Clear all the forces and torque acting on the object before the next physics step
     clearForces(bodyIndex);
@@ -290,6 +290,7 @@ export function integrateVerletPosition(bodyIndex: number, dt: number): void {
 export function integrateVerletVelocity(bodyIndex: number, dt: number): void {
     const oldAx = accelerationX[bodyIndex];
     const oldAy = accelerationY[bodyIndex];
+    const oldAz = accelerationZ[bodyIndex];
 
     const invM = invMass[bodyIndex];
     const newAx = forceSumX[bodyIndex] * invM;
@@ -298,7 +299,7 @@ export function integrateVerletVelocity(bodyIndex: number, dt: number): void {
 
     velocityX[bodyIndex] += 0.5 * (oldAx + newAx) * dt;
     velocityY[bodyIndex] += 0.5 * (oldAy + newAy) * dt;
-    velocityZ[bodyIndex] += 0.5 * (oldAy + newAz) * dt;
+    velocityZ[bodyIndex] += 0.5 * (oldAz + newAz) * dt;
 
     // store for next step
     accelerationX[bodyIndex] = newAx;

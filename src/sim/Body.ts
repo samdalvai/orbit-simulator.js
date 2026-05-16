@@ -26,14 +26,20 @@ export const radii = new Float64Array(CAPACITY);
 // Linear motion
 export const positionX = new Float64Array(CAPACITY);
 export const positionY = new Float64Array(CAPACITY);
+export const positionZ = new Float64Array(CAPACITY);
+
 export const velocityX = new Float64Array(CAPACITY);
 export const velocityY = new Float64Array(CAPACITY);
+export const velocityZ = new Float64Array(CAPACITY);
+
 export const accelerationX = new Float64Array(CAPACITY);
 export const accelerationY = new Float64Array(CAPACITY);
+export const accelerationZ = new Float64Array(CAPACITY);
 
 // Forces
 export const forceSumX = new Float64Array(CAPACITY);
 export const forceSumY = new Float64Array(CAPACITY);
+export const forceSumZ = new Float64Array(CAPACITY);
 
 // Mass
 export const mass = new Float64Array(CAPACITY);
@@ -42,8 +48,12 @@ export const invMass = new Float64Array(CAPACITY);
 // AABB for collision
 export const aabbMinX = new Float64Array(CAPACITY);
 export const aabbMaxX = new Float64Array(CAPACITY);
+
 export const aabbMinY = new Float64Array(CAPACITY);
 export const aabbMaxY = new Float64Array(CAPACITY);
+
+export const aabbMinZ = new Float64Array(CAPACITY);
+export const aabbMaxZ = new Float64Array(CAPACITY);
 
 let bodyCount = 0;
 let nextBodyId = 0;
@@ -94,21 +104,31 @@ export function addNewBody(
 
     positionX[index] = x;
     positionY[index] = y;
+    positionZ[index] = 0; // TODO: pass real z
+
     velocityX[index] = velocity.x;
     velocityY[index] = velocity.y;
+    velocityZ[index] = velocity.z;
+
     accelerationX[index] = 0;
     accelerationY[index] = 0;
+    accelerationZ[index] = 0;
 
     forceSumX[index] = 0;
     forceSumY[index] = 0;
+    forceSumZ[index] = 0;
 
     mass[index] = bodyMass;
     invMass[index] = 1 / bodyMass;
 
     aabbMinX[index] = 0;
-    aabbMinY[index] = 0;
     aabbMaxX[index] = 0;
+
+    aabbMinY[index] = 0;
     aabbMaxY[index] = 0;
+
+    aabbMaxZ[index] = 0;
+    aabbMaxZ[index] = 0;
 
     updateAABB(index);
 
@@ -139,20 +159,30 @@ export function removeBody(bodyId: number): void {
 
     positionX[index] = positionX[lastIndex];
     positionY[index] = positionY[lastIndex];
+    positionZ[index] = positionZ[lastIndex];
+
     velocityX[index] = velocityX[lastIndex];
     velocityY[index] = velocityY[lastIndex];
+    velocityZ[index] = velocityZ[lastIndex];
+
     accelerationX[index] = accelerationX[lastIndex];
     accelerationY[index] = accelerationY[lastIndex];
+    accelerationZ[index] = accelerationZ[lastIndex];
 
     forceSumX[index] = forceSumX[lastIndex];
     forceSumY[index] = forceSumY[lastIndex];
+    forceSumZ[index] = forceSumZ[lastIndex];
 
     mass[index] = mass[lastIndex];
     invMass[index] = invMass[lastIndex];
 
     aabbMinX[index] = aabbMinX[lastIndex];
-    aabbMinY[index] = aabbMinY[lastIndex];
     aabbMaxX[index] = aabbMaxX[lastIndex];
+
+    aabbMinY[index] = aabbMinY[lastIndex];
+    aabbMaxY[index] = aabbMaxY[lastIndex];
+
+    aabbMaxZ[index] = aabbMaxZ[lastIndex];
     aabbMaxY[index] = aabbMaxY[lastIndex];
 
     bodyCount--;
@@ -181,42 +211,56 @@ export function swapBodies(aIndex: number, bIndex: number): void {
 
     swapFloat64(positionX, aIndex, bIndex);
     swapFloat64(positionY, aIndex, bIndex);
+    swapFloat64(positionZ, aIndex, bIndex);
+
     swapFloat64(velocityX, aIndex, bIndex);
     swapFloat64(velocityY, aIndex, bIndex);
+    swapFloat64(velocityZ, aIndex, bIndex);
+
     swapFloat64(accelerationX, aIndex, bIndex);
     swapFloat64(accelerationY, aIndex, bIndex);
+    swapFloat64(accelerationZ, aIndex, bIndex);
 
     swapFloat64(forceSumX, aIndex, bIndex);
     swapFloat64(forceSumY, aIndex, bIndex);
+    swapFloat64(forceSumZ, aIndex, bIndex);
 
     swapFloat64(mass, aIndex, bIndex);
     swapFloat64(invMass, aIndex, bIndex);
 
     swapFloat64(aabbMinX, aIndex, bIndex);
-    swapFloat64(aabbMinY, aIndex, bIndex);
     swapFloat64(aabbMaxX, aIndex, bIndex);
+
+    swapFloat64(aabbMinY, aIndex, bIndex);
     swapFloat64(aabbMaxY, aIndex, bIndex);
+
+    swapFloat64(aabbMinZ, aIndex, bIndex);
+    swapFloat64(aabbMaxZ, aIndex, bIndex);
 }
 
 export function addForce(bodyIndex: number, force: Vec3) {
     forceSumX[bodyIndex] += force.x;
     forceSumY[bodyIndex] += force.y;
+    forceSumZ[bodyIndex] += force.y;
 }
 
 export function addForceXY(bodyIndex: number, x: number, y: number) {
     forceSumX[bodyIndex] += x;
     forceSumY[bodyIndex] += y;
+    forceSumZ[bodyIndex] += y;
 }
 
 export function clearForces(bodyIndex: number) {
     forceSumX[bodyIndex] = 0;
     forceSumY[bodyIndex] = 0;
+    forceSumZ[bodyIndex] = 0;
 }
 
 export function applyImpulseLinear(bodyIndex: number, j: Vec3): void {
     const invM = invMass[bodyIndex];
     velocityX[bodyIndex] += j.x * invM;
     velocityY[bodyIndex] += j.y * invM;
+    velocityZ[bodyIndex] += j.y * invM;
 }
 
 export function initializeAcceleration(bodyIndex: number): void {
@@ -224,6 +268,7 @@ export function initializeAcceleration(bodyIndex: number): void {
     const invM = invMass[bodyIndex];
     accelerationX[bodyIndex] = forceSumX[bodyIndex] * invM;
     accelerationY[bodyIndex] = forceSumY[bodyIndex] * invM;
+    accelerationZ[bodyIndex] = forceSumY[bodyIndex] * invM;
 
     // Clear all the forces and torque acting on the object before the next physics step
     clearForces(bodyIndex);
@@ -232,9 +277,11 @@ export function initializeAcceleration(bodyIndex: number): void {
 export function integrateVerletPosition(bodyIndex: number, dt: number): void {
     const ax = accelerationX[bodyIndex];
     const ay = accelerationY[bodyIndex];
+    const az = accelerationZ[bodyIndex];
 
     positionX[bodyIndex] += velocityX[bodyIndex] * dt + 0.5 * ax * dt * dt;
     positionY[bodyIndex] += velocityY[bodyIndex] * dt + 0.5 * ay * dt * dt;
+    positionZ[bodyIndex] += velocityZ[bodyIndex] * dt + 0.5 * az * dt * dt;
 
     // Update AABB values based on new position
     updateAABB(bodyIndex);
@@ -247,13 +294,16 @@ export function integrateVerletVelocity(bodyIndex: number, dt: number): void {
     const invM = invMass[bodyIndex];
     const newAx = forceSumX[bodyIndex] * invM;
     const newAy = forceSumY[bodyIndex] * invM;
+    const newAz = forceSumZ[bodyIndex] * invM;
 
     velocityX[bodyIndex] += 0.5 * (oldAx + newAx) * dt;
     velocityY[bodyIndex] += 0.5 * (oldAy + newAy) * dt;
+    velocityZ[bodyIndex] += 0.5 * (oldAy + newAz) * dt;
 
     // store for next step
     accelerationX[bodyIndex] = newAx;
     accelerationY[bodyIndex] = newAy;
+    accelerationZ[bodyIndex] = newAz;
 
     clearForces(bodyIndex);
 }
@@ -262,8 +312,12 @@ export function updateAABB(bodyIndex: number) {
     const radius = radii[bodyIndex];
     aabbMinX[bodyIndex] = positionX[bodyIndex] - radius;
     aabbMaxX[bodyIndex] = positionX[bodyIndex] + radius;
+
     aabbMinY[bodyIndex] = positionY[bodyIndex] - radius;
     aabbMaxY[bodyIndex] = positionY[bodyIndex] + radius;
+
+    aabbMinZ[bodyIndex] = positionZ[bodyIndex] - radius;
+    aabbMaxZ[bodyIndex] = positionZ[bodyIndex] + radius;
 }
 
 function swapFloat64(array: Float64Array, aIndex: number, bIndex: number): void {

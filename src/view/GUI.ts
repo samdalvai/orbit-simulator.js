@@ -6,6 +6,8 @@ const SHORTCUTS: Array<[string, string]> = [
     ['P', 'Pause / resume'],
     ['.', 'Step simulation'],
     [',', 'Reverse simulation step'],
+    ['+', 'Increase simulation speed'],
+    ['-', 'Decrease simulation speed'],
     ['*', 'Increase substeps'],
     ['/', 'Decrease substeps'],
     ['Shift + R', 'Reset solar system'],

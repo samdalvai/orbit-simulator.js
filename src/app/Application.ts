@@ -190,6 +190,14 @@ export default class Application {
                         this.engine.update(-SETTINGS.dt);
                     }
 
+                    if (inputEvent.key === '+') {
+                        SETTINGS.simulationSpeed += 10;
+                    }
+
+                    if (inputEvent.key === '-') {
+                        SETTINGS.simulationSpeed = clamp(SETTINGS.simulationSpeed - 10, 1, SETTINGS.simulationSpeed - 10);
+                    }
+
                     if (inputEvent.key === '*') {
                         SETTINGS.subSteps += 1;
                     }
@@ -324,9 +332,10 @@ export default class Application {
 
         if (this.paused) return;
 
-        for (let i = 0; i < SETTINGS.subSteps; i++) {
+        for (let j = 0; j < SETTINGS.subSteps; j++) {
             this.stepSimulation();
         }
+        
     }
 
     render(): void {

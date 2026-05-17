@@ -6,7 +6,7 @@ import { CelestialBodySpecBase } from './BodySpec';
 import { createRandomSolarSystem } from './RandomSolarSystem';
 import { createBody, createRenderStyle, createSolarSystem } from './BodyGeneration';
 
-const SOLAR_SYSTEM_COUNT = 900;
+const SOLAR_SYSTEM_COUNT = 500;
 const SUPERMASSIVE_BLACK_HOLE_RADIUS_KM = 80_000_000;
 const SUPERMASSIVE_BLACK_HOLE_MASS_KG = 8e32;
 const GALAXY_INNER_ORBIT_RADIUS_AU = 25;

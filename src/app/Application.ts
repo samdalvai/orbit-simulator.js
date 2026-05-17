@@ -348,8 +348,9 @@ export default class Application {
 
         this.renderer.beginWorld();
 
-        this.renderer.drawLine(-100, 0, 100, 0, 'white');
-        this.renderer.drawLine(0, -100, 0, 100, 'white');
+        // Debug rendering center coordinates
+        // this.renderer.drawLine(-100, 0, 100, 0, 'white');
+        // this.renderer.drawLine(0, -100, 0, 100, 'white');
 
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {

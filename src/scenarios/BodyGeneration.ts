@@ -73,7 +73,7 @@ export function createBody(
     const bodyPos = parentPos.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
     const bodyVel = parentVel.copy();
     const bodyMass = spec.massKg;
-    const bodyId = addNewBody(bodyPos.x, bodyPos.y, spec.radiusKm, bodyMass, bodyType, bodyVel, parentId);
+    const bodyId = addNewBody(bodyPos.x, bodyPos.y, bodyPos.z, spec.radiusKm, bodyMass, bodyType, bodyVel, parentId);
 
     if (spec.orbitRadiusKm) {
         const orbitalSpeed = bodyVel.addNew(
@@ -103,6 +103,7 @@ export function createBelt(
         const asteroidId = addNewBody(
             position.x,
             position.y,
+            position.z,
             randomNumber(spec.minRadiusKm, spec.maxRadiusKm),
             randomNumber(spec.minMassKg, spec.maxMassKg),
             BodyType.ASTEROID,

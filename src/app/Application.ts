@@ -587,7 +587,7 @@ export default class Application {
 
         const x = this.inputManager.mousePosition.x / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const y = this.inputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const blackHoleId = addNewBody(x, y, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.BLACK_HOLE);
+        const blackHoleId = addNewBody(x, y, 0, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.BLACK_HOLE);
 
         if (blackHoleId !== null) {
             this.bodyRenderStyles.set(blackHoleId, {

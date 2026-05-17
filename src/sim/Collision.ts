@@ -163,10 +163,11 @@ export function explodeBody(bodyId: number, bodyRenderStyles: Map<number, BodyRe
         const debrisId = addNewBody(
             posX + c.x,
             posY + c.y,
+            0, // TODO: add z component
             circlesRadius,
             circlesMass,
             BodyType.ASTEROID,
-            new Vec3(velX, velY),
+            new Vec3(velX, velY, 0),
         );
         const colorIndex = Math.floor(Math.random() * 4);
         bodyRenderStyles.set(debrisId, {

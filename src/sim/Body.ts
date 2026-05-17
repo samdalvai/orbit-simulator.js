@@ -70,6 +70,7 @@ export function clearBodies(): void {
 export function addNewBody(
     x: number,
     y: number,
+    z: number,
     radius: number,
     bodyMass: number,
     bodyType: BodyType,
@@ -104,7 +105,7 @@ export function addNewBody(
 
     positionX[index] = x;
     positionY[index] = y;
-    positionZ[index] = 0; // TODO: pass real z
+    positionZ[index] = z;
 
     velocityX[index] = velocity.x;
     velocityY[index] = velocity.y;

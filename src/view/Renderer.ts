@@ -21,6 +21,7 @@ import {
     positionY,
 } from '../sim/Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
+import { Camera3D } from './Camera3D';
 
 export type RenderViewport = {
     minX: number;
@@ -34,17 +35,13 @@ export default class Renderer {
     private windowWidth: number;
     private windowHeight: number;
     private canvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D;
+    private ctx: CanvasRenderingContext2D;
+
+    private camera: Camera3D;
+    private viewPort: RenderViewport;
 
     zoom = 1;
     pan = new Vec3(0, 0);
-    viewPort: RenderViewport = {
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0,
-        labelMargin: 0,
-    };
 
     // Cached values for rendering
     bodyRenderPositionX = 0;
@@ -67,6 +64,16 @@ export default class Renderer {
         canvas.height = window.innerHeight;
         this.windowWidth = window.innerWidth;
         this.windowHeight = window.innerHeight;
+
+        this.camera = new Camera3D(this.windowWidth, this.windowHeight);
+        this.viewPort = {
+            minX: 0,
+            minY: 0,
+            maxX: 0,
+            maxY: 0,
+            labelMargin: 0,
+        };
+
         this.bodyRenderStyles = bodyRenderStyles;
 
         window.addEventListener('resize', () => {

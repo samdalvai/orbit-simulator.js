@@ -196,10 +196,17 @@ export default class Renderer {
         this.ctx.fill();
     }
 
-    drawTexture(width: number, height: number, texture: CanvasImageSource, textureScale = 1): void {
+    drawTexture(
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        texture: CanvasImageSource,
+        textureScale = 1,
+    ): void {
         // This is needed because we flip the canvas with beginWorld()
         this.ctx.scale(textureScale, -textureScale);
-        this.ctx.drawImage(texture, -width / 2, -height / 2, width, height);
+        this.ctx.drawImage(texture, x, y, width, height);
     }
 
     drawText(
@@ -355,7 +362,7 @@ export default class Renderer {
         } else if (!showTextures) {
             this.drawCircle(0, 0, renderRadius, strokeColor);
         } else if (texture) {
-            this.drawTexture(renderRadius * 2, renderRadius * 2, texture, 1.2);
+            this.drawTexture(-renderRadius, -renderRadius, renderRadius * 2, renderRadius * 2, texture, 1.2);
         } else {
             this.drawFillCircle(0, 0, renderRadius, fillColor);
         }

@@ -1,7 +1,7 @@
 import { AU_KM } from '../shared/Constants';
 import { SolarSystemSpec } from './BodySpec';
 
-const ASTEROID_BELT_OBJECTS = 5000;
+const ASTEROID_BELT_OBJECTS = 2000;
 const KUIPER_BELT_OBJECTS = 1500;
 
 export const solarSystem: SolarSystemSpec = {

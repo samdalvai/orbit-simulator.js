@@ -335,7 +335,6 @@ export default class Application {
         for (let j = 0; j < SETTINGS.subSteps; j++) {
             this.stepSimulation();
         }
-        
     }
 
     render(): void {
@@ -348,6 +347,9 @@ export default class Application {
         }
 
         this.renderer.beginWorld();
+
+        this.renderer.drawLine(-100, 0, 100, 0, 'white');
+        this.renderer.drawLine(0, -100, 0, 100, 'white');
 
         if (this.showTextures) {
             for (let i = 0; i < getBodyCount(); i++) {
@@ -502,7 +504,7 @@ export default class Application {
         this.renderer.drawFillRect(x, y, width, 3, style?.fillColor || '#ffffff');
 
         if (style?.texture) {
-            this.renderer.ctx.drawImage(style.texture, x + padding, y + padding + 4, imageSize, imageSize);
+            this.renderer.drawTexture(x + padding, y + padding + 4, imageSize, imageSize, style.texture);
         } else {
             this.renderer.drawFillCircle(
                 x + padding + imageSize / 2,

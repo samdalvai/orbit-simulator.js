@@ -1,5 +1,5 @@
-import { addForce, getBodyCount, mass, positionX, positionY } from './Body';
-import { applyForceOn, buildQuadTree } from './QuadTree';
+import { addForce, getBodyCount, mass, positionX, positionY, positionZ } from './Body';
+import { applyForceOn, buildOctree } from './QuadTree';
 import { Vec3 } from '../shared/Vec3';
 
 const DEFAULT_THETA = 0.5;
@@ -11,14 +11,15 @@ const DEFAULT_EPSILON = 1;
 export function generateGravitationalForce(aIndex: number, bIndex: number, G: number): Vec3 {
     const dx = positionX[bIndex] - positionX[aIndex];
     const dy = positionY[bIndex] - positionY[aIndex];
-    const distanceSquared = dx * dx + dy * dy;
+    const dz = positionZ[bIndex] - positionZ[aIndex];
+    const distanceSquared = dx * dx + dy * dy + dz * dz;
 
     if (distanceSquared === 0) {
         return new Vec3();
     }
 
     const scale = (G * mass[aIndex] * mass[bIndex]) / (distanceSquared * Math.sqrt(distanceSquared));
-    return new Vec3(dx * scale, dy * scale);
+    return new Vec3(dx * scale, dy * scale, dz * scale);
 }
 
 /**
@@ -32,7 +33,8 @@ export function applyGravitationalForces(G: number): void {
         for (let j = i + 1; j < numBodies; j++) {
             const dx = positionX[j] - positionX[i];
             const dy = positionY[j] - positionY[i];
-            const distanceSquared = dx * dx + dy * dy;
+            const dz = positionZ[j] - positionZ[i];
+            const distanceSquared = dx * dx + dy * dy + dz * dz;
 
             if (distanceSquared === 0) {
                 continue;
@@ -42,20 +44,22 @@ export function applyGravitationalForces(G: number): void {
 
             force.x = dx * scale;
             force.y = dy * scale;
+            force.z = dz * scale;
             addForce(i, force);
 
             force.x = -force.x;
             force.y = -force.y;
+            force.z = -force.z;
             addForce(j, force);
         }
     }
 }
 
 /**
- * Builds the global () quadtree and applies one gravitational force per body.
+ * Builds the global octree and applies one gravitational force per body.
  */
 export function applyBarnesHutGravitationalForces(G: number, theta = DEFAULT_THETA, epsilon = DEFAULT_EPSILON): void {
-    if (!buildQuadTree(theta, epsilon)) {
+    if (!buildOctree(theta, epsilon)) {
         return;
     }
 
@@ -63,6 +67,6 @@ export function applyBarnesHutGravitationalForces(G: number, theta = DEFAULT_THE
 
     for (let i = 0; i < getBodyCount(); i++) {
         if (mass[i] === 0) continue;
-        applyForceOn(i, positionX[i], positionY[i], G, thetaSquared);
+        applyForceOn(i, positionX[i], positionY[i], positionZ[i], G, thetaSquared);
     }
 }

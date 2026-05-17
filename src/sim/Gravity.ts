@@ -1,5 +1,5 @@
 import { addForce, getBodyCount, mass, positionX, positionY, positionZ } from './Body';
-import { applyForceOn, buildOctree } from './QuadTree';
+import { applyForceOn, buildOctree } from './OcTree';
 import { Vec3 } from '../shared/Vec3';
 
 const DEFAULT_THETA = 0.5;

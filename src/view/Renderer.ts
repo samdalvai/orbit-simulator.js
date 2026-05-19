@@ -15,10 +15,12 @@ import {
     bodyIds,
     bodyIndexById,
     bodyTypes,
+    getBodyCount,
     mass,
     parentBodyIds,
     positionX,
     positionY,
+    positionZ,
 } from '../sim/Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
 import { Camera3D } from './Camera3D';
@@ -29,6 +31,14 @@ export type RenderViewport = {
     maxX: number;
     maxY: number;
     labelMargin: number;
+};
+
+type RenderItem = {
+    index: number;
+    depth: number;
+    x: number;
+    y: number;
+    scale: number;
 };
 
 export default class Renderer {
@@ -391,5 +401,28 @@ export default class Renderer {
             this.ctx.fillText(label, labelGap, -labelGap);
             this.ctx.restore();
         }
+    }
+
+    getRenderItems(): RenderItem[] {
+        const renderItems: RenderItem[] = [];
+
+        for (let i = 0; i < getBodyCount(); i++) {
+            const projected = this.camera.project(positionX[i], positionY[i], positionZ[i]);
+
+            if (projected === null) {
+                continue;
+            }
+
+            renderItems.push({
+                index: i,
+                depth: projected.depth,
+                x: projected.x,
+                y: projected.y,
+                scale: projected.scale,
+            });
+        }
+
+        renderItems.sort((a, b) => b.depth - a.depth);
+        return renderItems;
     }
 }

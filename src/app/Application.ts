@@ -358,6 +358,8 @@ export default class Application {
             }
         }
 
+        const renderItems = this.renderer.getRenderItems()
+
         // Draw all bodies
         for (let i = 0; i < getBodyCount(); i++) {
             this.renderer.drawBody(i, this.showTextures, this.showLabels, this.showMoonLabels);

@@ -23,14 +23,6 @@ import { Camera3D, ProjectedPoint } from './Camera3D';
 
 const MIN_ZOOM = 0.0001;
 
-export type RenderViewport = {
-    minX: number;
-    minY: number;
-    maxX: number;
-    maxY: number;
-    labelMargin: number;
-};
-
 export type RenderItem = {
     index: number;
     depth: number;
@@ -46,7 +38,6 @@ export default class Renderer {
     private ctx: CanvasRenderingContext2D;
 
     private camera: Camera3D;
-    private viewPort: RenderViewport;
 
     zoom = 1;
     pan = new Vec3(0, 0);
@@ -75,14 +66,6 @@ export default class Renderer {
         this.windowHeight = window.innerHeight;
 
         this.camera = new Camera3D(this.windowWidth, this.windowHeight);
-        this.viewPort = {
-            minX: 0,
-            minY: 0,
-            maxX: 0,
-            maxY: 0,
-            labelMargin: 0,
-        };
-
         this.bodyRenderStyles = bodyRenderStyles;
 
         window.addEventListener('resize', () => {
@@ -191,17 +174,6 @@ export default class Renderer {
 
     clearScreen(): void {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-
-    updateViewport(): void {
-        const halfViewWidth = this.windowWidth / (2 * this.zoom);
-        const halfViewHeight = this.windowHeight / (2 * this.zoom);
-
-        this.viewPort.minX = this.pan.x - halfViewWidth;
-        this.viewPort.minY = this.pan.y - halfViewHeight;
-        this.viewPort.maxX = this.pan.x + halfViewWidth;
-        this.viewPort.maxY = this.pan.y + halfViewHeight;
-        this.viewPort.labelMargin = 160 / this.zoom;
     }
 
     /**

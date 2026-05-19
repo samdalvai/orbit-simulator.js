@@ -368,7 +368,6 @@ export default class Application {
 
     render(): void {
         this.renderer.clearScreen();
-        this.renderer.updateViewport();
 
         if (this.selectedPlanet !== null) {
             const index = bodyIndexById[this.selectedPlanet];

@@ -32,6 +32,8 @@ import Renderer from '../view/Renderer';
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
 const BODY_HOVER_TOLERANCE_PIXELS = 10;
+const CAMERA_ROTATION_SENSITIVITY = 0.005;
+const CAMERA_KEY_ROTATION_STEP = 0.06;
 
 const DEMO_LABELS = ['Solar system', 'Triple star system', 'Random system', 'Random galaxy', 'Test scenario'];
 
@@ -50,6 +52,7 @@ export default class Application {
 
     // Inputs
     private middleMousePressed = false;
+    private rightMousePressed = false;
     private controlPressed = false;
     private hasMousePosition = false;
 
@@ -106,6 +109,8 @@ export default class Application {
 
             this.renderer.pan.x = 0;
             this.renderer.pan.y = 0;
+            this.renderer.pan.z = 0;
+            this.renderer.resetCameraOrientation();
 
             if (this.demoIndex === 1) {
                 this.renderer.zoom = 0.3;
@@ -229,6 +234,22 @@ export default class Application {
                         this.panToNextPlanetOrStar();
                     }
 
+                    if (inputEvent.key === 'ArrowLeft') {
+                        this.renderer.rotateCamera(-CAMERA_KEY_ROTATION_STEP, 0);
+                    }
+
+                    if (inputEvent.key === 'ArrowRight') {
+                        this.renderer.rotateCamera(CAMERA_KEY_ROTATION_STEP, 0);
+                    }
+
+                    if (inputEvent.key === 'ArrowUp') {
+                        this.renderer.rotateCamera(0, CAMERA_KEY_ROTATION_STEP);
+                    }
+
+                    if (inputEvent.key === 'ArrowDown') {
+                        this.renderer.rotateCamera(0, -CAMERA_KEY_ROTATION_STEP);
+                    }
+
                     const keyAsNum = Number(inputEvent.key);
 
                     if (Number.isInteger(keyAsNum) && keyAsNum > 0 && keyAsNum <= DEMO_LABELS.length) {
@@ -252,11 +273,15 @@ export default class Application {
             const inputEvent = this.inputManager.mouseMoveBuffer.shift();
             if (!inputEvent) return;
 
-            if (this.middleMousePressed || this.controlPressed) {
+            if (this.rightMousePressed) {
+                document.body.style.cursor = 'grabbing';
+                this.renderer.rotateCamera(
+                    inputEvent.movementX * CAMERA_ROTATION_SENSITIVITY,
+                    -inputEvent.movementY * CAMERA_ROTATION_SENSITIVITY,
+                );
+            } else if (this.middleMousePressed || this.controlPressed) {
                 document.body.style.cursor = 'pointer';
-                // Drag the camera opposite to mouse movement
-                this.renderer.pan.x -= inputEvent.movementX / this.renderer.zoom;
-                this.renderer.pan.y += inputEvent.movementY / this.renderer.zoom;
+                this.renderer.panByScreenDelta(inputEvent.movementX, inputEvent.movementY);
             } else {
                 document.body.style.cursor = 'default';
             }
@@ -274,7 +299,7 @@ export default class Application {
             switch (inputEvent.type) {
                 case 'mousedown':
                     {
-                        if (this.selectedPlanet) {
+                        if (this.selectedPlanet && inputEvent.button !== MouseButton.RIGHT) {
                             this.selectedPlanet = null;
                         }
 
@@ -293,6 +318,7 @@ export default class Application {
                                 }
                                 break;
                             case MouseButton.RIGHT:
+                                this.rightMousePressed = true;
                                 break;
                             case MouseButton.MIDDLE:
                                 this.middleMousePressed = true;
@@ -303,6 +329,9 @@ export default class Application {
                 case 'mouseup':
                     switch (inputEvent.button) {
                         case MouseButton.LEFT:
+                            break;
+                        case MouseButton.RIGHT:
+                            this.rightMousePressed = false;
                             break;
                         case MouseButton.MIDDLE:
                             this.middleMousePressed = false;
@@ -366,6 +395,8 @@ export default class Application {
 
         const x = this.inputManager.mousePosition.x;
         const y = this.inputManager.mousePosition.y;
+        const yawDegrees = (this.renderer.yaw() * 180) / Math.PI;
+        const pitchDegrees = (this.renderer.pitch() * 180) / Math.PI;
         const simulationSecondsPerSecond = (SETTINGS.dt * SETTINGS.subSteps) / FIXED_DELTA_TIME;
 
         const stats: Array<[string, string]> = [
@@ -374,6 +405,8 @@ export default class Application {
             ['Bodies', `${getBodyCount()}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
             ['Zoom', this.renderer.zoom.toFixed(4)],
+            ['Yaw', `${yawDegrees.toFixed(1)} deg`],
+            ['Pitch', `${pitchDegrees.toFixed(1)} deg`],
             ['Labels', this.showLabels ? 'ON' : 'OFF'],
             ['Moon labels', this.showMoonLabels ? 'ON' : 'OFF'],
             ['Mouse (x)', `${(x / KILOMETERS_TO_PIXELS_RENDERING_SCALE).toExponential(5)} km`],
@@ -429,11 +462,22 @@ export default class Application {
         this.inputManager.mouseScreenPosition.x = inputEvent.x;
         this.inputManager.mouseScreenPosition.y = inputEvent.y;
 
+        const mouseWorldPosition = this.renderer.screenToWorldAtZ(inputEvent.x, inputEvent.y, 0);
+
+        if (mouseWorldPosition !== null) {
+            this.inputManager.mousePosition.x = mouseWorldPosition.x;
+            this.inputManager.mousePosition.y = mouseWorldPosition.y;
+            this.inputManager.mousePosition.z = mouseWorldPosition.z;
+            this.hasMousePosition = true;
+            return;
+        }
+
         const screenX = inputEvent.x - this.renderer.width() / 2;
         const screenY = -(inputEvent.y - this.renderer.height() / 2);
 
         this.inputManager.mousePosition.x = screenX / this.renderer.zoom + this.renderer.pan.x;
         this.inputManager.mousePosition.y = screenY / this.renderer.zoom + this.renderer.pan.y;
+        this.inputManager.mousePosition.z = 0;
         this.hasMousePosition = true;
     }
 
@@ -573,6 +617,7 @@ export default class Application {
         this.renderer.resolveBodyRenderPosition(bodyIndex, style);
         this.renderer.pan.x = this.renderer.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         this.renderer.pan.y = this.renderer.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        this.renderer.pan.z = this.renderer.bodyRenderPositionZ * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
     }
 
     private createBlackHoleAtMouse(): void {

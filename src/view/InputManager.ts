@@ -32,6 +32,10 @@ export default class InputManager {
     }
 
     private handleKeyboardEvent = (event: KeyboardEvent) => {
+        if (event.key.startsWith('Arrow')) {
+            event.preventDefault();
+        }
+
         this.keyboardInputBuffer.push(event);
     };
 

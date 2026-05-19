@@ -19,7 +19,9 @@ import {
     positionZ,
 } from '../sim/Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
-import { Camera3D, ProjectedPoint } from './Camera3D';
+import { Camera3D, ProjectedPoint, WorldPoint3D } from './Camera3D';
+
+const MIN_ZOOM = 0.05;
 
 export type RenderViewport = {
     minX: number;
@@ -111,25 +113,80 @@ export default class Renderer {
     decreaseZoom(): void {
         this.zoom -= 0.05;
 
-        if (this.zoom < 0.05) {
-            this.zoom = 0.05;
+        if (this.zoom < MIN_ZOOM) {
+            this.zoom = MIN_ZOOM;
         }
     }
 
     zoomAt(screenX: number, screenY: number, factor: number): void {
+        const oldPanX = this.pan.x;
+        const oldPanY = this.pan.y;
+        const oldZoom = this.zoom;
+        const planeZ = this.pan.z;
+        const beforeZoom = this.screenToWorldAtZ(screenX, screenY, planeZ);
+
+        this.zoom = Math.max(MIN_ZOOM, this.zoom * factor);
+
+        const afterZoom = this.screenToWorldAtZ(screenX, screenY, planeZ);
+
+        if (beforeZoom !== null && afterZoom !== null) {
+            this.pan.x += beforeZoom.x - afterZoom.x;
+            this.pan.y += beforeZoom.y - afterZoom.y;
+            return;
+        }
+
+        this.pan.x = oldPanX;
+        this.pan.y = oldPanY;
+        this.zoom = oldZoom;
+
         const worldXBeforeZoom = this.pan.x + (screenX - this.windowWidth / 2) / this.zoom;
         const worldYBeforeZoom = this.pan.y - (screenY - this.windowHeight / 2) / this.zoom;
 
-        this.zoom *= factor;
+        this.zoom = Math.max(MIN_ZOOM, this.zoom * factor);
 
         this.pan.x = worldXBeforeZoom - (screenX - this.windowWidth / 2) / this.zoom;
         this.pan.y = worldYBeforeZoom + (screenY - this.windowHeight / 2) / this.zoom;
+    }
+
+    panByScreenDelta(movementX: number, movementY: number): void {
+        const planeZ = this.pan.z;
+        const centerX = this.windowWidth * 0.5;
+        const centerY = this.windowHeight * 0.5;
+        const beforePan = this.screenToWorldAtZ(centerX, centerY, planeZ);
+        const afterPan = this.screenToWorldAtZ(centerX - movementX, centerY - movementY, planeZ);
+
+        if (beforePan !== null && afterPan !== null) {
+            this.pan.x += afterPan.x - beforePan.x;
+            this.pan.y += afterPan.y - beforePan.y;
+            return;
+        }
+
+        this.pan.x -= movementX / this.zoom;
+        this.pan.y += movementY / this.zoom;
+    }
+
+    rotateCamera(deltaYaw: number, deltaPitch: number): void {
+        this.camera.rotate(deltaYaw, deltaPitch);
+    }
+
+    resetCameraOrientation(): void {
+        this.camera.setRotation(0, 0);
+    }
+
+    yaw(): number {
+        return this.camera.yaw;
+    }
+
+    pitch(): number {
+        return this.camera.pitch;
     }
 
     resetView(): void {
         this.zoom = 1;
         this.pan.x = 0;
         this.pan.y = 0;
+        this.pan.z = 0;
+        this.resetCameraOrientation();
     }
 
     clearScreen(): void {
@@ -392,9 +449,12 @@ export default class Renderer {
     }
 
     private syncCameraFromView(): void {
-        this.camera.x = this.pan.x;
-        this.camera.y = this.pan.y;
-        this.camera.z = -this.camera.focalLength / this.zoom;
+        this.camera.lookAt(this.pan.x, this.pan.y, this.pan.z, this.camera.focalLength / this.zoom);
+    }
+
+    screenToWorldAtZ(screenX: number, screenY: number, worldZ: number): WorldPoint3D | null {
+        this.syncCameraFromView();
+        return this.camera.screenToWorldAtZ(screenX, screenY, worldZ);
     }
 
     private projectBody(bodyIndex: number, renderStyle: BodyRenderStyle): ProjectedPoint | null {

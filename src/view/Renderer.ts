@@ -19,9 +19,9 @@ import {
     positionZ,
 } from '../sim/Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
-import { Camera3D, ProjectedPoint, WorldPoint3D } from './Camera3D';
+import { Camera3D, ProjectedPoint } from './Camera3D';
 
-const MIN_ZOOM = 0.05;
+const MIN_ZOOM = 0.0001;
 
 export type RenderViewport = {
     minX: number;
@@ -170,7 +170,7 @@ export default class Renderer {
     }
 
     resetCameraOrientation(): void {
-        this.camera.setRotation(0, 0);
+        this.camera.setRotation(0, 1);
     }
 
     yaw(): number {
@@ -452,7 +452,7 @@ export default class Renderer {
         this.camera.lookAt(this.pan.x, this.pan.y, this.pan.z, this.camera.focalLength / this.zoom);
     }
 
-    screenToWorldAtZ(screenX: number, screenY: number, worldZ: number): WorldPoint3D | null {
+    screenToWorldAtZ(screenX: number, screenY: number, worldZ: number): Vec3 | null {
         this.syncCameraFromView();
         return this.camera.screenToWorldAtZ(screenX, screenY, worldZ);
     }

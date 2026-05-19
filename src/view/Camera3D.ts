@@ -1,3 +1,5 @@
+import { Vec3 } from '../shared/Vec3';
+
 export class Camera3D {
     x = 0;
     y = 0;
@@ -34,29 +36,49 @@ export class Camera3D {
     }
 
     rotate(deltaYaw: number, deltaPitch: number): void {
-        this.setRotation(this.yaw + deltaYaw, this.pitch + deltaPitch);
+        const maxPitch = Math.PI - 0.08;
+        const nextPitch = Math.max(-maxPitch, Math.min(maxPitch, this.pitch + deltaPitch));
+        const appliedPitch = nextPitch - this.pitch;
+
+        // Rotate around the camera basis so each control axis stays local to the current view.
+        if (deltaYaw !== 0) {
+            this.rotateBasisAroundAxis(this.upX, this.upY, this.upZ, -deltaYaw);
+        }
+
+        if (appliedPitch !== 0) {
+            this.rotateBasisAroundAxis(this.rightX, this.rightY, this.rightZ, -appliedPitch);
+        }
+
+        this.yaw += deltaYaw;
+        this.pitch = nextPitch;
+        this.orthonormalizeBasis();
     }
 
     setRotation(yaw: number, pitch: number): void {
         const maxPitch = Math.PI * 0.5 - 0.08;
-        console.log('setting yaw: ', yaw);
-        console.log('setting pitch: ', pitch);
         this.yaw = yaw;
         this.pitch = Math.max(-maxPitch, Math.min(maxPitch, pitch));
-    }
 
-    lookAt(targetX: number, targetY: number, targetZ: number, distance: number): void {
         const sinYaw = Math.sin(this.yaw);
         const cosYaw = Math.cos(this.yaw);
         const sinPitch = Math.sin(this.pitch);
         const cosPitch = Math.cos(this.pitch);
 
-        // Solar systems live on the XY plane, so yaw turns around screen/world Y while Z is view depth.
-        this.x = targetX + sinYaw * cosPitch * distance;
-        this.y = targetY - sinPitch * distance;
-        this.z = targetZ - cosYaw * cosPitch * distance;
+        this.forwardX = -sinYaw * cosPitch;
+        this.forwardY = sinPitch;
+        this.forwardZ = cosYaw * cosPitch;
+        this.rightX = cosYaw;
+        this.rightY = 0;
+        this.rightZ = sinYaw;
+        this.upX = sinYaw * sinPitch;
+        this.upY = cosPitch;
+        this.upZ = -cosYaw * sinPitch;
+    }
 
-        this.updateBasisFromTarget(targetX, targetY, targetZ);
+    lookAt(targetX: number, targetY: number, targetZ: number, distance: number): void {
+        this.x = targetX - this.forwardX * distance;
+        this.y = targetY - this.forwardY * distance;
+        this.z = targetZ - this.forwardZ * distance;
     }
 
     project(x: number, y: number, z: number): ProjectedPoint | null {
@@ -81,7 +103,7 @@ export class Camera3D {
         };
     }
 
-    screenToWorldAtZ(screenX: number, screenY: number, worldZ: number): WorldPoint3D | null {
+    screenToWorldAtZ(screenX: number, screenY: number, worldZ: number): Vec3 | null {
         const cameraX = screenX - this.screenWidth * 0.5;
         const cameraY = this.screenHeight * 0.5 - screenY;
         const rayX = this.rightX * cameraX + this.upX * cameraY + this.forwardX * this.focalLength;
@@ -98,39 +120,77 @@ export class Camera3D {
             return null;
         }
 
-        return {
-            x: this.x + rayX * t,
-            y: this.y + rayY * t,
-            z: worldZ,
-        };
+        return new Vec3(this.x + rayX * t, this.y + rayY * t, worldZ);
     }
 
-    private updateBasisFromTarget(targetX: number, targetY: number, targetZ: number): void {
-        const forwardX = targetX - this.x;
-        const forwardY = targetY - this.y;
-        const forwardZ = targetZ - this.z;
-        const forwardLength = Math.sqrt(forwardX * forwardX + forwardY * forwardY + forwardZ * forwardZ);
+    private rotateBasisAroundAxis(axisX: number, axisY: number, axisZ: number, angle: number): void {
+        const nextForward = this.rotateVectorAroundAxis(
+            this.forwardX,
+            this.forwardY,
+            this.forwardZ,
+            axisX,
+            axisY,
+            axisZ,
+            angle,
+        );
+        const nextRight = this.rotateVectorAroundAxis(
+            this.rightX,
+            this.rightY,
+            this.rightZ,
+            axisX,
+            axisY,
+            axisZ,
+            angle,
+        );
+        const nextUp = this.rotateVectorAroundAxis(this.upX, this.upY, this.upZ, axisX, axisY, axisZ, angle);
+
+        this.forwardX = nextForward.x;
+        this.forwardY = nextForward.y;
+        this.forwardZ = nextForward.z;
+        this.rightX = nextRight.x;
+        this.rightY = nextRight.y;
+        this.rightZ = nextRight.z;
+        this.upX = nextUp.x;
+        this.upY = nextUp.y;
+        this.upZ = nextUp.z;
+    }
+
+    private rotateVectorAroundAxis(
+        x: number,
+        y: number,
+        z: number,
+        axisX: number,
+        axisY: number,
+        axisZ: number,
+        angle: number,
+    ): Vec3 {
+        const sin = Math.sin(angle);
+        const cos = Math.cos(angle);
+        const dot = x * axisX + y * axisY + z * axisZ;
+
+        return new Vec3(
+            x * cos + (axisY * z - axisZ * y) * sin + axisX * dot * (1 - cos),
+            y * cos + (axisZ * x - axisX * z) * sin + axisY * dot * (1 - cos),
+            z * cos + (axisX * y - axisY * x) * sin + axisZ * dot * (1 - cos),
+        );
+    }
+
+    private orthonormalizeBasis(): void {
+        const forwardLength = Math.sqrt(
+            this.forwardX * this.forwardX + this.forwardY * this.forwardY + this.forwardZ * this.forwardZ,
+        );
 
         if (forwardLength === 0) {
             return;
         }
 
-        this.forwardX = forwardX / forwardLength;
-        this.forwardY = forwardY / forwardLength;
-        this.forwardZ = forwardZ / forwardLength;
+        this.forwardX /= forwardLength;
+        this.forwardY /= forwardLength;
+        this.forwardZ /= forwardLength;
 
-        const upHintX = 0;
-        let upHintY = 1;
-        let upHintZ = 0;
-
-        if (Math.abs(this.forwardY) > 0.98) {
-            upHintY = 0;
-            upHintZ = this.forwardY > 0 ? -1 : 1;
-        }
-
-        let rightX = upHintY * this.forwardZ - upHintZ * this.forwardY;
-        let rightY = upHintZ * this.forwardX - upHintX * this.forwardZ;
-        let rightZ = upHintX * this.forwardY - upHintY * this.forwardX;
+        let rightX = this.upY * this.forwardZ - this.upZ * this.forwardY;
+        let rightY = this.upZ * this.forwardX - this.upX * this.forwardZ;
+        let rightZ = this.upX * this.forwardY - this.upY * this.forwardX;
         const rightLength = Math.sqrt(rightX * rightX + rightY * rightY + rightZ * rightZ);
 
         if (rightLength === 0) {
@@ -157,10 +217,4 @@ export type ProjectedPoint = {
     y: number;
     scale: number;
     depth: number;
-};
-
-export type WorldPoint3D = {
-    x: number;
-    y: number;
-    z: number;
 };

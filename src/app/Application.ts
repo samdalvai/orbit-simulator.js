@@ -243,11 +243,11 @@ export default class Application {
                     }
 
                     if (inputEvent.key === 'ArrowUp') {
-                        this.renderer.rotateCamera(0, CAMERA_KEY_ROTATION_STEP);
+                        this.renderer.rotateCamera(0, -CAMERA_KEY_ROTATION_STEP);
                     }
 
                     if (inputEvent.key === 'ArrowDown') {
-                        this.renderer.rotateCamera(0, -CAMERA_KEY_ROTATION_STEP);
+                        this.renderer.rotateCamera(0, CAMERA_KEY_ROTATION_STEP);
                     }
 
                     const keyAsNum = Number(inputEvent.key);

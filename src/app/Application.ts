@@ -346,26 +346,18 @@ export default class Application {
             this.panToBody(index);
         }
 
-        this.renderer.beginWorld();
-
-        // Debug rendering center coordinates
-        // this.renderer.drawLine(-100, 0, 100, 0, 'white');
-        // this.renderer.drawLine(0, -100, 0, 100, 'white');
+        const renderItems = this.renderer.getRenderItems();
 
         if (this.showTextures) {
-            for (let i = 0; i < getBodyCount(); i++) {
-                this.renderer.drawStarGlow(i);
+            for (const renderItem of renderItems) {
+                this.renderer.drawStarGlow(renderItem);
             }
         }
 
-        const renderItems = this.renderer.getRenderItems()
-
         // Draw all bodies
-        for (let i = 0; i < getBodyCount(); i++) {
-            this.renderer.drawBody(i, this.showTextures, this.showLabels, this.showMoonLabels);
+        for (const renderItem of renderItems) {
+            this.renderer.drawBody(renderItem, this.showTextures, this.showLabels, this.showMoonLabels);
         }
-
-        this.renderer.endWorld();
 
         if (!this.debug) {
             this.drawHoveredBodyPopup();
@@ -434,6 +426,9 @@ export default class Application {
     }
 
     private updateMouseWorldPosition(inputEvent: MouseEvent): void {
+        this.inputManager.mouseScreenPosition.x = inputEvent.x;
+        this.inputManager.mouseScreenPosition.y = inputEvent.y;
+
         const screenX = inputEvent.x - this.renderer.width() / 2;
         const screenY = -(inputEvent.y - this.renderer.height() / 2);
 
@@ -445,28 +440,26 @@ export default class Application {
     private getHoveredBody(): number | null {
         if (!this.hasMousePosition) return null;
 
-        let hoveredBody: number | null = null;
-        let bestDistanceSq = Number.POSITIVE_INFINITY;
-        const tolerance = BODY_HOVER_TOLERANCE_PIXELS / this.renderer.zoom;
+        const mouseScreenX = this.inputManager.mouseScreenPosition.x;
+        const mouseScreenY = this.inputManager.mouseScreenPosition.y;
+        const tolerance = BODY_HOVER_TOLERANCE_PIXELS;
+        const renderItems = this.renderer.getRenderItems();
 
-        for (let i = 0; i < getBodyCount(); i++) {
-            const bodyId = bodyIds[i];
+        for (let i = renderItems.length - 1; i >= 0; i--) {
+            const renderItem = renderItems[i];
+            const bodyId = bodyIds[renderItem.index];
             const style = this.bodyRenderStyles.get(bodyId) ?? DEFAULT_BODY_RENDER_STYLE;
-            this.renderer.resolveBodyRenderPosition(i, style);
-            const x = this.renderer.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-            const y = this.renderer.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-            const dx = this.inputManager.mousePosition.x - x;
-            const dy = this.inputManager.mousePosition.y - y;
-            const hitRadius = style.renderRadius + tolerance;
+            const dx = mouseScreenX - renderItem.x;
+            const dy = mouseScreenY - renderItem.y;
+            const hitRadius = style.renderRadius * renderItem.scale + tolerance;
             const distanceSq = dx * dx + dy * dy;
 
-            if (distanceSq <= hitRadius * hitRadius && distanceSq < bestDistanceSq) {
-                hoveredBody = bodyIds[i];
-                bestDistanceSq = distanceSq;
+            if (distanceSq <= hitRadius * hitRadius) {
+                return bodyId;
             }
         }
 
-        return hoveredBody;
+        return null;
     }
 
     private drawHoveredBodyPopup(): void {
@@ -495,10 +488,8 @@ export default class Application {
         const height = 200;
         const padding = 14;
         const imageSize = 54;
-        const mouseScreenX =
-            (this.inputManager.mousePosition.x - this.renderer.pan.x) * this.renderer.zoom + this.renderer.width() / 2;
-        const mouseScreenY =
-            this.renderer.height() / 2 - (this.inputManager.mousePosition.y - this.renderer.pan.y) * this.renderer.zoom;
+        const mouseScreenX = this.inputManager.mouseScreenPosition.x;
+        const mouseScreenY = this.inputManager.mouseScreenPosition.y;
         const x = Math.max(12, Math.min(mouseScreenX + 18, this.renderer.width() - width - 12));
         const y = Math.max(12, Math.min(mouseScreenY + 18, this.renderer.height() - height - 12));
 
@@ -507,7 +498,7 @@ export default class Application {
         this.renderer.drawFillRect(x, y, width, 3, style?.fillColor || '#ffffff');
 
         if (style?.texture) {
-            this.renderer.drawTexture(x + padding, y + padding + 4, imageSize, imageSize, style.texture);
+            this.renderer.drawScreenTexture(x + padding, y + padding + 4, imageSize, imageSize, style.texture);
         } else {
             this.renderer.drawFillCircle(
                 x + padding + imageSize / 2,

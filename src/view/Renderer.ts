@@ -8,10 +8,6 @@ import { Vec3 } from '../shared/Vec3';
 import {
     BodyType,
     NO_PARENT,
-    aabbMaxX,
-    aabbMaxY,
-    aabbMinX,
-    aabbMinY,
     bodyIds,
     bodyIndexById,
     bodyTypes,
@@ -23,7 +19,7 @@ import {
     positionZ,
 } from '../sim/Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
-import { Camera3D } from './Camera3D';
+import { Camera3D, ProjectedPoint } from './Camera3D';
 
 export type RenderViewport = {
     minX: number;
@@ -33,7 +29,7 @@ export type RenderViewport = {
     labelMargin: number;
 };
 
-type RenderItem = {
+export type RenderItem = {
     index: number;
     depth: number;
     x: number;
@@ -56,6 +52,7 @@ export default class Renderer {
     // Cached values for rendering
     bodyRenderPositionX = 0;
     bodyRenderPositionY = 0;
+    bodyRenderPositionZ = 0;
     private bodyRenderStyles: Map<number, BodyRenderStyle>;
 
     constructor(bodyRenderStyles: Map<number, BodyRenderStyle>) {
@@ -96,6 +93,7 @@ export default class Renderer {
         canvas.height = window.innerHeight;
         this.windowWidth = window.innerWidth;
         this.windowHeight = window.innerHeight;
+        this.camera.resize(this.windowWidth, this.windowHeight);
     }
 
     width(): number {
@@ -222,7 +220,13 @@ export default class Renderer {
         textureScale = 1,
     ): void {
         // This is needed because we flip the canvas with beginWorld()
+        this.ctx.save();
         this.ctx.scale(textureScale, -textureScale);
+        this.ctx.drawImage(texture, x, y, width, height);
+        this.ctx.restore();
+    }
+
+    drawScreenTexture(x: number, y: number, width: number, height: number, texture: CanvasImageSource): void {
         this.ctx.drawImage(texture, x, y, width, height);
     }
 
@@ -249,6 +253,7 @@ export default class Renderer {
         if (bodyTypes[bodyIndex] !== BodyType.MOON || parentBodyIds[bodyIndex] === NO_PARENT) {
             this.bodyRenderPositionX = positionX[bodyIndex];
             this.bodyRenderPositionY = positionY[bodyIndex];
+            this.bodyRenderPositionZ = positionZ[bodyIndex];
             return;
         }
 
@@ -258,64 +263,62 @@ export default class Renderer {
 
         const parentRenderX = this.bodyRenderPositionX;
         const parentRenderY = this.bodyRenderPositionY;
+        const parentRenderZ = this.bodyRenderPositionZ;
         let moonOffsetX = (positionX[bodyIndex] - positionX[parentIndex]) * MOON_ORBIT_RENDERING_SCALE;
         let moonOffsetY = (positionY[bodyIndex] - positionY[parentIndex]) * MOON_ORBIT_RENDERING_SCALE;
+        let moonOffsetZ = (positionZ[bodyIndex] - positionZ[parentIndex]) * MOON_ORBIT_RENDERING_SCALE;
 
         const parentStyle = this.bodyRenderStyles.get(parentId) ?? DEFAULT_BODY_RENDER_STYLE;
         const minMoonOrbitDistance =
             (parentStyle.renderRadius + bodyStyle.renderRadius + MIN_MOON_ORBIT_RENDERING_GAP) /
             KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const moonOffsetMagnitudeSq = moonOffsetX * moonOffsetX + moonOffsetY * moonOffsetY;
+        const moonOffsetMagnitudeSq = moonOffsetX * moonOffsetX + moonOffsetY * moonOffsetY + moonOffsetZ * moonOffsetZ;
         const minMoonOrbitDistanceSq = minMoonOrbitDistance * minMoonOrbitDistance;
 
         if (moonOffsetMagnitudeSq > 0 && moonOffsetMagnitudeSq < minMoonOrbitDistanceSq) {
             const orbitScale = minMoonOrbitDistance / Math.sqrt(moonOffsetMagnitudeSq);
             moonOffsetX *= orbitScale;
             moonOffsetY *= orbitScale;
+            moonOffsetZ *= orbitScale;
         }
 
         this.bodyRenderPositionX = parentRenderX + moonOffsetX;
         this.bodyRenderPositionY = parentRenderY + moonOffsetY;
+        this.bodyRenderPositionZ = parentRenderZ + moonOffsetZ;
     }
 
-    drawStarGlow(bodyIndex: number): void {
+    drawStarGlow(renderItem: RenderItem): void {
+        const bodyIndex = renderItem.index;
+
         if (bodyTypes[bodyIndex] !== BodyType.STAR) {
             return;
         }
 
         const renderStyle = this.bodyRenderStyles.get(bodyIds[bodyIndex]) ?? DEFAULT_BODY_RENDER_STYLE;
-        this.resolveBodyRenderPosition(bodyIndex, renderStyle);
-        const x = this.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const y = this.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const x = renderItem.x;
+        const y = renderItem.y;
         const renderRadius = renderStyle.renderRadius;
         const massFactor = Math.max(0.5, Math.min(4, Math.pow(mass[bodyIndex] / SOLAR_MASS_KG, 0.2)));
         const lightRadius = renderRadius * (20 + massFactor * 0.1);
+        const screenLightRadius = lightRadius * renderItem.scale;
 
         if (
-            x + lightRadius < this.viewPort.minX ||
-            x - lightRadius > this.viewPort.maxX ||
-            y + lightRadius < this.viewPort.minY ||
-            y - lightRadius > this.viewPort.maxY
+            x + screenLightRadius < 0 ||
+            x - screenLightRadius > this.windowWidth ||
+            y + screenLightRadius < 0 ||
+            y - screenLightRadius > this.windowHeight
         ) {
             return;
         }
 
-        const screenRadius = lightRadius * this.zoom;
-        if (screenRadius < 0.5) {
+        if (screenLightRadius < 0.5) {
             // total size of the glow is less than 1 px, skip drawing glow
-            const screenPixel = 1 / this.zoom;
-            const halfScreenPixel = -screenPixel / 2;
-            this.drawFillRect(
-                x + halfScreenPixel,
-                y + halfScreenPixel,
-                screenPixel,
-                screenPixel,
-                renderStyle.fillColor,
-            );
+            this.drawFillRect(x - 0.5, y - 0.5, 1, 1, renderStyle.fillColor);
             return;
         }
 
-        const gradient = this.ctx.createRadialGradient(x, y, renderRadius, x, y, lightRadius);
+        const screenRenderRadius = renderRadius * renderItem.scale;
+        const gradient = this.ctx.createRadialGradient(x, y, screenRenderRadius, x, y, screenLightRadius);
         gradient.addColorStop(0, renderStyle.fillColor);
         gradient.addColorStop(0.1, renderStyle.fillColor);
         gradient.addColorStop(1, 'transparent');
@@ -325,19 +328,18 @@ export default class Renderer {
         this.ctx.globalAlpha = Math.max(0.25, Math.min(0.75, 0.28 + massFactor * 0.12));
         this.ctx.fillStyle = gradient;
         this.ctx.beginPath();
-        this.ctx.arc(x, y, lightRadius, 0, Math.PI * 2);
+        this.ctx.arc(x, y, screenLightRadius, 0, Math.PI * 2);
         this.ctx.fill();
         this.ctx.restore();
     }
 
-    drawBody(bodyIndex: number, showTextures: boolean, showLabels: boolean, showMoonLabels: boolean): void {
+    drawBody(renderItem: RenderItem, showTextures: boolean, showLabels: boolean, showMoonLabels: boolean): void {
+        const bodyIndex = renderItem.index;
         const renderStyle = this.bodyRenderStyles.get(bodyIds[bodyIndex]) ?? DEFAULT_BODY_RENDER_STYLE;
-        this.resolveBodyRenderPosition(bodyIndex, renderStyle);
-        const renderPositionX = this.bodyRenderPositionX;
-        const renderPositionY = this.bodyRenderPositionY;
-        const x = renderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const y = renderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const x = renderItem.x;
+        const y = renderItem.y;
         const renderRadius = renderStyle.renderRadius;
+        const screenRadius = renderRadius * renderItem.scale;
 
         const strokeColor = 'white';
         const fillColor = renderStyle.fillColor;
@@ -346,42 +348,30 @@ export default class Renderer {
 
         // Viewport culling for objects outside viewport
         const drawLabel = showLabels && label && (showMoonLabels || bodyTypes[bodyIndex] !== BodyType.MOON);
-        const labelMargin = drawLabel ? this.viewPort.labelMargin : 0;
-        const renderOffsetX = renderPositionX - positionX[bodyIndex];
-        const renderOffsetY = renderPositionY - positionY[bodyIndex];
-        const minXScreen = (aabbMinX[bodyIndex] + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const minYScreen = (aabbMinY[bodyIndex] + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const maxXScreen = (aabbMaxX[bodyIndex] + renderOffsetX) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const maxYScreen = (aabbMaxY[bodyIndex] + renderOffsetY) * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const aabbHalfWidth = (maxXScreen - minXScreen) * 0.5;
-        const aabbHalfHeight = (maxYScreen - minYScreen) * 0.5;
-        const paddingX = Math.max(0, renderRadius - aabbHalfWidth) + labelMargin;
-        const paddingY = Math.max(0, renderRadius - aabbHalfHeight) + labelMargin;
+        const labelMargin = drawLabel ? 160 : 0;
+        const cullingRadius = Math.max(screenRadius, 0.5) + labelMargin;
 
         if (
-            maxXScreen + paddingX < this.viewPort.minX ||
-            minXScreen - paddingX > this.viewPort.maxX ||
-            maxYScreen + paddingY < this.viewPort.minY ||
-            minYScreen - paddingY > this.viewPort.maxY
+            x + cullingRadius < 0 ||
+            x - cullingRadius > this.windowWidth ||
+            y + cullingRadius < 0 ||
+            y - cullingRadius > this.windowHeight
         ) {
             return;
         }
 
         this.ctx.save();
-        this.ctx.translate(x, y);
 
-        const screenRadius = renderRadius * this.zoom;
         if (screenRadius < 0.5) {
             // total size of the body is less than 1 px, skip drawing textures
-            const screenPixel = 1 / this.zoom;
-            const halfScreenPixel = -screenPixel / 2;
-            this.drawFillRect(halfScreenPixel, halfScreenPixel, screenPixel, screenPixel, fillColor);
+            this.drawFillRect(x - 0.5, y - 0.5, 1, 1, fillColor);
         } else if (!showTextures) {
-            this.drawCircle(0, 0, renderRadius, strokeColor);
+            this.drawCircle(x, y, screenRadius, strokeColor);
         } else if (texture) {
-            this.drawTexture(-renderRadius, -renderRadius, renderRadius * 2, renderRadius * 2, texture, 1.2);
+            const textureRadius = screenRadius * 1.2;
+            this.drawScreenTexture(x - textureRadius, y - textureRadius, textureRadius * 2, textureRadius * 2, texture);
         } else {
-            this.drawFillCircle(0, 0, renderRadius, fillColor);
+            this.drawFillCircle(x, y, screenRadius, fillColor);
         }
 
         this.ctx.restore();
@@ -392,22 +382,37 @@ export default class Renderer {
             const labelGap = Math.max(8, labelFontSize * 0.6);
 
             this.ctx.save();
-            this.ctx.translate(x + renderRadius, y + renderRadius);
-            this.ctx.scale(1 / this.zoom, -1 / this.zoom);
             this.ctx.fillStyle = labelColor;
             this.ctx.font = `${labelFontSize}px Arial`;
             this.ctx.textAlign = 'left';
             this.ctx.textBaseline = 'bottom';
-            this.ctx.fillText(label, labelGap, -labelGap);
+            this.ctx.fillText(label, x + screenRadius + labelGap, y - screenRadius - labelGap);
             this.ctx.restore();
         }
     }
 
+    private syncCameraFromView(): void {
+        this.camera.x = this.pan.x;
+        this.camera.y = this.pan.y;
+        this.camera.z = -this.camera.focalLength / this.zoom;
+    }
+
+    private projectBody(bodyIndex: number, renderStyle: BodyRenderStyle): ProjectedPoint | null {
+        this.resolveBodyRenderPosition(bodyIndex, renderStyle);
+        return this.camera.project(
+            this.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+            this.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+            this.bodyRenderPositionZ * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+        );
+    }
+
     getRenderItems(): RenderItem[] {
         const renderItems: RenderItem[] = [];
+        this.syncCameraFromView();
 
         for (let i = 0; i < getBodyCount(); i++) {
-            const projected = this.camera.project(positionX[i], positionY[i], positionZ[i]);
+            const renderStyle = this.bodyRenderStyles.get(bodyIds[i]) ?? DEFAULT_BODY_RENDER_STYLE;
+            const projected = this.projectBody(i, renderStyle);
 
             if (projected === null) {
                 continue;

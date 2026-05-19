@@ -15,6 +15,11 @@ export class Camera3D {
         this.screenHeight = screenHeight;
     }
 
+    resize(screenWidth: number, screenHeight: number): void {
+        this.screenWidth = screenWidth;
+        this.screenHeight = screenHeight;
+    }
+
     project(x: number, y: number, z: number): ProjectedPoint | null {
         const cameraX = x - this.x;
         const cameraY = y - this.y;

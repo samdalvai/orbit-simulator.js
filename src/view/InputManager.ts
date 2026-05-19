@@ -12,6 +12,7 @@ export default class InputManager {
     mouseMoveBuffer: MouseEvent[] = [];
     mouseWheelBuffer: WheelEvent[] = [];
     mousePosition = new Vec3();
+    mouseScreenPosition = new Vec3();
 
     private lastWheelEventTime = 0;
 

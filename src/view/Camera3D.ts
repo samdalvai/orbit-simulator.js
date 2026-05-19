@@ -34,18 +34,13 @@ export class Camera3D {
     }
 
     rotate(deltaYaw: number, deltaPitch: number): void {
-        let nextPitch = this.pitch + deltaPitch;
-
-        if (deltaYaw !== 0 && Math.abs(nextPitch) < 0.001) {
-            nextPitch = 0.35;
-        }
-
-        this.setRotation(this.yaw + deltaYaw, nextPitch);
+        this.setRotation(this.yaw + deltaYaw, this.pitch + deltaPitch);
     }
 
     setRotation(yaw: number, pitch: number): void {
         const maxPitch = Math.PI * 0.5 - 0.08;
-
+        console.log('setting yaw: ', yaw);
+        console.log('setting pitch: ', pitch);
         this.yaw = yaw;
         this.pitch = Math.max(-maxPitch, Math.min(maxPitch, pitch));
     }
@@ -56,9 +51,10 @@ export class Camera3D {
         const sinPitch = Math.sin(this.pitch);
         const cosPitch = Math.cos(this.pitch);
 
-        this.x = targetX + sinYaw * sinPitch * distance;
-        this.y = targetY - cosYaw * sinPitch * distance;
-        this.z = targetZ - cosPitch * distance;
+        // Solar systems live on the XY plane, so yaw turns around screen/world Y while Z is view depth.
+        this.x = targetX + sinYaw * cosPitch * distance;
+        this.y = targetY - sinPitch * distance;
+        this.z = targetZ - cosYaw * cosPitch * distance;
 
         this.updateBasisFromTarget(targetX, targetY, targetZ);
     }

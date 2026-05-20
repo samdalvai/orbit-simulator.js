@@ -21,8 +21,6 @@ import {
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
 import { Camera3D, ProjectedPoint } from './Camera3D';
 
-const MIN_ZOOM = 0.0001;
-
 export type RenderItem = {
     index: number;
     depth: number;
@@ -38,9 +36,6 @@ export default class Renderer {
     private ctx: CanvasRenderingContext2D;
 
     private camera: Camera3D;
-
-    zoom = 1;
-    pan = new Vec3(0, 0, 0);
 
     // Cached values for rendering
     bodyRenderPositionX = 0;
@@ -90,63 +85,83 @@ export default class Renderer {
         return this.windowHeight;
     }
 
+    get zoom(): number {
+        return this.camera.zoom;
+    }
+
+    set zoom(zoom: number) {
+        this.camera.zoom = zoom;
+    }
+
+    get targetX(): number {
+        return this.camera.targetX;
+    }
+
+    get targetY(): number {
+        return this.camera.targetY;
+    }
+
+    get targetZ(): number {
+        return this.camera.targetZ;
+    }
+
+    setCameraTarget(x: number, y: number, z: number): void {
+        this.camera.setTarget(x, y, z);
+    }
+
     increaseZoom(): void {
         this.zoom += 0.05;
     }
 
     decreaseZoom(): void {
         this.zoom -= 0.05;
-
-        if (this.zoom < MIN_ZOOM) {
-            this.zoom = MIN_ZOOM;
-        }
     }
 
     zoomAt(screenX: number, screenY: number, factor: number): void {
-        const oldPanX = this.pan.x;
-        const oldPanY = this.pan.y;
+        const oldTargetX = this.camera.targetX;
+        const oldTargetY = this.camera.targetY;
+        const oldTargetZ = this.camera.targetZ;
         const oldZoom = this.zoom;
-        const planeZ = this.pan.z;
+        const planeZ = this.camera.targetZ;
         const beforeZoom = this.screenToWorldAtZ(screenX, screenY, planeZ);
 
-        this.zoom = Math.max(MIN_ZOOM, this.zoom * factor);
+        this.zoom *= factor;
 
         const afterZoom = this.screenToWorldAtZ(screenX, screenY, planeZ);
 
         if (beforeZoom !== null && afterZoom !== null) {
-            this.pan.x += beforeZoom.x - afterZoom.x;
-            this.pan.y += beforeZoom.y - afterZoom.y;
+            this.camera.moveTarget(beforeZoom.x - afterZoom.x, beforeZoom.y - afterZoom.y);
             return;
         }
 
-        this.pan.x = oldPanX;
-        this.pan.y = oldPanY;
+        this.camera.setTarget(oldTargetX, oldTargetY, oldTargetZ);
         this.zoom = oldZoom;
 
-        const worldXBeforeZoom = this.pan.x + (screenX - this.windowWidth / 2) / this.zoom;
-        const worldYBeforeZoom = this.pan.y - (screenY - this.windowHeight / 2) / this.zoom;
+        const worldXBeforeZoom = oldTargetX + (screenX - this.windowWidth / 2) / this.zoom;
+        const worldYBeforeZoom = oldTargetY - (screenY - this.windowHeight / 2) / this.zoom;
 
-        this.zoom = Math.max(MIN_ZOOM, this.zoom * factor);
+        this.zoom *= factor;
 
-        this.pan.x = worldXBeforeZoom - (screenX - this.windowWidth / 2) / this.zoom;
-        this.pan.y = worldYBeforeZoom + (screenY - this.windowHeight / 2) / this.zoom;
+        this.camera.setTarget(
+            worldXBeforeZoom - (screenX - this.windowWidth / 2) / this.zoom,
+            worldYBeforeZoom + (screenY - this.windowHeight / 2) / this.zoom,
+            oldTargetZ,
+        );
     }
 
     panByScreenDelta(movementX: number, movementY: number): void {
-        const planeZ = this.pan.z;
+        const planeZ = this.camera.targetZ;
         const centerX = this.windowWidth * 0.5;
         const centerY = this.windowHeight * 0.5;
         const beforePan = this.screenToWorldAtZ(centerX, centerY, planeZ);
         const afterPan = this.screenToWorldAtZ(centerX - movementX, centerY - movementY, planeZ);
 
         if (beforePan !== null && afterPan !== null) {
-            this.pan.x += afterPan.x - beforePan.x;
-            this.pan.y += afterPan.y - beforePan.y;
+            this.camera.moveTarget(afterPan.x - beforePan.x, afterPan.y - beforePan.y);
             return;
         }
 
-        this.pan.x -= movementX / this.zoom;
-        this.pan.y += movementY / this.zoom;
+        this.camera.moveTarget(-movementX / this.zoom, movementY / this.zoom);
     }
 
     rotateCamera(deltaYaw: number, deltaPitch: number): void {
@@ -167,9 +182,7 @@ export default class Renderer {
 
     resetView(): void {
         this.zoom = 1;
-        this.pan.x = 0;
-        this.pan.y = 0;
-        this.pan.z = 0;
+        this.camera.setTarget(0, 0, 0);
         this.resetCameraOrientation();
     }
 
@@ -194,8 +207,8 @@ export default class Renderer {
         // Flip Y axis (world Y up, canvas Y down)
         ctx.scale(this.zoom, -this.zoom);
 
-        // Apply camera pan
-        ctx.translate(-this.pan.x, -this.pan.y);
+        // Apply camera target offset
+        ctx.translate(-this.camera.targetX, -this.camera.targetY);
 
         ctx.lineWidth = 1 / this.zoom;
     }
@@ -421,12 +434,7 @@ export default class Renderer {
         }
     }
 
-    private syncCameraFromView(): void {
-        this.camera.lookAt(this.pan.x, this.pan.y, this.pan.z, this.camera.focalLength / this.zoom);
-    }
-
     screenToWorldAtZ(screenX: number, screenY: number, worldZ: number): Vec3 | null {
-        this.syncCameraFromView();
         return this.camera.screenToWorldAtZ(screenX, screenY, worldZ);
     }
 
@@ -441,7 +449,6 @@ export default class Renderer {
 
     getRenderItems(): RenderItem[] {
         const renderItems: RenderItem[] = [];
-        this.syncCameraFromView();
 
         for (let i = 0; i < getBodyCount(); i++) {
             const renderStyle = this.bodyRenderStyles.get(bodyIds[i]) ?? DEFAULT_BODY_RENDER_STYLE;

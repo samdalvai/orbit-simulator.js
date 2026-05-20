@@ -107,9 +107,7 @@ export default class Application {
             this.blackHole = null;
             this.selectedPlanet = null;
 
-            this.renderer.pan.x = 0;
-            this.renderer.pan.y = 0;
-            this.renderer.pan.z = 0;
+            this.renderer.setCameraTarget(0, 0, 0);
             this.renderer.resetCameraOrientation();
 
             if (this.demoIndex === 1) {
@@ -474,8 +472,8 @@ export default class Application {
         const screenX = inputEvent.x - this.renderer.width() / 2;
         const screenY = -(inputEvent.y - this.renderer.height() / 2);
 
-        this.inputManager.mousePosition.x = screenX / this.renderer.zoom + this.renderer.pan.x;
-        this.inputManager.mousePosition.y = screenY / this.renderer.zoom + this.renderer.pan.y;
+        this.inputManager.mousePosition.x = screenX / this.renderer.zoom + this.renderer.targetX;
+        this.inputManager.mousePosition.y = screenY / this.renderer.zoom + this.renderer.targetY;
         this.inputManager.mousePosition.z = 0;
         this.hasMousePosition = true;
     }
@@ -614,9 +612,11 @@ export default class Application {
         const bodyId = bodyIds[bodyIndex];
         const style = this.bodyRenderStyles.get(bodyId) ?? DEFAULT_BODY_RENDER_STYLE;
         this.renderer.resolveBodyRenderPosition(bodyIndex, style);
-        this.renderer.pan.x = this.renderer.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        this.renderer.pan.y = this.renderer.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        this.renderer.pan.z = this.renderer.bodyRenderPositionZ * KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        this.renderer.setCameraTarget(
+            this.renderer.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+            this.renderer.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+            this.renderer.bodyRenderPositionZ * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+        );
     }
 
     private createBlackHoleAtMouse(): void {

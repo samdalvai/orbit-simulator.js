@@ -1,5 +1,6 @@
 import { Vec3 } from '../shared/Vec3';
 
+const MIN_ZOOM = 0.0001;
 const MAX_PITCH = Math.PI * 0.5 - 0.08;
 
 export class Camera3D {
@@ -17,6 +18,11 @@ export class Camera3D {
 
     near = 1;
 
+    private zoomValue = 1;
+    private targetXValue = 0;
+    private targetYValue = 0;
+    private targetZValue = 0;
+
     private forwardX = 0;
     private forwardY = 0;
     private forwardZ = 1;
@@ -30,13 +36,35 @@ export class Camera3D {
     /**
      * Creates a camera for a viewport of the given pixel size.
      *
-     * The camera starts at (0, 0, -1000) looking along positive world Z.
+     * The camera starts focused on world origin, looking along positive world Z.
      * `screenWidth` and `screenHeight` are used as the center point for
      * perspective projection and can later be changed with `resize`.
      */
     constructor(screenWidth: number, screenHeight: number) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
+        this.updatePositionFromTarget();
+    }
+
+    get zoom(): number {
+        return this.zoomValue;
+    }
+
+    set zoom(zoom: number) {
+        this.zoomValue = Math.max(MIN_ZOOM, zoom);
+        this.updatePositionFromTarget();
+    }
+
+    get targetX(): number {
+        return this.targetXValue;
+    }
+
+    get targetY(): number {
+        return this.targetYValue;
+    }
+
+    get targetZ(): number {
+        return this.targetZValue;
     }
 
     /**
@@ -49,6 +77,34 @@ export class Camera3D {
     resize(screenWidth: number, screenHeight: number): void {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
+    }
+
+    /**
+     * Sets the world-space point the camera orbits and looks toward.
+     *
+     * Changing the target immediately moves the camera position while keeping
+     * the current yaw, pitch, and zoom. This replaces the old renderer-owned
+     * `pan` state with camera-owned focus state.
+     */
+    setTarget(x: number, y: number, z: number): void {
+        this.targetXValue = x;
+        this.targetYValue = y;
+        this.targetZValue = z;
+        this.updatePositionFromTarget();
+    }
+
+    /**
+     * Moves the current camera target by a world-space offset.
+     *
+     * This is used for drag panning and zoom-to-cursor correction. The camera
+     * follows the target immediately, preserving the current orientation and
+     * distance from the target.
+     */
+    moveTarget(deltaX: number, deltaY: number, deltaZ = 0): void {
+        this.targetXValue += deltaX;
+        this.targetYValue += deltaY;
+        this.targetZValue += deltaZ;
+        this.updatePositionFromTarget();
     }
 
     /**
@@ -66,6 +122,7 @@ export class Camera3D {
         this.yaw += deltaYaw;
         this.pitch = this.clampPitch(this.pitch + deltaPitch);
         this.updateBasisFromAngles();
+        this.updatePositionFromTarget();
     }
 
     /**
@@ -82,20 +139,7 @@ export class Camera3D {
         this.yaw = yaw;
         this.pitch = this.clampPitch(pitch);
         this.updateBasisFromAngles();
-    }
-
-    /**
-     * Positions the camera so it looks toward a target from the current
-     * orientation.
-     *
-     * The method does not change the camera's rotation. It moves the camera
-     * backward along its current forward vector by `distance`, so the target
-     * point ends up directly in front of the camera at that distance.
-     */
-    lookAt(targetX: number, targetY: number, targetZ: number, distance: number): void {
-        this.x = targetX - this.forwardX * distance;
-        this.y = targetY - this.forwardY * distance;
-        this.z = targetZ - this.forwardZ * distance;
+        this.updatePositionFromTarget();
     }
 
     /**
@@ -188,6 +232,21 @@ export class Camera3D {
 
     private clampPitch(pitch: number): number {
         return Math.max(-MAX_PITCH, Math.min(MAX_PITCH, pitch));
+    }
+
+    /**
+     * Repositions the camera from target, orientation, and zoom.
+     *
+     * `zoom` controls orbit distance by converting to `focalLength / zoom`,
+     * which preserves the projection scale behavior from the previous renderer
+     * sync implementation.
+     */
+    private updatePositionFromTarget(): void {
+        const distance = this.focalLength / this.zoomValue;
+
+        this.x = this.targetXValue - this.forwardX * distance;
+        this.y = this.targetYValue - this.forwardY * distance;
+        this.z = this.targetZValue - this.forwardZ * distance;
     }
 }
 

@@ -60,13 +60,16 @@ Status legend:
 
 ## Phase 3: Move View State Toward The Camera
 
-- [ ] Rename the conceptual renderer state from `pan` to a clearer camera target/focus name.
-- [ ] Decide whether to keep compatibility accessors temporarily:
-  - [ ] either update all call sites immediately
-  - [ ] or add short-lived aliases while migrating
-- [ ] Move `zoom` and target/focus ownership into `Camera3D` if it reduces call-site complexity.
-- [ ] Remove `Renderer.syncCameraFromView()` once the camera owns enough state to keep itself current.
-- [ ] Keep `Renderer` responsible for drawing and body render-position resolution, not camera math.
+- [x] Rename the conceptual renderer state from `pan` to a clearer camera target/focus name.
+- [x] Decide whether to keep compatibility accessors temporarily:
+  - [x] update all call sites immediately
+  - [x] do not add short-lived `pan` aliases
+- [x] Move `zoom` and target/focus ownership into `Camera3D` if it reduces call-site complexity.
+- [x] Remove `Renderer.syncCameraFromView()` once the camera owns enough state to keep itself current.
+- [x] Keep `Renderer` responsible for drawing and body render-position resolution, not camera math.
+- [x] Verification for this phase:
+  - 2026-05-20: `npm run build` completed successfully after moving camera target/zoom state.
+  - Behavior note: `Renderer.pan` was removed; app code now uses `setCameraTarget()` and target getters.
 
 ## Phase 4: Reduce Per-Frame Allocation And Duplicate Projection
 

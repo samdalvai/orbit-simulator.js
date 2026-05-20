@@ -274,4 +274,5 @@ export const solarSystem: SolarSystemSpec = {
             colors: ['#c8d6df', '#9eb3c0', '#dfe8ec', '#8093a0'],
         },
     ],
+    comets: [],
 };

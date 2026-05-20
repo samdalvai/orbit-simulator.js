@@ -5,6 +5,7 @@ export type SolarSystemSpec = {
     secondaryStars: CelestialBodySpec[];
     planets: PlanetBodySpec[];
     belts: BeltSpec[];
+    comets: CelestialBodySpec[];
 };
 
 export type CelestialBodySpecBase = {
@@ -23,7 +24,7 @@ export type CelestialBodySpec = {
     /**
      * Starting angle around the parent body, in degrees.
      *
-     * This chooses where on the orbit the body starts, changing it only changes 
+     * This chooses where on the orbit the body starts, changing it only changes
      * the initial position/phase.
      */
     orbitAngleDegrees?: number;

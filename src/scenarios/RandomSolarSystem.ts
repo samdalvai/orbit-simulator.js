@@ -1,8 +1,8 @@
-import { TextureName } from '../view/AssetStore';
 import { AU_KM, EARTH_RADIUS_KM } from '../shared/Constants';
 import { randomNumber } from '../shared/Math';
 import { assert } from '../shared/Utils';
 import { Vec3 } from '../shared/Vec3';
+import { TextureName } from '../view/AssetStore';
 import { CelestialBodySpec, PlanetBodySpec, SolarSystemSpec } from './BodySpec';
 
 export type RandomSolarSystemProbabilities = {
@@ -79,6 +79,7 @@ export function createRandomSolarSystem() {
         secondaryStars: [],
         planets: [],
         belts: [],
+        comets: [],
     };
 
     for (let i = 1; i < starCount; i++) {

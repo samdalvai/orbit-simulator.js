@@ -172,7 +172,7 @@ export default class Renderer {
     }
 
     resetCameraOrientation(): void {
-        this.camera.setRotation(0, degreesToRadians(60));
+        this.camera.setRotation(0, degreesToRadians(30));
     }
 
     yaw(): number {

@@ -24,7 +24,9 @@ Status legend:
 
 ## Phase 1: Baseline And Behavior Checks
 
-- [ ] Run the existing build/test command available in the project and record the result.
+- [x] Run the existing build/test command available in the project and record the result.
+  - 2026-05-20: `npm test` ran Jest, but exited with code 1 because there are no matching test files.
+  - 2026-05-20: `npm run build` completed successfully.
 - [ ] Manually verify the current camera behavior before refactoring:
   - [ ] reset view
   - [ ] rotate with mouse
@@ -33,7 +35,12 @@ Status legend:
   - [ ] zoom to cursor while rotated
   - [ ] select/follow a body
   - [ ] hover popup still targets the visible body
-- [ ] Note any existing bugs or odd behavior before changing code, so refactor regressions are easier to separate from pre-existing issues.
+  - Pending: this requires an interactive browser session, which was not available during this pass.
+- [x] Note any existing bugs or odd behavior before changing code, so refactor regressions are easier to separate from pre-existing issues.
+  - No runtime behavior bugs were manually confirmed in this pass.
+  - Existing baseline issue: `npm test` fails because the project currently has no Jest test files.
+  - Static wiring check: the current controls are wired through `Application.input()`, `Renderer.rotateCamera()`,
+    `Renderer.panByScreenDelta()`, `Renderer.zoomAt()`, `Renderer.screenToWorldAtZ()`, and `Renderer.getRenderItems()`.
 
 ## Phase 2: Simplify `Camera3D`
 

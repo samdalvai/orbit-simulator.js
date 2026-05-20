@@ -2,6 +2,7 @@ import { createSolarSystem } from '../scenarios/BodyGeneration';
 import { createRandomGalaxy } from '../scenarios/RandomGalaxy';
 import { createRandomSolarSystem } from '../scenarios/RandomSolarSystem';
 import { solarSystem } from '../scenarios/SolarSystem';
+import { testSystem } from '../scenarios/TestSystem';
 import { tripleStarSystem } from '../scenarios/TripleStarSystem';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from '../shared/Constants';
 import { clamp } from '../shared/Math';
@@ -47,7 +48,7 @@ export default class Application {
     private paused = false;
 
     // Demos
-    private demoIndex = 1;
+    private demoIndex = 5;
     private loadingDemo = false;
 
     // Inputs
@@ -133,8 +134,8 @@ export default class Application {
 
             if (this.demoIndex === 5) {
                 this.renderer.zoom = 0.3;
-
-                // Test scewnario
+                const testSpec = testSystem;
+                createSolarSystem(testSpec, this.bodyRenderStyles);
             }
 
             this.engine.initializeVerlet();

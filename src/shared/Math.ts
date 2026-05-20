@@ -78,10 +78,10 @@ export function degreesToRadians(degrees: number): number {
     return (degrees * Math.PI) / 180;
 }
 
-function createHoneycombCircles(radius: number, rings: number): Vec3[] {
+function createHoneycombLayer(radius: number, rings: number, z: number, offsetX = 0, offsetY = 0): Vec3[] {
     const points: Vec3[] = [];
 
-    points.push(new Vec3());
+    points.push(new Vec3(offsetX, offsetY, z));
 
     const directions = [
         { q: -1, s: 1 },
@@ -98,10 +98,10 @@ function createHoneycombCircles(radius: number, rings: number): Vec3[] {
 
         for (const dir of directions) {
             for (let step = 0; step < ring; step++) {
-                const x = radius * 2 * (q + s / 2);
-                const y = radius * Math.sqrt(3) * s;
+                const x = radius * 2 * (q + s / 2) + offsetX;
+                const y = radius * Math.sqrt(3) * s + offsetY;
 
-                points.push(new Vec3(x, y));
+                points.push(new Vec3(x, y, z));
 
                 q += dir.q;
                 s += dir.s;
@@ -113,18 +113,35 @@ function createHoneycombCircles(radius: number, rings: number): Vec3[] {
 }
 
 /**
- * Creates as many circles as possible in a honeycomb arrangement inside a body radius
+ * Creates as many spheres as possible in a stacked honeycomb arrangement inside a sphere radius.
  */
-export function createHoneycombInCircle(circleRadius: number, bodyRadius: number): Vec3[] {
+export function createHoneycombInSphere(sphereRadius: number, bodyRadius: number): Vec3[] {
     const points: Vec3[] = [];
 
-    const maxRings = Math.ceil(circleRadius / (bodyRadius * 2));
+    const maxCenterDistance = sphereRadius - bodyRadius;
 
-    const candidates = createHoneycombCircles(bodyRadius, maxRings);
+    if (maxCenterDistance < 0) {
+        return points;
+    }
 
-    for (const p of candidates) {
-        if (Math.hypot(p.x, p.y) + bodyRadius <= circleRadius) {
-            points.push(p);
+    const layerHeight = Math.sqrt(8 / 3) * bodyRadius;
+    const maxLayers = Math.floor(maxCenterDistance / layerHeight);
+    const maxRings = Math.ceil(maxCenterDistance / (bodyRadius * 2));
+
+    for (let layer = -maxLayers; layer <= maxLayers; layer++) {
+        const z = layer * layerHeight;
+
+        const oddLayer = Math.abs(layer) % 2 === 1;
+
+        const offsetX = oddLayer ? bodyRadius : 0;
+        const offsetY = oddLayer ? (Math.sqrt(3) * bodyRadius) / 3 : 0;
+
+        const candidates = createHoneycombLayer(bodyRadius, maxRings, z, offsetX, offsetY);
+
+        for (const p of candidates) {
+            if (Math.hypot(p.x, p.y, p.z) <= maxCenterDistance) {
+                points.push(p);
+            }
         }
     }
 

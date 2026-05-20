@@ -1,5 +1,5 @@
 import { MAX_BODIES } from '../shared/Constants';
-import { createHoneycombInCircle } from '../shared/Math';
+import { createHoneycombInSphere } from '../shared/Math';
 import { Vec3 } from '../shared/Vec3';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../view/BodyRenderStyle';
 import {
@@ -164,7 +164,7 @@ export function explodeBody(bodyId: number, bodyRenderStyles: Map<number, BodyRe
     if (getBodyCount() + numOfDebris >= MAX_BODIES) return;
 
     const circlesRadius = radius / Math.sqrt(numOfDebris);
-    const circles = createHoneycombInCircle(radius, circlesRadius);
+    const circles = createHoneycombInSphere(radius, circlesRadius);
     const circlesMass = bodyMass / circles.length;
 
     const bodyStyle = bodyRenderStyles.get(bodyId) ?? DEFAULT_BODY_RENDER_STYLE;

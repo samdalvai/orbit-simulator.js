@@ -19,6 +19,7 @@ import {
     updateAABB,
     velocityX,
     velocityY,
+    velocityZ,
 } from './Body';
 
 export type Collision = {
@@ -32,7 +33,7 @@ export function detectCircleCollision(aIndex: number, bIndex: number): Collision
     const dz = positionZ[bIndex] - positionZ[aIndex];
 
     const radiusSum = radii[aIndex] + radii[bIndex];
-    const distSq = dx * dx + dy * dy;
+    const distSq = dx * dx + dy * dy + dz * dz;
 
     if (distSq >= radiusSum * radiusSum) {
         return null;
@@ -43,9 +44,10 @@ export function detectCircleCollision(aIndex: number, bIndex: number): Collision
     // Safe normal (avoid NaN if perfectly overlapping)
     const nx = dist > 0 ? dx / dist : 1;
     const ny = dist > 0 ? dy / dist : 0;
+    const nz = dist > 0 ? dz / dist : 0;
 
     return {
-        normal: new Vec3(nx, ny), // from A → B
+        normal: new Vec3(nx, ny, nz), // from A → B
         penetration: radiusSum - dist,
     };
 }
@@ -60,8 +62,9 @@ export function resolveCollision(
 
     const rvx = velocityX[bIndex] - velocityX[aIndex];
     const rvy = velocityY[bIndex] - velocityY[aIndex];
+    const rvz = velocityZ[bIndex] - velocityZ[aIndex];
 
-    const velAlongNormal = rvx * n.x + rvy * n.y;
+    const velAlongNormal = rvx * n.x + rvy * n.y + rvz * n.z;
 
     // Already separating → do nothing
     if (velAlongNormal > 0) {
@@ -77,9 +80,10 @@ export function resolveCollision(
 
     const impulseX = j * n.x;
     const impulseY = j * n.y;
+    const impulseZ = j * n.z;
 
-    applyImpulseLinear(aIndex, new Vec3(-impulseX, -impulseY));
-    applyImpulseLinear(bIndex, new Vec3(impulseX, impulseY));
+    applyImpulseLinear(aIndex, new Vec3(-impulseX, -impulseY, -impulseZ));
+    applyImpulseLinear(bIndex, new Vec3(impulseX, impulseY, impulseZ));
 }
 
 export function resolvePosition(aIndex: number, bIndex: number, collision: Collision, bias = 0.5): void {
@@ -94,12 +98,15 @@ export function resolvePosition(aIndex: number, bIndex: number, collision: Colli
 
     const cx = correctionMag * collision.normal.x;
     const cy = correctionMag * collision.normal.y;
+    const cz = correctionMag * collision.normal.z;
 
     positionX[aIndex] -= cx * invMass[aIndex];
     positionY[aIndex] -= cy * invMass[aIndex];
+    positionZ[aIndex] -= cz * invMass[aIndex];
 
     positionX[bIndex] += cx * invMass[bIndex];
     positionY[bIndex] += cy * invMass[bIndex];
+    positionZ[bIndex] -= cz * invMass[aIndex];
 
     updateAABB(aIndex);
     updateAABB(bIndex);
@@ -111,8 +118,9 @@ export function resolvePosition(aIndex: number, bIndex: number, collision: Colli
 export function computeImpactEnergy(aIndex: number, bIndex: number, normal: Vec3): number {
     const rvx = velocityX[bIndex] - velocityX[aIndex];
     const rvy = velocityY[bIndex] - velocityY[aIndex];
+    const rvz = velocityZ[bIndex] - velocityZ[aIndex];
 
-    const impactSpeed = Math.abs(rvx * normal.x + rvy * normal.y);
+    const impactSpeed = Math.abs(rvx * normal.x + rvy * normal.y + rvz * normal.z);
 
     const reducedMass = (mass[aIndex] * mass[bIndex]) / (mass[aIndex] + mass[bIndex]);
 

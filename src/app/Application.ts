@@ -114,7 +114,7 @@ export default class Application {
             this.renderer.resetCameraOrientation();
 
             if (this.demoIndex === 1) {
-                this.renderer.zoom = 0.3;
+                this.renderer.zoom = 0.0000003;
                 createSolarSystem(solarSystem, this.bodyRenderStyles);
             }
 

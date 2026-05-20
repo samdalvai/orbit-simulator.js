@@ -73,13 +73,16 @@ Status legend:
 
 ## Phase 4: Reduce Per-Frame Allocation And Duplicate Projection
 
-- [ ] Change the projection path to avoid creating a temporary `ProjectedPoint` object per body.
-- [ ] Reuse the `RenderItem[]` array across frames.
-- [ ] Reuse or mutate `RenderItem` objects instead of creating new objects for every visible body each frame.
-- [ ] Compute render items once per frame in `Application.render()`.
-- [ ] Pass the current frame's render items into hover detection and popup drawing instead of calling `getRenderItems()` again.
-- [ ] Preserve depth sorting order from farthest to nearest.
-- [ ] Confirm the star glow and body draw loops still receive the same render item data.
+- [x] Change the projection path to avoid creating a temporary `ProjectedPoint` object per body.
+- [x] Reuse the `RenderItem[]` array across frames.
+- [x] Reuse or mutate `RenderItem` objects instead of creating new objects for every visible body each frame.
+- [x] Compute render items once per frame in `Application.render()`.
+- [x] Pass the current frame's render items into hover detection and popup drawing instead of calling `getRenderItems()` again.
+- [x] Preserve depth sorting order from farthest to nearest.
+- [x] Confirm the star glow and body draw loops still receive the same render item data.
+- [x] Verification for this phase:
+  - 2026-05-20: `npm run build` completed successfully after reducing render-item allocations.
+  - Behavior note: click handling can still compute fresh render items because it runs outside `Application.render()`.
 
 ## Phase 5: Verification
 

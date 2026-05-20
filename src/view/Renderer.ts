@@ -19,7 +19,7 @@ import {
     positionZ,
 } from '../sim/Body';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from './BodyRenderStyle';
-import { Camera3D, ProjectedPoint } from './Camera3D';
+import { Camera3D } from './Camera3D';
 
 export type RenderItem = {
     index: number;
@@ -41,7 +41,9 @@ export default class Renderer {
     bodyRenderPositionX = 0;
     bodyRenderPositionY = 0;
     bodyRenderPositionZ = 0;
-    
+
+    private readonly renderItems: RenderItem[] = [];
+    private readonly renderItemPool: RenderItem[] = [];
     private bodyRenderStyles: Map<number, BodyRenderStyle>;
 
     constructor(bodyRenderStyles: Map<number, BodyRenderStyle>) {
@@ -438,36 +440,58 @@ export default class Renderer {
         return this.camera.screenToWorldAtZ(screenX, screenY, worldZ);
     }
 
-    private projectBody(bodyIndex: number, renderStyle: BodyRenderStyle): ProjectedPoint | null {
+    private projectBody(bodyIndex: number, renderStyle: BodyRenderStyle, renderItem: RenderItem): boolean {
         this.resolveBodyRenderPosition(bodyIndex, renderStyle);
-        return this.camera.project(
-            this.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-            this.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-            this.bodyRenderPositionZ * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
-        );
+
+        if (
+            !this.camera.projectTo(
+                renderItem,
+                this.bodyRenderPositionX * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+                this.bodyRenderPositionY * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+                this.bodyRenderPositionZ * KILOMETERS_TO_PIXELS_RENDERING_SCALE,
+            )
+        ) {
+            return false;
+        }
+
+        renderItem.index = bodyIndex;
+        return true;
+    }
+
+    private getRenderItem(index: number): RenderItem {
+        let renderItem = this.renderItemPool[index];
+
+        if (!renderItem) {
+            renderItem = {
+                index: 0,
+                depth: 0,
+                x: 0,
+                y: 0,
+                scale: 0,
+            };
+            this.renderItemPool[index] = renderItem;
+        }
+
+        return renderItem;
     }
 
     getRenderItems(): RenderItem[] {
-        const renderItems: RenderItem[] = [];
+        let renderItemCount = 0;
 
         for (let i = 0; i < getBodyCount(); i++) {
             const renderStyle = this.bodyRenderStyles.get(bodyIds[i]) ?? DEFAULT_BODY_RENDER_STYLE;
-            const projected = this.projectBody(i, renderStyle);
+            const renderItem = this.getRenderItem(renderItemCount);
 
-            if (projected === null) {
+            if (!this.projectBody(i, renderStyle, renderItem)) {
                 continue;
             }
 
-            renderItems.push({
-                index: i,
-                depth: projected.depth,
-                x: projected.x,
-                y: projected.y,
-                scale: projected.scale,
-            });
+            this.renderItems[renderItemCount] = renderItem;
+            renderItemCount++;
         }
 
-        renderItems.sort((a, b) => b.depth - a.depth);
-        return renderItems;
+        this.renderItems.length = renderItemCount;
+        this.renderItems.sort((a, b) => b.depth - a.depth);
+        return this.renderItems;
     }
 }

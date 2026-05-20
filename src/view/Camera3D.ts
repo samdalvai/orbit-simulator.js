@@ -148,13 +148,16 @@ export class Camera3D {
      * The world point is first converted into camera space by measuring its
      * offset from the camera along the camera's right, up, and forward axes.
      * `cameraZ` is the depth in front of the camera. Points at or behind the
-     * near plane return `null` because they should not be rendered.
+     * near plane return `false` because they should not be rendered.
      *
      * For visible points, perspective scaling is `focalLength / cameraZ`.
      * Larger depth means smaller scale. Screen Y is inverted because screen
      * coordinates usually increase downward while camera/world Y increases up.
+     *
+     * The result is written into `out` to avoid allocating a new object for
+     * every body during rendering.
      */
-    project(x: number, y: number, z: number): ProjectedPoint | null {
+    projectTo(out: ProjectedPoint, x: number, y: number, z: number): boolean {
         const offsetX = x - this.x;
         const offsetY = y - this.y;
         const offsetZ = z - this.z;
@@ -163,17 +166,16 @@ export class Camera3D {
         const cameraZ = offsetX * this.forwardX + offsetY * this.forwardY + offsetZ * this.forwardZ;
 
         if (cameraZ <= this.near) {
-            return null;
+            return false;
         }
 
         const scale = this.focalLength / cameraZ;
 
-        return {
-            x: this.screenWidth * 0.5 + cameraX * scale,
-            y: this.screenHeight * 0.5 - cameraY * scale,
-            scale,
-            depth: cameraZ,
-        };
+        out.x = this.screenWidth * 0.5 + cameraX * scale;
+        out.y = this.screenHeight * 0.5 - cameraY * scale;
+        out.scale = scale;
+        out.depth = cameraZ;
+        return true;
     }
 
     /**

@@ -27,7 +27,7 @@ import AssetStore from '../view/AssetStore';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE, getBodyRenderRadius } from '../view/BodyRenderStyle';
 import GUI from '../view/GUI';
 import InputManager, { MouseButton } from '../view/InputManager';
-import Renderer from '../view/Renderer';
+import Renderer, { RenderItem } from '../view/Renderer';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
 const BLACK_HOLE_MASS_KG = 8e30;
@@ -386,7 +386,7 @@ export default class Application {
         }
 
         if (!this.debug) {
-            this.drawHoveredBodyPopup();
+            this.drawHoveredBodyPopup(renderItems);
             return;
         }
 
@@ -452,7 +452,7 @@ export default class Application {
             this.renderer.drawText(value, valueX, rowY, 14, 'Arial', '#ffffff', 'right', 'middle');
         }
 
-        this.drawHoveredBodyPopup();
+        this.drawHoveredBodyPopup(renderItems);
     }
 
     private updateMouseWorldPosition(inputEvent: MouseEvent): void {
@@ -478,16 +478,16 @@ export default class Application {
         this.hasMousePosition = true;
     }
 
-    private getHoveredBody(): number | null {
+    private getHoveredBody(renderItems?: RenderItem[]): number | null {
         if (!this.hasMousePosition) return null;
 
+        const hitTestRenderItems = renderItems ?? this.renderer.getRenderItems();
         const mouseScreenX = this.inputManager.mouseScreenPosition.x;
         const mouseScreenY = this.inputManager.mouseScreenPosition.y;
         const tolerance = BODY_HOVER_TOLERANCE_PIXELS;
-        const renderItems = this.renderer.getRenderItems();
 
-        for (let i = renderItems.length - 1; i >= 0; i--) {
-            const renderItem = renderItems[i];
+        for (let i = hitTestRenderItems.length - 1; i >= 0; i--) {
+            const renderItem = hitTestRenderItems[i];
             const bodyId = bodyIds[renderItem.index];
             const style = this.bodyRenderStyles.get(bodyId) ?? DEFAULT_BODY_RENDER_STYLE;
             const dx = mouseScreenX - renderItem.x;
@@ -503,8 +503,8 @@ export default class Application {
         return null;
     }
 
-    private drawHoveredBodyPopup(): void {
-        const bodyId = this.getHoveredBody();
+    private drawHoveredBodyPopup(renderItems: RenderItem[]): void {
+        const bodyId = this.getHoveredBody(renderItems);
         if (bodyId === null) return;
 
         const bodyIndex = bodyIndexById[bodyId];

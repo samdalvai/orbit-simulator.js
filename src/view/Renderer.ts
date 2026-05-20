@@ -40,12 +40,13 @@ export default class Renderer {
     private camera: Camera3D;
 
     zoom = 1;
-    pan = new Vec3(0, 0);
+    pan = new Vec3(0, 0, 0);
 
     // Cached values for rendering
     bodyRenderPositionX = 0;
     bodyRenderPositionY = 0;
     bodyRenderPositionZ = 0;
+    
     private bodyRenderStyles: Map<number, BodyRenderStyle>;
 
     constructor(bodyRenderStyles: Map<number, BodyRenderStyle>) {

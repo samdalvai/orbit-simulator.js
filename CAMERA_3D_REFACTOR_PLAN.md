@@ -44,16 +44,19 @@ Status legend:
 
 ## Phase 2: Simplify `Camera3D`
 
-- [ ] Replace local-basis incremental rotation with yaw/pitch state updates.
-- [ ] Add a single private `updateBasisFromAngles()` method that derives `forward`, `right`, and `up` from yaw/pitch.
-- [ ] Make `rotate(deltaYaw, deltaPitch)` update yaw/pitch, clamp pitch, then call `updateBasisFromAngles()`.
-- [ ] Make `setRotation(yaw, pitch)` share the same clamp and basis update path as `rotate()`.
-- [ ] Remove the private arbitrary-axis helpers:
-  - [ ] `rotateBasisAroundAxis`
-  - [ ] `rotateVectorAroundAxis`
-  - [ ] `orthonormalizeBasis`
-- [ ] Keep `project()` and `screenToWorldAtZ()` behavior intact during this phase.
-- [ ] Remove or shorten comments that explain deleted complexity.
+- [x] Replace local-basis incremental rotation with yaw/pitch state updates.
+- [x] Add a single private `updateBasisFromAngles()` method that derives `forward`, `right`, and `up` from yaw/pitch.
+- [x] Make `rotate(deltaYaw, deltaPitch)` update yaw/pitch, clamp pitch, then call `updateBasisFromAngles()`.
+- [x] Make `setRotation(yaw, pitch)` share the same clamp and basis update path as `rotate()`.
+- [x] Remove the private arbitrary-axis helpers:
+  - [x] `rotateBasisAroundAxis`
+  - [x] `rotateVectorAroundAxis`
+  - [x] `orthonormalizeBasis`
+- [x] Keep `project()` and `screenToWorldAtZ()` behavior intact during this phase.
+- [x] Remove or shorten comments that explain deleted complexity.
+- [x] Verification for this phase:
+  - 2026-05-20: `npm run build` completed successfully after the camera simplification.
+  - Behavior note: rotation is now intentionally orbit-style yaw/pitch with a shared pitch clamp.
 
 ## Phase 3: Move View State Toward The Camera
 

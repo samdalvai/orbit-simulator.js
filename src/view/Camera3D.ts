@@ -1,5 +1,7 @@
 import { Vec3 } from '../shared/Vec3';
 
+const MAX_PITCH = Math.PI * 0.5 - 0.08;
+
 export class Camera3D {
     x = 0;
     y = 0;
@@ -50,66 +52,36 @@ export class Camera3D {
     }
 
     /**
-     * Applies an incremental local-space rotation to the camera.
+     * Applies an incremental orbit-style rotation to the camera.
      *
-     * `deltaYaw` rotates around the camera's current up axis, and `deltaPitch`
-     * rotates around the camera's current right axis. Because the rotations use
-     * the current camera basis instead of fixed world axes, dragging controls
-     * continue to feel relative to the current view direction.
+     * `deltaYaw` changes the horizontal angle around the target, and
+     * `deltaPitch` changes the vertical angle. After updating the angles, the
+     * camera basis is rebuilt from yaw/pitch so it stays orthonormal without
+     * incremental drift.
      *
-     * The stored pitch value is clamped so repeated rotations do not push the
-     * camera into an exact singular orientation. After rotating, the camera
-     * basis is orthonormalized to remove small floating-point drift.
+     * Pitch is clamped just short of straight up/down so the derived basis
+     * remains stable.
      */
     rotate(deltaYaw: number, deltaPitch: number): void {
-        const maxPitch = Math.PI - 0.08;
-        const nextPitch = Math.max(-maxPitch, Math.min(maxPitch, this.pitch + deltaPitch));
-        const appliedPitch = nextPitch - this.pitch;
-
-        // Rotate around the camera basis so each control axis stays local to the current view.
-        if (deltaYaw !== 0) {
-            this.rotateBasisAroundAxis(this.upX, this.upY, this.upZ, -deltaYaw);
-        }
-
-        if (appliedPitch !== 0) {
-            this.rotateBasisAroundAxis(this.rightX, this.rightY, this.rightZ, -appliedPitch);
-        }
-
         this.yaw += deltaYaw;
-        this.pitch = nextPitch;
-        this.orthonormalizeBasis();
+        this.pitch = this.clampPitch(this.pitch + deltaPitch);
+        this.updateBasisFromAngles();
     }
 
     /**
      * Replaces the camera orientation with an absolute yaw and pitch.
      *
-     * Unlike `rotate`, this rebuilds the forward/right/up basis directly from
-     * the supplied angles. That makes it useful for resetting the view or
-     * syncing the camera to saved state, because it discards any accumulated
-     * numerical drift and produces a no-roll orientation.
+     * This is useful for resetting the view or syncing the camera to saved
+     * state. It uses the same clamp and basis rebuild path as `rotate`, which
+     * keeps camera orientation behavior consistent.
      *
      * The pitch is clamped just short of straight up/down so the derived basis
      * remains stable.
      */
     setRotation(yaw: number, pitch: number): void {
-        const maxPitch = Math.PI * 0.5 - 0.08;
         this.yaw = yaw;
-        this.pitch = Math.max(-maxPitch, Math.min(maxPitch, pitch));
-
-        const sinYaw = Math.sin(this.yaw);
-        const cosYaw = Math.cos(this.yaw);
-        const sinPitch = Math.sin(this.pitch);
-        const cosPitch = Math.cos(this.pitch);
-
-        this.forwardX = -sinYaw * cosPitch;
-        this.forwardY = sinPitch;
-        this.forwardZ = cosYaw * cosPitch;
-        this.rightX = cosYaw;
-        this.rightY = 0;
-        this.rightZ = sinYaw;
-        this.upX = sinYaw * sinPitch;
-        this.upY = cosPitch;
-        this.upZ = -cosYaw * sinPitch;
+        this.pitch = this.clampPitch(pitch);
+        this.updateBasisFromAngles();
     }
 
     /**
@@ -192,118 +164,30 @@ export class Camera3D {
     }
 
     /**
-     * Rotates the entire camera basis around one axis.
+     * Derives the camera's local axes from the current yaw and pitch.
      *
-     * The basis is the three vectors that define the camera's local coordinate
-     * system: forward, right, and up. Rotating all three by the same amount
-     * preserves the camera orientation as a coherent frame instead of rotating
-     * only the view direction and leaving the other axes stale.
+     * This keeps the camera as a no-roll orbit camera: yaw turns around the
+     * vertical axis, pitch tilts up/down, and right/up are rebuilt to match.
      */
-    private rotateBasisAroundAxis(axisX: number, axisY: number, axisZ: number, angle: number): void {
-        const nextForward = this.rotateVectorAroundAxis(
-            this.forwardX,
-            this.forwardY,
-            this.forwardZ,
-            axisX,
-            axisY,
-            axisZ,
-            angle,
-        );
-        const nextRight = this.rotateVectorAroundAxis(
-            this.rightX,
-            this.rightY,
-            this.rightZ,
-            axisX,
-            axisY,
-            axisZ,
-            angle,
-        );
-        const nextUp = this.rotateVectorAroundAxis(this.upX, this.upY, this.upZ, axisX, axisY, axisZ, angle);
+    private updateBasisFromAngles(): void {
+        const sinYaw = Math.sin(this.yaw);
+        const cosYaw = Math.cos(this.yaw);
+        const sinPitch = Math.sin(this.pitch);
+        const cosPitch = Math.cos(this.pitch);
 
-        this.forwardX = nextForward.x;
-        this.forwardY = nextForward.y;
-        this.forwardZ = nextForward.z;
-        this.rightX = nextRight.x;
-        this.rightY = nextRight.y;
-        this.rightZ = nextRight.z;
-        this.upX = nextUp.x;
-        this.upY = nextUp.y;
-        this.upZ = nextUp.z;
+        this.forwardX = -sinYaw * cosPitch;
+        this.forwardY = sinPitch;
+        this.forwardZ = cosYaw * cosPitch;
+        this.rightX = cosYaw;
+        this.rightY = 0;
+        this.rightZ = sinYaw;
+        this.upX = sinYaw * sinPitch;
+        this.upY = cosPitch;
+        this.upZ = -cosYaw * sinPitch;
     }
 
-    /**
-     * Rotates one vector around an arbitrary axis using Rodrigues' formula.
-     *
-     * The formula combines the vector's original direction, the perpendicular
-     * cross-product direction, and the component already aligned with the axis.
-     * In this class the axis is expected to be one of the normalized camera
-     * basis vectors, which is why there is no axis normalization inside this
-     * helper.
-     */
-    private rotateVectorAroundAxis(
-        x: number,
-        y: number,
-        z: number,
-        axisX: number,
-        axisY: number,
-        axisZ: number,
-        angle: number,
-    ): Vec3 {
-        const sin = Math.sin(angle);
-        const cos = Math.cos(angle);
-        const dot = x * axisX + y * axisY + z * axisZ;
-
-        return new Vec3(
-            x * cos + (axisY * z - axisZ * y) * sin + axisX * dot * (1 - cos),
-            y * cos + (axisZ * x - axisX * z) * sin + axisY * dot * (1 - cos),
-            z * cos + (axisX * y - axisY * x) * sin + axisZ * dot * (1 - cos),
-        );
-    }
-
-    /**
-     * Repairs the camera basis so forward, right, and up are unit-length and
-     * perpendicular to each other.
-     *
-     * Incremental floating-point rotations slowly introduce tiny errors. This
-     * method normalizes the forward vector, derives a clean right vector from
-     * `up x forward`, then derives a clean up vector from `forward x right`.
-     * Keeping the basis orthonormal prevents projection and future rotations
-     * from skewing over time.
-     */
-    private orthonormalizeBasis(): void {
-        const forwardLength = Math.sqrt(
-            this.forwardX * this.forwardX + this.forwardY * this.forwardY + this.forwardZ * this.forwardZ,
-        );
-
-        if (forwardLength === 0) {
-            return;
-        }
-
-        this.forwardX /= forwardLength;
-        this.forwardY /= forwardLength;
-        this.forwardZ /= forwardLength;
-
-        let rightX = this.upY * this.forwardZ - this.upZ * this.forwardY;
-        let rightY = this.upZ * this.forwardX - this.upX * this.forwardZ;
-        let rightZ = this.upX * this.forwardY - this.upY * this.forwardX;
-        const rightLength = Math.sqrt(rightX * rightX + rightY * rightY + rightZ * rightZ);
-
-        if (rightLength === 0) {
-            rightX = 1;
-            rightY = 0;
-            rightZ = 0;
-        } else {
-            rightX /= rightLength;
-            rightY /= rightLength;
-            rightZ /= rightLength;
-        }
-
-        this.rightX = rightX;
-        this.rightY = rightY;
-        this.rightZ = rightZ;
-        this.upX = this.forwardY * rightZ - this.forwardZ * rightY;
-        this.upY = this.forwardZ * rightX - this.forwardX * rightZ;
-        this.upZ = this.forwardX * rightY - this.forwardY * rightX;
+    private clampPitch(pitch: number): number {
+        return Math.max(-MAX_PITCH, Math.min(MAX_PITCH, pitch));
     }
 }
 

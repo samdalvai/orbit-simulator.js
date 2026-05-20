@@ -1,8 +1,7 @@
-import { EARTH_RADIUS_KM, G } from '../shared/Constants';
+import { EARTH_RADIUS_KM } from '../shared/Constants';
 import {
     clamp,
     getOrbitPosition,
-    getOrbitalSpeedByBodyId,
     getOrbitalSpeedByBodyPositionAndMass,
     randomNumber,
 } from '../shared/Math';
@@ -96,22 +95,24 @@ export function createBelt(
     renderStyles: Map<number, BodyRenderStyle>,
 ): void {
     for (let i = 0; i < spec.numBodies; i++) {
-        const position = centerPos.addNew(
+        const asteroidPosition = centerPos.addNew(
             getOrbitPosition(randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm), randomNumber(0, 360)),
         );
 
+        const asteroidMass = randomNumber(spec.minMassKg, spec.maxMassKg);
         const asteroidId = addNewBody(
-            position.x,
-            position.y,
-            position.z,
+            asteroidPosition.x,
+            asteroidPosition.y,
+            asteroidPosition.z,
             randomNumber(spec.minRadiusKm, spec.maxRadiusKm),
-            randomNumber(spec.minMassKg, spec.maxMassKg),
+            asteroidMass,
             BodyType.ASTEROID,
         );
 
         const fillColor = spec.colors[Math.floor(randomNumber(0, spec.colors.length))];
-
-        const asteroidVelocity = centerVel.addNew(getOrbitalSpeedByBodyId(centerPos, centerMass, asteroidId, G));
+        const asteroidVelocity = centerVel.addNew(
+            getOrbitalSpeedByBodyPositionAndMass(centerPos, centerMass, asteroidPosition, asteroidMass),
+        );
         const asteroidIndex = bodyIndexById[asteroidId];
         velocityX[asteroidIndex] = asteroidVelocity.x;
         velocityY[asteroidIndex] = asteroidVelocity.y;

@@ -1,4 +1,3 @@
-import { bodyIndexById, mass, positionX, positionY } from '../sim/Body';
 import { G } from './Constants';
 import { Vec3 } from './Vec3';
 
@@ -12,19 +11,6 @@ import { Vec3 } from './Vec3';
  *
  * The returned vector is perpendicular to the radius (tangential direction).
  */
-export function getOrbitalSpeedByBodyId(centerPos: Vec3, centerMass: number, bodyId: number, G: number): Vec3 {
-    const planetIndex = bodyIndexById[bodyId];
-    const planetPos = new Vec3(positionX[planetIndex], positionY[planetIndex]);
-
-    const rVec = planetPos.subNew(centerPos);
-    const r = rVec.magnitude();
-    const v = Math.sqrt((G * (centerMass + mass[planetIndex])) / r);
-    const dir = planetPos.subNew(centerPos).unitVector();
-    const tangent = dir.perpNew();
-
-    return tangent.scaleNew(v);
-}
-
 export function getOrbitalSpeedByBodyPositionAndMass(
     centerPos: Vec3,
     centerMass: number,

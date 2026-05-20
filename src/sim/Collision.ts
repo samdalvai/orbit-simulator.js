@@ -153,8 +153,11 @@ export function explodeBody(bodyId: number, bodyRenderStyles: Map<number, BodyRe
 
     const posX = positionX[index];
     const posY = positionY[index];
+    const posZ = positionZ[index];
+
     const velX = velocityX[index];
     const velY = velocityY[index];
+    const velZ = velocityZ[index];
 
     const numOfDebris = getDebrisCount(radius, 1, radius, 4, 100);
 
@@ -171,11 +174,11 @@ export function explodeBody(bodyId: number, bodyRenderStyles: Map<number, BodyRe
         const debrisId = addNewBody(
             posX + c.x,
             posY + c.y,
-            0, // TODO: add z component
+            posZ + c.z,
             circlesRadius,
             circlesMass,
             BodyType.ASTEROID,
-            new Vec3(velX, velY, 0),
+            new Vec3(velX, velY, velZ),
         );
         const colorIndex = Math.floor(Math.random() * 4);
         bodyRenderStyles.set(debrisId, {

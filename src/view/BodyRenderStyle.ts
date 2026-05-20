@@ -1,5 +1,6 @@
 import {
     ASTEROID_RADIUS_RENDERING_SCALE,
+    COMET_RADIUS_RENDERING_SCALE,
     EARTH_RADIUS_KM,
     MOON_RADIUS_RENDERING_SCALE,
     PLANET_RADIUS_RENDERING_SCALE,
@@ -39,6 +40,9 @@ function getBodyRadiusRenderingScale(bodyType: BodyType): number {
         case BodyType.ASTEROID:
             return ASTEROID_RADIUS_RENDERING_SCALE;
         case BodyType.PLANET:
+            return PLANET_RADIUS_RENDERING_SCALE;
+        case BodyType.COMET:
+            return COMET_RADIUS_RENDERING_SCALE;
         default:
             return PLANET_RADIUS_RENDERING_SCALE;
     }

@@ -61,6 +61,11 @@ export function createSolarSystem(
     for (const beltSpec of solarSystemSpec.belts) {
         createBelt(mainStarPos, mainStarMass, mainStarVel, beltSpec, renderStyles);
     }
+
+    for (const cometSpec of solarSystemSpec.comets) {
+        const cometId = createBody(cometSpec, BodyType.COMET, mainStarPos, mainStarVel, mainStarMass);
+        renderStyles.set(cometId, createRenderStyle(cometSpec, BodyType.COMET));
+    }
 }
 
 export function createBody(

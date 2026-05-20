@@ -23,12 +23,13 @@ export const STAR_RADIUS_RENDERING_SCALE = 6;
 export const PLANET_RADIUS_RENDERING_SCALE = 6;
 export const MOON_RADIUS_RENDERING_SCALE = 6;
 export const ASTEROID_RADIUS_RENDERING_SCALE = 8;
+export const COMET_RADIUS_RENDERING_SCALE = 6;
 
 export const SETTINGS = {
     subSteps: 1,
     simulationSpeed: 10,
 
     get dt() {
-        return (FIXED_DELTA_TIME * SIMULATION_TIME_SCALE) / this.subSteps * this.simulationSpeed;
+        return ((FIXED_DELTA_TIME * SIMULATION_TIME_SCALE) / this.subSteps) * this.simulationSpeed;
     },
 };

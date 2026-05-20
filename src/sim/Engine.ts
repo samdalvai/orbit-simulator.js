@@ -113,15 +113,15 @@ export class Engine {
                 const collision = detectCircleCollision(i, j);
 
                 if (collision) {
+                    resolvePosition(i, j, collision, 1);
+                    resolveVelocity(i, j, collision);
+
                     const impactEnergy = computeImpactEnergy(i, j, collision.normal);
                     const energyPerKgA = impactEnergy / mass[i];
                     const energyPerKgB = impactEnergy / mass[j];
 
                     if (energyPerKgA > DESTROY_THRESHOLD) explodeBody(bodyIds[i], this.bodyRenderStyles);
                     if (energyPerKgB > DESTROY_THRESHOLD) explodeBody(bodyIds[j], this.bodyRenderStyles);
-
-                    resolvePosition(i, j, collision, 1);
-                    resolveVelocity(i, j, collision);
                 }
             }
         }

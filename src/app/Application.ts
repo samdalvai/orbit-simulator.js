@@ -17,10 +17,12 @@ import {
     mass,
     positionX,
     positionY,
+    positionZ,
     radii,
     removeBody,
     velocityX,
     velocityY,
+    velocityZ,
 } from '../sim/Body';
 import { explodeBody } from '../sim/Collision';
 import { Engine } from '../sim/Engine';
@@ -515,11 +517,16 @@ export default class Application {
         const title = style?.label || type;
         const pX = positionX[bodyIndex];
         const pY = positionY[bodyIndex];
+        const pZ = positionZ[bodyIndex];
+
         const vX = velocityX[bodyIndex];
         const vY = velocityY[bodyIndex];
-        const velocityMag = Math.sqrt(vX * vX + vY * vY);
+        const vZ = velocityZ[bodyIndex];
+
+        const velocityMag = Math.sqrt(vX * vX + vY * vY + vZ * vZ);
+
         const rows: Array<[string, string]> = [
-            ['Position', `x=${pX.toExponential(2)}, y=${pY.toExponential(2)} (km)`],
+            ['Position', `x=${pX.toExponential(2)}, y=${pY.toExponential(2)}, z=${pZ.toExponential(2)} (km)`],
             ['Orbital speed', `${velocityMag.toFixed(2)} km/s`],
             ['Mass', `${mass[bodyIndex].toExponential(3)} kg`],
             ['Radius', `${radii[bodyIndex].toLocaleString(undefined, { maximumFractionDigits: 1 })} km`],

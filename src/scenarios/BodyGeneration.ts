@@ -3,6 +3,7 @@ import {
     clamp,
     getOrbitPosition,
     getOrbitalSpeedByBodyPositionAndMass,
+    getXYOrbitNormal,
     randomNumber,
 } from '../shared/Math';
 import { Vec3 } from '../shared/Vec3';
@@ -68,15 +69,19 @@ export function createBody(
     parentMass: number = 0,
     parentId: number = NO_PARENT,
 ): BodyId {
-    // TODO: if we have a barycentric position orbit is added twice to the position
-    const bodyPos = parentPos.addNew(getOrbitPosition(spec.orbitRadiusKm ?? 0, spec.orbitAngleDegrees ?? 0));
+    const orbitRadius = spec.orbitRadiusKm ?? 0;
+    const orbitAngle = spec.orbitAngleDegrees ?? 0;
+    const orbitTilt = spec.orbitTiltDegrees ?? 0;
+
+    const bodyPos = parentPos.addNew(getOrbitPosition(orbitRadius, orbitAngle, orbitTilt));
     const bodyVel = parentVel.copy();
     const bodyMass = spec.massKg;
+
     const bodyId = addNewBody(bodyPos.x, bodyPos.y, bodyPos.z, spec.radiusKm, bodyMass, bodyType, bodyVel, parentId);
 
     if (spec.orbitRadiusKm) {
         const orbitalSpeed = bodyVel.addNew(
-            getOrbitalSpeedByBodyPositionAndMass(parentPos, parentMass, bodyPos, bodyMass),
+            getOrbitalSpeedByBodyPositionAndMass(parentPos, parentMass, bodyPos, bodyMass, getXYOrbitNormal(orbitTilt)),
         );
 
         const bodyIndex = bodyIndexById[bodyId];

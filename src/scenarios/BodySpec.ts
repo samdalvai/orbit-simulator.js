@@ -21,6 +21,7 @@ export type CelestialBodySpecBase = {
 export type CelestialBodySpec = {
     orbitRadiusKm?: number;
     orbitAngleDegrees?: number;
+    orbitTiltDegrees?: number;
 } & CelestialBodySpecBase;
 
 export type PlanetBodySpec = {

@@ -4,21 +4,73 @@ const MIN_ZOOM = 0.0001;
 const MAX_PITCH = Math.PI - 0.08;
 
 export class Camera3D {
+    /**
+     * The camera's current world-space position.
+     *
+     * These are not set directly by controls. They are derived from the focus
+     * target, zoom distance, and view direction in `updatePositionFromTarget()`.
+     * Projection subtracts this position from each world point before measuring
+     * that point against the camera's local axes.
+     */
     x = 0;
     y = 0;
     z = -1000;
 
+    /**
+     * The camera orientation angles, in radians.
+     *
+     * `yaw` turns the camera horizontally around the focus target.
+     * `pitch` tilts the camera vertically. The public debug panel converts
+     * these values back to degrees only for display.
+     */
     yaw = 0;
     pitch = 0;
 
+    /**
+     * Distance from the camera to the virtual projection plane, in screen
+     * pixels.
+     *
+     * Larger values make perspective feel flatter/less wide-angle. It is also
+     * used with zoom to choose the orbit distance from the focus target:
+     * `distance = focalLength / zoom`.
+     */
     focalLength = 800;
 
+    /**
+     * Current canvas dimensions in screen pixels.
+     *
+     * Projection uses these to place the camera's optical center at the middle
+     * of the viewport: `(screenWidth / 2, screenHeight / 2)`.
+     */
     screenWidth: number;
     screenHeight: number;
 
+    /**
+     * Near clipping distance in front of the camera.
+     *
+     * Points with camera-space depth less than or equal to this value are not
+     * projected, which avoids drawing objects behind the camera or too close to
+     * the projection plane.
+     */
     near = 1;
 
+    /**
+     * The current zoom factor.
+     *
+     * Zoom does not directly scale projected points. Instead it changes the
+     * camera's distance from the focus target while preserving the same
+     * perspective formula. This keeps zoom, rotation, and screen-to-world
+     * picking tied to the same camera model.
+     */
     private zoomValue = 1;
+
+    /**
+     * The world-space point the camera orbits and looks toward.
+     *
+     * This is the 3D equivalent of the old 2D pan center. Moving the target
+     * pans/follows the scene; changing zoom or rotation moves the camera around
+     * this point.
+     */
     private targetXValue = 0;
     private targetYValue = 0;
     private targetZValue = 0;

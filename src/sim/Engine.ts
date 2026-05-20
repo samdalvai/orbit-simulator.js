@@ -15,7 +15,6 @@ import {
     integrateVerletPosition,
     integrateVerletVelocity,
     mass,
-    positionZ,
     swapBodies,
 } from './Body';
 import {
@@ -27,8 +26,6 @@ import {
 } from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
 
-const POSITION_ITERATIONS = 4;
-const VELOCITY_ITERATIONS = 1;
 const DESTROY_THRESHOLD = 1e-1;
 export class Engine {
     private bodyRenderStyles: Map<number, BodyRenderStyle>;
@@ -46,8 +43,6 @@ export class Engine {
         }
 
         this.broadPhase();
-        // this.checkCollisionDamage();
-        // this.solvePositions();
 
         this.clearAllForces();
         applyBarnesHutGravitationalForces(G);
@@ -55,8 +50,6 @@ export class Engine {
         for (let i = 0; i < bodyCount; i++) {
             integrateVerletVelocity(i, dt);
         }
-
-        // this.solveVelocities();
     }
 
     initializeVerlet(): void {
@@ -117,55 +110,19 @@ export class Engine {
                 }
 
                 // Objects may be colliding
-                // this.collisionPairs.push([i, j]);
                 const collision = detectCircleCollision(i, j);
 
                 if (collision) {
+                    const impactEnergy = computeImpactEnergy(i, j, collision.normal);
+                    const energyPerKgA = impactEnergy / mass[i];
+                    const energyPerKgB = impactEnergy / mass[j];
+
+                    if (energyPerKgA > DESTROY_THRESHOLD) explodeBody(bodyIds[i], this.bodyRenderStyles);
+                    if (energyPerKgB > DESTROY_THRESHOLD) explodeBody(bodyIds[j], this.bodyRenderStyles);
+
                     resolvePosition(i, j, collision, 1);
                     resolveVelocity(i, j, collision);
                 }
-            }
-        }
-    }
-
-    private checkCollisionDamage() {
-        const pairs = this.collisionPairs;
-
-        for (const [aIndex, bIndex] of pairs) {
-            const collision = detectCircleCollision(aIndex, bIndex);
-            if (!collision) continue;
-
-            const impactEnergy = computeImpactEnergy(aIndex, bIndex, collision.normal);
-            const energyPerKgA = impactEnergy / mass[aIndex];
-            const energyPerKgB = impactEnergy / mass[bIndex];
-
-            if (energyPerKgA > DESTROY_THRESHOLD) explodeBody(bodyIds[aIndex], this.bodyRenderStyles);
-            if (energyPerKgB > DESTROY_THRESHOLD) explodeBody(bodyIds[bIndex], this.bodyRenderStyles);
-        }
-    }
-
-    private solvePositions() {
-        const pairs = this.collisionPairs;
-
-        for (let iter = 0; iter < POSITION_ITERATIONS; iter++) {
-            for (const [aIndex, bIndex] of pairs) {
-                const collision = detectCircleCollision(aIndex, bIndex);
-                if (!collision) continue;
-
-                resolvePosition(aIndex, bIndex, collision, 0.5);
-            }
-        }
-    }
-
-    private solveVelocities() {
-        const pairs = this.collisionPairs;
-
-        for (let iter = 0; iter < VELOCITY_ITERATIONS; iter++) {
-            for (const [aIndex, bIndex] of pairs) {
-                const collision = detectCircleCollision(aIndex, bIndex);
-                if (!collision) continue;
-
-                resolveVelocity(aIndex, bIndex, collision);
             }
         }
     }

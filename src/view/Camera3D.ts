@@ -25,16 +25,42 @@ export class Camera3D {
     private upY = 1;
     private upZ = 0;
 
+    /**
+     * Creates a camera for a viewport of the given pixel size.
+     *
+     * The camera starts at (0, 0, -1000) looking along positive world Z.
+     * `screenWidth` and `screenHeight` are used as the center point for
+     * perspective projection and can later be changed with `resize`.
+     */
     constructor(screenWidth: number, screenHeight: number) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
     }
 
+    /**
+     * Updates the viewport dimensions used by projection math.
+     *
+     * This does not move or rotate the camera. It only changes where projected
+     * points land on the screen, because the screen center is calculated from
+     * these dimensions.
+     */
     resize(screenWidth: number, screenHeight: number): void {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
     }
 
+    /**
+     * Applies an incremental local-space rotation to the camera.
+     *
+     * `deltaYaw` rotates around the camera's current up axis, and `deltaPitch`
+     * rotates around the camera's current right axis. Because the rotations use
+     * the current camera basis instead of fixed world axes, dragging controls
+     * continue to feel relative to the current view direction.
+     *
+     * The stored pitch value is clamped so repeated rotations do not push the
+     * camera into an exact singular orientation. After rotating, the camera
+     * basis is orthonormalized to remove small floating-point drift.
+     */
     rotate(deltaYaw: number, deltaPitch: number): void {
         const maxPitch = Math.PI - 0.08;
         const nextPitch = Math.max(-maxPitch, Math.min(maxPitch, this.pitch + deltaPitch));
@@ -54,6 +80,17 @@ export class Camera3D {
         this.orthonormalizeBasis();
     }
 
+    /**
+     * Replaces the camera orientation with an absolute yaw and pitch.
+     *
+     * Unlike `rotate`, this rebuilds the forward/right/up basis directly from
+     * the supplied angles. That makes it useful for resetting the view or
+     * syncing the camera to saved state, because it discards any accumulated
+     * numerical drift and produces a no-roll orientation.
+     *
+     * The pitch is clamped just short of straight up/down so the derived basis
+     * remains stable.
+     */
     setRotation(yaw: number, pitch: number): void {
         const maxPitch = Math.PI * 0.5 - 0.08;
         this.yaw = yaw;
@@ -75,12 +112,32 @@ export class Camera3D {
         this.upZ = -cosYaw * sinPitch;
     }
 
+    /**
+     * Positions the camera so it looks toward a target from the current
+     * orientation.
+     *
+     * The method does not change the camera's rotation. It moves the camera
+     * backward along its current forward vector by `distance`, so the target
+     * point ends up directly in front of the camera at that distance.
+     */
     lookAt(targetX: number, targetY: number, targetZ: number, distance: number): void {
         this.x = targetX - this.forwardX * distance;
         this.y = targetY - this.forwardY * distance;
         this.z = targetZ - this.forwardZ * distance;
     }
 
+    /**
+     * Projects a world-space point into 2D screen coordinates.
+     *
+     * The world point is first converted into camera space by measuring its
+     * offset from the camera along the camera's right, up, and forward axes.
+     * `cameraZ` is the depth in front of the camera. Points at or behind the
+     * near plane return `null` because they should not be rendered.
+     *
+     * For visible points, perspective scaling is `focalLength / cameraZ`.
+     * Larger depth means smaller scale. Screen Y is inverted because screen
+     * coordinates usually increase downward while camera/world Y increases up.
+     */
     project(x: number, y: number, z: number): ProjectedPoint | null {
         const offsetX = x - this.x;
         const offsetY = y - this.y;
@@ -103,6 +160,17 @@ export class Camera3D {
         };
     }
 
+    /**
+     * Converts a screen coordinate into a world-space point on a fixed Z plane.
+     *
+     * This is the inverse of projection for the common case where interaction
+     * happens on a known world Z value. The screen position is turned into a
+     * ray starting at the camera and passing through the virtual projection
+     * plane. The ray is then intersected with the plane `z = worldZ`.
+     *
+     * Returns `null` when the ray is parallel to that Z plane, or when the
+     * intersection would be behind the camera.
+     */
     screenToWorldAtZ(screenX: number, screenY: number, worldZ: number): Vec3 | null {
         const cameraX = screenX - this.screenWidth * 0.5;
         const cameraY = this.screenHeight * 0.5 - screenY;
@@ -123,6 +191,14 @@ export class Camera3D {
         return new Vec3(this.x + rayX * t, this.y + rayY * t, worldZ);
     }
 
+    /**
+     * Rotates the entire camera basis around one axis.
+     *
+     * The basis is the three vectors that define the camera's local coordinate
+     * system: forward, right, and up. Rotating all three by the same amount
+     * preserves the camera orientation as a coherent frame instead of rotating
+     * only the view direction and leaving the other axes stale.
+     */
     private rotateBasisAroundAxis(axisX: number, axisY: number, axisZ: number, angle: number): void {
         const nextForward = this.rotateVectorAroundAxis(
             this.forwardX,
@@ -155,6 +231,15 @@ export class Camera3D {
         this.upZ = nextUp.z;
     }
 
+    /**
+     * Rotates one vector around an arbitrary axis using Rodrigues' formula.
+     *
+     * The formula combines the vector's original direction, the perpendicular
+     * cross-product direction, and the component already aligned with the axis.
+     * In this class the axis is expected to be one of the normalized camera
+     * basis vectors, which is why there is no axis normalization inside this
+     * helper.
+     */
     private rotateVectorAroundAxis(
         x: number,
         y: number,
@@ -175,6 +260,16 @@ export class Camera3D {
         );
     }
 
+    /**
+     * Repairs the camera basis so forward, right, and up are unit-length and
+     * perpendicular to each other.
+     *
+     * Incremental floating-point rotations slowly introduce tiny errors. This
+     * method normalizes the forward vector, derives a clean right vector from
+     * `up x forward`, then derives a clean up vector from `forward x right`.
+     * Keeping the basis orthonormal prevents projection and future rotations
+     * from skewing over time.
+     */
     private orthonormalizeBasis(): void {
         const forwardLength = Math.sqrt(
             this.forwardX * this.forwardX + this.forwardY * this.forwardY + this.forwardZ * this.forwardZ,

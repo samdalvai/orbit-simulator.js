@@ -127,6 +127,28 @@ export function computeImpactEnergy(aIndex: number, bIndex: number, normal: Vec3
     return 0.5 * reducedMass * impactSpeed * impactSpeed;
 }
 
+/**
+ * Computes how many debris fragments should be generated for a body
+ * based on its radius.
+ *
+ * The interpolation is performed in logarithmic space so that very
+ * small and very large celestial bodies scale more naturally.
+ *
+ * Example:
+ * - Small asteroid  -> few debris
+ * - Planet          -> medium debris count
+ * - Star            -> many debris
+ *
+ * @param radiusKm Radius of the body being destroyed, in kilometers.
+ * @param minRadiusKm Radius at which the minimum debris count is reached.
+ *                    Bodies smaller than this will still generate minDebris.
+ * @param maxRadiusKm Radius at which the maximum debris count is reached.
+ *                    Bodies larger than this will still generate maxDebris.
+ * @param minDebris Minimum number of debris fragments to generate.
+ * @param maxDebris Maximum number of debris fragments to generate.
+ *
+ * @returns Number of debris fragments to generate.
+ */
 export function getDebrisCount(
     radiusKm: number,
     minRadiusKm: number,
@@ -159,11 +181,11 @@ export function explodeBody(bodyId: number, bodyRenderStyles: Map<number, BodyRe
     const velY = velocityY[index];
     const velZ = velocityZ[index];
 
-    const numOfDebris = getDebrisCount(radius, 1, radius, 4, 100);
+    const numOfDebris = getDebrisCount(radius, 1, radius, 4, 150);
 
     if (getBodyCount() + numOfDebris >= MAX_BODIES) return;
 
-    const circlesRadius = radius / Math.sqrt(numOfDebris);
+    const circlesRadius = radius / Math.cbrt(numOfDebris);
     const circles = createHoneycombInSphere(radius, circlesRadius);
     const circlesMass = bodyMass / circles.length;
 

@@ -27,6 +27,10 @@ export default class GUI {
         this.createShortcutsButton();
     }
 
+    static shortcutsOverlayVisible(): boolean {
+        return this.shortcutsOverlay !== null;
+    }
+
     private static createShortcutsButton(): void {
         const button = document.createElement('button');
         button.type = 'button';
@@ -168,7 +172,7 @@ export default class GUI {
         if (element === null) {
             element = document.createElement('div');
         }
-        
+
         element.id = 'loadingMessage';
         element.setAttribute('role', 'status');
         element.setAttribute('aria-live', 'polite');

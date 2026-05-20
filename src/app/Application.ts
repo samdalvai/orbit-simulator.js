@@ -50,7 +50,7 @@ export default class Application {
     private paused = false;
 
     // Demos
-    private demoIndex = 5;
+    private demoIndex = 1;
     private loadingDemo = false;
 
     // Inputs
@@ -136,8 +136,7 @@ export default class Application {
 
             if (this.demoIndex === 5) {
                 this.renderer.zoom = 0.3;
-                const testSpec = testSystem;
-                createSolarSystem(testSpec, this.bodyRenderStyles);
+                createSolarSystem(testSystem, this.bodyRenderStyles);
             }
 
             this.engine.initializeVerlet();
@@ -201,7 +200,11 @@ export default class Application {
                     }
 
                     if (inputEvent.key === '-') {
-                        SETTINGS.simulationSpeed = clamp(SETTINGS.simulationSpeed - 10, 1, SETTINGS.simulationSpeed - 10);
+                        SETTINGS.simulationSpeed = clamp(
+                            SETTINGS.simulationSpeed - 10,
+                            1,
+                            SETTINGS.simulationSpeed - 10,
+                        );
                     }
 
                     if (inputEvent.key === '*') {
@@ -347,6 +350,7 @@ export default class Application {
             const inputEvent = this.inputManager.mouseWheelBuffer.shift();
             if (!inputEvent) return;
 
+            if (GUI.shortcutsOverlayVisible()) return;
             this.renderer.zoomAt(inputEvent.x, inputEvent.y, inputEvent.deltaY > 0 ? 1 / 1.1 : 1.1);
             this.updateMouseWorldPosition(inputEvent);
         }

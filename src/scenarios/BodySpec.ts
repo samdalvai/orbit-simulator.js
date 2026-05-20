@@ -19,8 +19,23 @@ export type CelestialBodySpecBase = {
 };
 
 export type CelestialBodySpec = {
+    /** Distance from the parent body to place this body at creation time. */
     orbitRadiusKm?: number;
+    /**
+     * Starting angle around the parent body, in degrees.
+     *
+     * This chooses where on the orbit the body starts, changing it only changes 
+     * the initial position/phase.
+     */
     orbitAngleDegrees?: number;
+    /**
+     * Inclination of the orbit plane, in degrees.
+     *
+     * `0` means a flat orbit in the X/Y plane. `180` is still the same X/Y
+     * plane, but the orbit normal is flipped, so the body moves in the opposite
+     * direction: a retrograde orbit. Values between those, such as `45`, tilt
+     * the orbit out of the X/Y plane.
+     */
     orbitTiltDegrees?: number;
 } & CelestialBodySpecBase;
 

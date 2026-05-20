@@ -16,8 +16,10 @@ import {
     mass,
     positionX,
     positionY,
+    positionZ,
     velocityX,
     velocityY,
+    velocityZ,
 } from '../sim/Body';
 import AssetStore from '../view/AssetStore';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE, getBodyRenderRadius } from '../view/BodyRenderStyle';
@@ -31,8 +33,8 @@ export function createSolarSystem(
 ): void {
     const mainStarId = createBody(solarSystemSpec.mainStar, BodyType.STAR, basePos, baseVel);
     const mainStarIndex = bodyIndexById[mainStarId];
-    const mainStarPos = new Vec3(positionX[mainStarIndex], positionY[mainStarIndex]);
-    const mainStarVel = new Vec3(velocityX[mainStarIndex], velocityY[mainStarIndex]);
+    const mainStarPos = new Vec3(positionX[mainStarIndex], positionY[mainStarIndex], positionZ[mainStarIndex]);
+    const mainStarVel = new Vec3(velocityX[mainStarIndex], velocityY[mainStarIndex], velocityZ[mainStarIndex]);
     const mainStarMass = mass[mainStarIndex];
     renderStyles.set(mainStarId, createRenderStyle(solarSystemSpec.mainStar, BodyType.STAR));
 
@@ -87,6 +89,7 @@ export function createBody(
         const bodyIndex = bodyIndexById[bodyId];
         velocityX[bodyIndex] = orbitalSpeed.x;
         velocityY[bodyIndex] = orbitalSpeed.y;
+        velocityZ[bodyIndex] = orbitalSpeed.z;
     }
 
     return bodyId;
@@ -121,6 +124,7 @@ export function createBelt(
         const asteroidIndex = bodyIndexById[asteroidId];
         velocityX[asteroidIndex] = asteroidVelocity.x;
         velocityY[asteroidIndex] = asteroidVelocity.y;
+        velocityZ[asteroidIndex] = asteroidVelocity.z;
 
         renderStyles.set(asteroidId, {
             ...DEFAULT_BODY_RENDER_STYLE,

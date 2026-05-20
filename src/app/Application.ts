@@ -197,11 +197,11 @@ export default class Application {
                     }
 
                     if (inputEvent.key === '+') {
-                        SETTINGS.simulationSpeed += 1;
+                        SETTINGS.simulationSpeed += 10;
                     }
 
                     if (inputEvent.key === '-') {
-                        SETTINGS.simulationSpeed = clamp(SETTINGS.simulationSpeed - 1, 1, SETTINGS.simulationSpeed - 1);
+                        SETTINGS.simulationSpeed = clamp(SETTINGS.simulationSpeed - 10, 1, SETTINGS.simulationSpeed - 10);
                     }
 
                     if (inputEvent.key === '*') {

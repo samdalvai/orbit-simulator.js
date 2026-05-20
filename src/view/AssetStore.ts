@@ -38,6 +38,9 @@ export const TEXTURES = {
     moonTitania: 'assets/moon-titania.png',
     moonOberon: 'assets/moon-oberon.png',
     moonTriton: 'assets/moon-triton.png',
+
+    // Comets/Asteroids sprites
+    comet: 'assets/comet.png',
 };
 
 type TextureMap = Record<string, ImageBitmap>;

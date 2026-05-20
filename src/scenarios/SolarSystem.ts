@@ -4,6 +4,9 @@ import { SolarSystemSpec } from './BodySpec';
 const ASTEROID_BELT_OBJECTS = 2000;
 const KUIPER_BELT_OBJECTS = 1500;
 
+const HALLEY_SEMI_MAJOR_AXIS_AU = 0.587_104 / (1 - 0.967_277);
+const CHURYUMOV_GERASIMENKO_SEMI_MAJOR_AXIS_AU = 3.463;
+
 export const solarSystem: SolarSystemSpec = {
     mainStar: {
         name: 'Sun',
@@ -274,5 +277,34 @@ export const solarSystem: SolarSystemSpec = {
             colors: ['#c8d6df', '#9eb3c0', '#dfe8ec', '#8093a0'],
         },
     ],
-    comets: [],
+    // TODO: support elliptical orbits
+    // Real comets have very elliptical orbits. The current simulation creates
+    // circular starting orbits, so `orbitRadiusKm` uses each comet's real
+    // semi-major axis as the best single-radius approximation.
+    comets: [
+        {
+            name: 'Halley Comet',
+            radiusKm: 5.2,
+            massKg: 3.2e14,
+            orbitRadiusKm: HALLEY_SEMI_MAJOR_AXIS_AU * AU_KM,
+            orbitAngleDegrees: 310,
+            orbitTiltDegrees: 162.2422,
+            color: '#d8f7ff',
+            labelColor: '#d8f7ff',
+            labelFontSize: 13,
+            texture: 'comet',
+        },
+        {
+            name: '67P/Churyumov-Gerasimenko',
+            radiusKm: 1.98,
+            massKg: 9.982e12,
+            orbitRadiusKm: CHURYUMOV_GERASIMENKO_SEMI_MAJOR_AXIS_AU * AU_KM,
+            orbitAngleDegrees: 135,
+            orbitTiltDegrees: 7.0405,
+            color: '#a9d8ef',
+            labelColor: '#a9d8ef',
+            labelFontSize: 12,
+            texture: 'comet',
+        },
+    ],
 };

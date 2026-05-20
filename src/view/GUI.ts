@@ -16,6 +16,8 @@ const SHORTCUTS: Array<[string, string]> = [
     ['Mouse wheel', 'Zoom'],
     ['Middle drag / Cmd drag', 'Pan camera'],
     ['Space', 'Pan to next planet/star'],
+    ['Left/Right arrow', 'Rotate camera horizontally'],
+    ['Up/Down arrow', 'Rotate camera vertically'],
 ];
 
 export default class GUI {

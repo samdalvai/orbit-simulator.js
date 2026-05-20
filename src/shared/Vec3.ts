@@ -40,7 +40,7 @@ export class Vec3 {
 
     /** operator - */
     subNew(v: Vec3): Vec3 {
-        return new Vec3(this.x - v.x, this.y - v.y, this.z -v.z);
+        return new Vec3(this.x - v.x, this.y - v.y, this.z - v.z);
     }
 
     /** operator * (scalar) */
@@ -55,6 +55,10 @@ export class Vec3 {
     // TODO: there is no unique perp vector in 3d
     perpNew(): Vec3 {
         return new Vec3(-this.y, this.x);
+    }
+
+    crossNew(v: Vec3): Vec3 {
+        return new Vec3(this.y * v.z - this.z * v.y, this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x);
     }
 
     unitVector(): Vec3 {

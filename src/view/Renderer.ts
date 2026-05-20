@@ -4,6 +4,7 @@ import {
     MOON_ORBIT_RENDERING_SCALE,
     SOLAR_MASS_KG,
 } from '../shared/Constants';
+import { degreesToRadians } from '../shared/Math';
 import { Vec3 } from '../shared/Vec3';
 import {
     BodyType,
@@ -171,7 +172,7 @@ export default class Renderer {
     }
 
     resetCameraOrientation(): void {
-        this.camera.setRotation(0, 1);
+        this.camera.setRotation(0, degreesToRadians(60));
     }
 
     yaw(): number {
@@ -242,7 +243,6 @@ export default class Renderer {
     }
 
     drawCircle(x: number, y: number, radius: number, color = 'white'): void {
-        // Draw the circle
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, Math.PI * 2);
         this.ctx.strokeStyle = color;

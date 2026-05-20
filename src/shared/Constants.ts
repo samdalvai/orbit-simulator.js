@@ -11,8 +11,7 @@ export const SOLAR_MASS_KG = 1.98847e30;
 
 // Orbit/distance rendering scales.
 export const PLANET_ORBIT_RENDERING_SCALE = 500; // pixels per AU
-// export const KILOMETERS_TO_PIXELS_RENDERING_SCALE = PLANET_ORBIT_RENDERING_SCALE / AU_KM;
-export const KILOMETERS_TO_PIXELS_RENDERING_SCALE = 1
+export const KILOMETERS_TO_PIXELS_RENDERING_SCALE = PLANET_ORBIT_RENDERING_SCALE / AU_KM;
 export const MOON_ORBIT_RENDERING_SCALE = 24; // parent-relative moon orbit exaggeration
 export const MIN_MOON_ORBIT_RENDERING_GAP = 8; // pixels between rendered parent and moon
 

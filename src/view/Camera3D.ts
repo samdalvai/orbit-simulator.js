@@ -23,6 +23,23 @@ export class Camera3D {
     private targetYValue = 0;
     private targetZValue = 0;
 
+    /**
+     * The camera's local coordinate system, stored as three unit vectors.
+     *
+     * `forward` points in the direction the camera is looking.
+     * `right` points toward the camera's local +X direction on screen.
+     * `up` points toward the camera's local +Y direction on screen.
+     *
+     * Projection uses these vectors to convert a world-space offset into
+     * camera-space coordinates:
+     * - distance along `right` becomes screen X
+     * - distance along `up` becomes screen Y
+     * - distance along `forward` becomes depth
+     *
+     * `screenToWorldAtZ()` uses the same basis in reverse to build a world ray
+     * from a screen coordinate. These values are rebuilt from yaw/pitch in
+     * `updateBasisFromAngles()`.
+     */
     private forwardX = 0;
     private forwardY = 0;
     private forwardZ = 1;

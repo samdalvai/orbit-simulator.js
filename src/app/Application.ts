@@ -50,7 +50,7 @@ export default class Application {
     private paused = false;
 
     // Demos
-    private demoIndex = 1;
+    private demoIndex = 5;
     private loadingDemo = false;
 
     // Inputs
@@ -135,7 +135,7 @@ export default class Application {
             }
 
             if (this.demoIndex === 5) {
-                this.renderer.zoom = 0.3;
+                this.renderer.zoom = 0.0000003;
                 createSolarSystem(testSystem, this.bodyRenderStyles);
             }
 
@@ -408,7 +408,7 @@ export default class Application {
             ['Paused', this.paused ? 'ON' : 'OFF'],
             ['Bodies', `${getBodyCount()}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],
-            ['Zoom', this.renderer.zoom.toFixed(4)],
+            ['Zoom', this.renderer.zoom.toFixed(8)],
             ['Yaw', `${yawDegrees.toFixed(1)} deg`],
             ['Pitch', `${pitchDegrees.toFixed(1)} deg`],
             ['Labels', this.showLabels ? 'ON' : 'OFF'],

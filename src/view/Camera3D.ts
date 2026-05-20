@@ -1,6 +1,6 @@
 import { Vec3 } from '../shared/Vec3';
 
-const MIN_ZOOM = 0.0001;
+const MIN_ZOOM = 0.000001;
 const MAX_PITCH = Math.PI - 0.08;
 
 export class Camera3D {

@@ -1,14 +1,14 @@
 import { Vec3 } from '../shared/Vec3';
 
 const MIN_ZOOM = 0.0001;
-const MAX_PITCH = Math.PI - 0.08;
+const MAX_PITCH = Math.PI * 0.5 - 0.08;
 
 export class Camera3D {
     /**
      * The camera's current world-space position.
      *
      * These are not set directly by controls. They are derived from the focus
-     * target, zoom distance, and view direction in `updatePositionFromTarget()`.
+     * target, orbit angles, and zoom distance in `updatePositionFromTarget()`.
      * Projection subtracts this position from each world point before measuring
      * that point against the camera's local axes.
      */
@@ -19,9 +19,12 @@ export class Camera3D {
     /**
      * The camera orientation angles, in radians.
      *
-     * `yaw` turns the camera horizontally around the focus target.
-     * `pitch` tilts the camera vertically. The public debug panel converts
-     * these values back to degrees only for display.
+     * `yaw` is the horizontal orbit angle around the focus target. Changing it
+     * moves the camera around the target in the X/Y plane, which is the plane
+     * used by the solar systems.
+     *
+     * `pitch` is the vertical orbit angle above or below that X/Y plane. The
+     * public debug panel converts these values back to degrees only for display.
      */
     yaw = 0;
     pitch = 0;
@@ -68,8 +71,8 @@ export class Camera3D {
      * The world-space point the camera orbits and looks toward.
      *
      * This is the 3D equivalent of the old 2D pan center. Moving the target
-     * pans/follows the scene; changing zoom or rotation moves the camera around
-     * this point.
+     * pans/follows the scene; changing zoom or rotation moves the camera on an
+     * orbit around this point.
      */
     private targetXValue = 0;
     private targetYValue = 0;
@@ -105,7 +108,8 @@ export class Camera3D {
     /**
      * Creates a camera for a viewport of the given pixel size.
      *
-     * The camera starts focused on world origin, looking along positive world Z.
+     * The camera starts focused on world origin. Call `setRotation` to choose
+     * the initial orbital angle used by the simulation view.
      * `screenWidth` and `screenHeight` are used as the center point for
      * perspective projection and can later be changed with `resize`.
      */
@@ -179,10 +183,10 @@ export class Camera3D {
     /**
      * Applies an incremental orbit-style rotation to the camera.
      *
-     * `deltaYaw` changes the horizontal angle around the target, and
-     * `deltaPitch` changes the vertical angle. After updating the angles, the
-     * camera basis is rebuilt from yaw/pitch so it stays orthonormal without
-     * incremental drift.
+     * `deltaYaw` changes the horizontal orbit angle around the target, and
+     * `deltaPitch` changes the vertical orbit angle. After updating the angles,
+     * the camera basis and position are rebuilt from yaw/pitch so the camera
+     * circles the target instead of rotating in place.
      *
      * Pitch is clamped just short of straight up/down so the derived basis
      * remains stable.
@@ -281,8 +285,9 @@ export class Camera3D {
     /**
      * Derives the camera's local axes from the current yaw and pitch.
      *
-     * This keeps the camera as a no-roll orbit camera: yaw turns around the
-     * vertical axis, pitch tilts up/down, and right/up are rebuilt to match.
+     * The simulation's main plane is X/Y, so yaw rotates around world Z.
+     * `forward` always points from the camera position back toward the target,
+     * while `right` and `up` are rebuilt to match the same yaw/pitch orbit.
      */
     private updateBasisFromAngles(): void {
         const sinYaw = Math.sin(this.yaw);
@@ -291,14 +296,14 @@ export class Camera3D {
         const cosPitch = Math.cos(this.pitch);
 
         this.forwardX = -sinYaw * cosPitch;
-        this.forwardY = sinPitch;
-        this.forwardZ = cosYaw * cosPitch;
+        this.forwardY = cosYaw * cosPitch;
+        this.forwardZ = -sinPitch;
         this.rightX = cosYaw;
-        this.rightY = 0;
-        this.rightZ = sinYaw;
-        this.upX = sinYaw * sinPitch;
-        this.upY = cosPitch;
-        this.upZ = -cosYaw * sinPitch;
+        this.rightY = sinYaw;
+        this.rightZ = 0;
+        this.upX = -sinYaw * sinPitch;
+        this.upY = cosYaw * sinPitch;
+        this.upZ = cosPitch;
     }
 
     private clampPitch(pitch: number): number {
@@ -309,15 +314,21 @@ export class Camera3D {
      * Repositions the camera from target, orientation, and zoom.
      *
      * `zoom` controls orbit distance by converting to `focalLength / zoom`,
-     * which preserves the projection scale behavior from the previous renderer
-     * sync implementation.
+     * which preserves the projection scale behavior. The yaw/pitch formulas put
+     * the camera on a sphere around the target:
+     * - yaw moves around the target in the X/Y plane
+     * - pitch moves above or below the X/Y plane along Z
      */
     private updatePositionFromTarget(): void {
         const distance = this.focalLength / this.zoomValue;
+        const sinYaw = Math.sin(this.yaw);
+        const cosYaw = Math.cos(this.yaw);
+        const sinPitch = Math.sin(this.pitch);
+        const cosPitch = Math.cos(this.pitch);
 
-        this.x = this.targetXValue - this.forwardX * distance;
-        this.y = this.targetYValue - this.forwardY * distance;
-        this.z = this.targetZValue - this.forwardZ * distance;
+        this.x = this.targetXValue + sinYaw * cosPitch * distance;
+        this.y = this.targetYValue - cosYaw * cosPitch * distance;
+        this.z = this.targetZValue + sinPitch * distance;
     }
 }
 

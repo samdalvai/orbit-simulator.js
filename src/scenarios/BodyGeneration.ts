@@ -1,8 +1,8 @@
 import { EARTH_RADIUS_KM } from '../shared/Constants';
 import {
     clamp,
-    getEllipticalOrbitPosition,
-    getEllipticalOrbitalSpeedByBodyPositionAndMass,
+    getOrbitPosition,
+    getOrbitalSpeed,
     getXYOrbitNormal,
     randomNumber,
 } from '../shared/Math';
@@ -81,7 +81,7 @@ export function createBody(
     const orbitTilt = spec.orbitTiltDegrees ?? 0;
     const eccentricity = spec.orbitEccentricity ?? 0;
 
-    const bodyPos = parentPos.addNew(getEllipticalOrbitPosition(orbitRadius, eccentricity, orbitAngle, orbitTilt));
+    const bodyPos = parentPos.addNew(getOrbitPosition(orbitRadius, eccentricity, orbitAngle, orbitTilt));
     const bodyVel = parentVel.copy();
     const bodyMass = spec.massKg;
 
@@ -89,7 +89,7 @@ export function createBody(
 
     if (spec.orbitRadiusKm) {
         const orbitalSpeed = bodyVel.addNew(
-            getEllipticalOrbitalSpeedByBodyPositionAndMass(
+            getOrbitalSpeed(
                 parentPos,
                 parentMass,
                 bodyPos,
@@ -123,7 +123,7 @@ export function createBelt(
         const orbitNormal = getXYOrbitNormal(orbitTilt);
 
         const asteroidPosition = centerPos.addNew(
-            getEllipticalOrbitPosition(semiMajorAxisKm, eccentricity, anomaly, orbitTilt),
+            getOrbitPosition(semiMajorAxisKm, eccentricity, anomaly, orbitTilt),
         );
 
         const asteroidMass = randomNumber(spec.minMassKg, spec.maxMassKg);
@@ -138,7 +138,7 @@ export function createBelt(
         );
 
         const asteroidVelocity = centerVel.addNew(
-            getEllipticalOrbitalSpeedByBodyPositionAndMass(
+            getOrbitalSpeed(
                 centerPos,
                 centerMass,
                 asteroidPosition,

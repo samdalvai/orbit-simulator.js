@@ -1,7 +1,7 @@
 import { BodyType, bodyIndexById, mass } from '../sim/Body';
 import { BodyRenderStyle } from '../view/BodyRenderStyle';
 import { AU_KM, G } from '../shared/Constants';
-import { getOrbitPosition, randomNumber } from '../shared/Math';
+import { getEllipticalOrbitPosition, randomNumber } from '../shared/Math';
 import { CelestialBodySpecBase } from './BodySpec';
 import { createRandomSolarSystem } from './RandomSolarSystem';
 import { createBody, createRenderStyle, createSolarSystem } from './BodyGeneration';
@@ -30,7 +30,7 @@ export function createRandomGalaxy(renderStyles: Map<number, BodyRenderStyle>) {
 
     for (let i = 0; i < SOLAR_SYSTEM_COUNT; i++) {
         const orbitRadiusKm = randomNumber(GALAXY_INNER_ORBIT_RADIUS_AU, GALAXY_OUTER_ORBIT_RADIUS_AU) * AU_KM;
-        const positionKm = getOrbitPosition(orbitRadiusKm, randomNumber(0, 360));
+        const positionKm = getEllipticalOrbitPosition(orbitRadiusKm, 0, randomNumber(0, 360));
         const speedKmS = Math.sqrt((G * blackHoleMass) / orbitRadiusKm);
         const velocityKmS = positionKm.unitVector().perpNew().scaleNew(speedKmS);
         const solarSystemSpec = createRandomSolarSystem();

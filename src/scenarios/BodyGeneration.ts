@@ -1,7 +1,7 @@
 import { EARTH_RADIUS_KM } from '../shared/Constants';
 import {
     clamp,
-    getOrbitPosition,
+    getEllipticalOrbitPosition,
     getOrbitalSpeedByBodyPositionAndMass,
     getXYOrbitNormal,
     randomNumber,
@@ -80,7 +80,7 @@ export function createBody(
     const orbitAngle = spec.orbitAngleDegrees ?? 0;
     const orbitTilt = spec.orbitTiltDegrees ?? 0;
 
-    const bodyPos = parentPos.addNew(getOrbitPosition(orbitRadius, orbitAngle, orbitTilt));
+    const bodyPos = parentPos.addNew(getEllipticalOrbitPosition(orbitRadius, 0, orbitAngle, orbitTilt));
     const bodyVel = parentVel.copy();
     const bodyMass = spec.massKg;
 
@@ -109,7 +109,11 @@ export function createBelt(
 ): void {
     for (let i = 0; i < spec.numBodies; i++) {
         const asteroidPosition = centerPos.addNew(
-            getOrbitPosition(randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm), randomNumber(0, 360)),
+            getEllipticalOrbitPosition(
+                randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm),
+                0,
+                randomNumber(0, 360),
+            ),
         );
 
         const asteroidMass = randomNumber(spec.minMassKg, spec.maxMassKg);

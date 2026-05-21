@@ -31,6 +31,36 @@ export function getOrbitalSpeedByBodyPositionAndMass(
     return tangent.scaleNew(speed);
 }
 
+export function getEllipticalOrbitalVelocityByBodyPositionAndMass(
+    centerMass: number,
+    bodyMass: number,
+    semiMajorAxisKm: number,
+    eccentricity: number,
+    trueAnomalyDeg: number,
+    orbitNormal: Vec3 = new Vec3(0, 0, 1),
+    periapsisDir: Vec3 = new Vec3(1, 0, 0),
+): Vec3 {
+    const e = clamp(eccentricity, 0, 0.999);
+    const f = degreesToRadians(trueAnomalyDeg);
+
+    const mu = G * (centerMass + bodyMass);
+    const p = semiMajorAxisKm * (1 - e * e);
+
+    const normal = orbitNormal.unitVector();
+    const pDir = periapsisDir.unitVector();
+    const qDir = normal.crossNew(pDir).unitVector();
+
+    const velocityScale = Math.sqrt(mu / p);
+
+    const vx = velocityScale * (-Math.sin(f) * pDir.x + (e + Math.cos(f)) * qDir.x);
+
+    const vy = velocityScale * (-Math.sin(f) * pDir.y + (e + Math.cos(f)) * qDir.y);
+
+    const vz = velocityScale * (-Math.sin(f) * pDir.z + (e + Math.cos(f)) * qDir.z);
+
+    return new Vec3(vx, vy, vz);
+}
+
 /**
  *
  * @param distance In km
@@ -50,6 +80,39 @@ export function getOrbitPosition(distance: number, angle: number, inclination: n
     const sin = Math.sin(inclinationRadians);
 
     // rotate around X axis
+    const tiltedY = y * cos - z * sin;
+    const tiltedZ = y * sin + z * cos;
+
+    return new Vec3(x, tiltedY, tiltedZ);
+}
+
+/**
+ * @param semiMajorAxisKm For a circular orbit = orbit radius, for an ellipse = half of the longest diameter
+ * @param eccentricity 0 → circle, 0.1 → slightly elliptical, 0.5 → very elliptical, must be < 1 for closed elliptical orbit
+ * @param anomalyDeg 0 = periapsis (nearest point), 180 = apoapsis (farthest point)
+ * @param inclination In degrees
+ * @returns
+ */
+export function getEllipticalOrbitPosition(
+    semiMajorAxisKm: number,
+    eccentricity: number,
+    anomalyDeg: number,
+    inclination: number = 0,
+): Vec3 {
+    const e = clamp(eccentricity, 0, 0.999);
+    const f = degreesToRadians(anomalyDeg);
+
+    const p = semiMajorAxisKm * (1 - e * e);
+    const r = p / (1 + e * Math.cos(f));
+
+    const x = Math.cos(f) * r;
+    const y = Math.sin(f) * r;
+    const z = 0;
+
+    const inclinationRadians = degreesToRadians(inclination);
+    const cos = Math.cos(inclinationRadians);
+    const sin = Math.sin(inclinationRadians);
+
     const tiltedY = y * cos - z * sin;
     const tiltedZ = y * sin + z * cos;
 

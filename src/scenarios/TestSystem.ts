@@ -16,7 +16,7 @@ export const testSystem: SolarSystemSpec = {
             massKg: 1.35e30,
             orbitRadiusKm: 0.5 * AU_KM,
             orbitAngleDegrees: 90,
-            // orbitTiltDegrees: 45,
+            orbitTiltDegrees: -180,
             color: '#ffb45f',
             labelFontSize: 18,
             texture: 'alphaCentauriB',

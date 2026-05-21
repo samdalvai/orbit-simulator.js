@@ -1,23 +1,5 @@
 import { TextureName } from '../view/AssetStore';
 
-export type SolarSystemSpec = {
-    mainStar: CelestialBodySpecBase;
-    secondaryStars: CelestialBodySpec[];
-    planets: PlanetBodySpec[];
-    belts: BeltSpec[];
-    comets: CelestialBodySpec[];
-};
-
-export type CelestialBodySpecBase = {
-    name: string;
-    radiusKm: number;
-    massKg: number;
-    color: string;
-    labelColor?: string;
-    labelFontSize?: number;
-    texture?: TextureName;
-};
-
 export type OrbitSpecBase = {
     /**
      * Inclination of the orbit plane, in degrees.
@@ -44,6 +26,16 @@ export type OrbitSpec = {
     orbitAngleDegrees?: number;
 } & OrbitSpecBase;
 
+export type CelestialBodySpecBase = {
+    name: string;
+    radiusKm: number;
+    massKg: number;
+    color: string;
+    labelColor?: string;
+    labelFontSize?: number;
+    texture?: TextureName;
+};
+
 export type CelestialBodySpec = CelestialBodySpecBase & OrbitSpec;
 
 export type PlanetBodySpec = {
@@ -61,3 +53,11 @@ export type BeltSpec = {
     numBodies: number;
     colors: string[];
 } & OrbitSpecBase;
+
+export type SolarSystemSpec = {
+    mainStar: CelestialBodySpecBase;
+    secondaryStars: CelestialBodySpec[];
+    planets: PlanetBodySpec[];
+    belts: BeltSpec[];
+    comets: CelestialBodySpec[];
+};

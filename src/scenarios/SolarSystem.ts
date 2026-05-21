@@ -4,9 +4,6 @@ import { SolarSystemSpec } from './BodySpec';
 const ASTEROID_BELT_OBJECTS = 2000;
 const KUIPER_BELT_OBJECTS = 1500;
 
-const HALLEY_SEMI_MAJOR_AXIS_AU = 0.587_104 / (1 - 0.967_277);
-const CHURYUMOV_GERASIMENKO_SEMI_MAJOR_AXIS_AU = 3.463;
-
 export const solarSystem: SolarSystemSpec = {
     mainStar: {
         name: 'Sun',

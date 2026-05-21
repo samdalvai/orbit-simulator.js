@@ -24,6 +24,6 @@ Now open the browser at http://localhost:1234
 
 # App demo
 
-![image](./dist/images/image.png)
+![image](dist/images/image.png)
 
 <!-- A desktop live version of the app can be found at this [link](https://samdalvai.github.io/orbit-simulator.js/) -->

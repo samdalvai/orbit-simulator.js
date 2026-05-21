@@ -37,6 +37,8 @@ export type CelestialBodySpec = {
      * the orbit out of the X/Y plane.
      */
     orbitTiltDegrees?: number;
+    /** 0 → circle, 0.1 → slightly elliptical, 0.5 → very elliptical, must be < 1 for closed elliptical orbit */
+    orbitEccentricity?: number
 } & CelestialBodySpecBase;
 
 export type PlanetBodySpec = {
@@ -46,6 +48,12 @@ export type PlanetBodySpec = {
 export type BeltSpec = {
     innerOrbitRadiusKm: number;
     outerOrbitRadiusKm: number;
+    
+    minOrbitEccentricity?: number;
+    maxOrbitEccentricity?: number;
+    minOrbitTiltDegrees?: number;
+    maxOrbitTiltDegrees?: number;
+
     minRadiusKm: number;
     maxRadiusKm: number;
     minMassKg: number;

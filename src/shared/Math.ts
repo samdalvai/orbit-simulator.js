@@ -31,34 +31,39 @@ export function getOrbitalSpeedByBodyPositionAndMass(
     return tangent.scaleNew(speed);
 }
 
-export function getEllipticalOrbitalVelocityByBodyPositionAndMass(
+/**
+ * Computes orbital velocity for an elliptical orbit.
+ *
+ * Uses the vis-viva equation:
+ *
+ * v = sqrt( μ * (2/r - 1/a) )
+ *
+ * μ = G(M + m)
+ * r = current distance from focus
+ * a = semi-major axis
+ */
+export function getEllipticalOrbitalSpeedByBodyPositionAndMass(
+    centerPos: Vec3,
     centerMass: number,
+    bodyPosition: Vec3,
     bodyMass: number,
     semiMajorAxisKm: number,
-    eccentricity: number,
-    trueAnomalyDeg: number,
     orbitNormal: Vec3 = new Vec3(0, 0, 1),
-    periapsisDir: Vec3 = new Vec3(1, 0, 0),
 ): Vec3 {
-    const e = clamp(eccentricity, 0, 0.999);
-    const f = degreesToRadians(trueAnomalyDeg);
+    const rVec = bodyPosition.subNew(centerPos);
+    const r = rVec.magnitude();
 
     const mu = G * (centerMass + bodyMass);
-    const p = semiMajorAxisKm * (1 - e * e);
 
+    // Vis-viva equation
+    const speed = Math.sqrt(mu * (2 / r - 1 / semiMajorAxisKm));
+
+    const radialDir = rVec.unitVector();
     const normal = orbitNormal.unitVector();
-    const pDir = periapsisDir.unitVector();
-    const qDir = normal.crossNew(pDir).unitVector();
 
-    const velocityScale = Math.sqrt(mu / p);
+    const tangent = normal.crossNew(radialDir).unitVector();
 
-    const vx = velocityScale * (-Math.sin(f) * pDir.x + (e + Math.cos(f)) * qDir.x);
-
-    const vy = velocityScale * (-Math.sin(f) * pDir.y + (e + Math.cos(f)) * qDir.y);
-
-    const vz = velocityScale * (-Math.sin(f) * pDir.z + (e + Math.cos(f)) * qDir.z);
-
-    return new Vec3(vx, vy, vz);
+    return tangent.scaleNew(speed);
 }
 
 /**

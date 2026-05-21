@@ -2,6 +2,7 @@ import { EARTH_RADIUS_KM } from '../shared/Constants';
 import {
     clamp,
     getEllipticalOrbitPosition,
+    getEllipticalOrbitalSpeedByBodyPositionAndMass,
     getOrbitalSpeedByBodyPositionAndMass,
     getXYOrbitNormal,
     randomNumber,
@@ -79,8 +80,9 @@ export function createBody(
     const orbitRadius = spec.orbitRadiusKm ?? 0;
     const orbitAngle = spec.orbitAngleDegrees ?? 0;
     const orbitTilt = spec.orbitTiltDegrees ?? 0;
+    const eccentricity = spec.orbitEccentricity ?? 0;
 
-    const bodyPos = parentPos.addNew(getEllipticalOrbitPosition(orbitRadius, 0, orbitAngle, orbitTilt));
+    const bodyPos = parentPos.addNew(getEllipticalOrbitPosition(orbitRadius, eccentricity, orbitAngle, orbitTilt));
     const bodyVel = parentVel.copy();
     const bodyMass = spec.massKg;
 
@@ -88,7 +90,14 @@ export function createBody(
 
     if (spec.orbitRadiusKm) {
         const orbitalSpeed = bodyVel.addNew(
-            getOrbitalSpeedByBodyPositionAndMass(parentPos, parentMass, bodyPos, bodyMass, getXYOrbitNormal(orbitTilt)),
+            getEllipticalOrbitalSpeedByBodyPositionAndMass(
+                parentPos,
+                parentMass,
+                bodyPos,
+                bodyMass,
+                orbitRadius,
+                getXYOrbitNormal(orbitTilt),
+            ),
         );
 
         const bodyIndex = bodyIndexById[bodyId];
@@ -108,15 +117,21 @@ export function createBelt(
     renderStyles: Map<number, BodyRenderStyle>,
 ): void {
     for (let i = 0; i < spec.numBodies; i++) {
+        const semiMajorAxisKm = randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm);
+
+        const eccentricity = randomNumber(spec.minOrbitEccentricity ?? 0, spec.maxOrbitEccentricity ?? 0);
+
+        const orbitTilt = randomNumber(spec.minOrbitTiltDegrees ?? 0, spec.maxOrbitTiltDegrees ?? 0);
+
+        const anomaly = randomNumber(0, 360);
+        const orbitNormal = getXYOrbitNormal(orbitTilt);
+
         const asteroidPosition = centerPos.addNew(
-            getEllipticalOrbitPosition(
-                randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm),
-                0,
-                randomNumber(0, 360),
-            ),
+            getEllipticalOrbitPosition(semiMajorAxisKm, eccentricity, anomaly, orbitTilt),
         );
 
         const asteroidMass = randomNumber(spec.minMassKg, spec.maxMassKg);
+
         const asteroidId = addNewBody(
             asteroidPosition.x,
             asteroidPosition.y,
@@ -126,14 +141,24 @@ export function createBelt(
             BodyType.ASTEROID,
         );
 
-        const fillColor = spec.colors[Math.floor(randomNumber(0, spec.colors.length))];
         const asteroidVelocity = centerVel.addNew(
-            getOrbitalSpeedByBodyPositionAndMass(centerPos, centerMass, asteroidPosition, asteroidMass),
+            getEllipticalOrbitalSpeedByBodyPositionAndMass(
+                centerPos,
+                centerMass,
+                asteroidPosition,
+                asteroidMass,
+                semiMajorAxisKm,
+                orbitNormal,
+            ),
         );
+
         const asteroidIndex = bodyIndexById[asteroidId];
+
         velocityX[asteroidIndex] = asteroidVelocity.x;
         velocityY[asteroidIndex] = asteroidVelocity.y;
         velocityZ[asteroidIndex] = asteroidVelocity.z;
+
+        const fillColor = spec.colors[Math.floor(randomNumber(0, spec.colors.length))];
 
         renderStyles.set(asteroidId, {
             ...DEFAULT_BODY_RENDER_STYLE,

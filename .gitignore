@@ -5,6 +5,7 @@ dist/*
 .DS_STORE
 
 !dist/assets/
+!dist/images/
 .vercel
 
 *.sh

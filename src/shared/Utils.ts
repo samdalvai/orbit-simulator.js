@@ -20,5 +20,15 @@ export function formatDuration(seconds: number): string {
     }
 
     const days = hours / 24;
-    return `${days.toFixed(2)} d`;
+    if (days < 30.5) {
+        return `${days.toFixed(2)} d`;
+    }
+
+    const months = days / 30.4; // Average days per month in a year
+    if (months < 12) {
+        return `${months.toFixed(2)} m`;
+    }
+
+    const years = months / 12;
+    return `${years.toFixed(2)} y`;
 }

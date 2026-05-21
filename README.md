@@ -1,6 +1,6 @@
 # Orbit simulator
 
-...
+A canvas based application that simulates real orbital mechanics using Verlet integration and the Barnes-Hut algorithm.
 
 # How to run
 
@@ -24,4 +24,6 @@ Now open the browser at http://localhost:1234
 
 # App demo
 
-A desktop live version of the app can be found at this [link](https://samdalvai.github.io/orbit-simulator.js/)
+![image](./dist/images/image.png)
+
+<!-- A desktop live version of the app can be found at this [link](https://samdalvai.github.io/orbit-simulator.js/) -->

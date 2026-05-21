@@ -131,4 +131,5 @@ export const tripleStarSystem: SolarSystemSpec = {
             colors: ['#8f7a66', '#6f6258', '#a08b72', '#5a514c', '#c8d6df', '#9eb3c0', '#dfe8ec', '#8093a0'],
         },
     ],
+    comets: []
 };

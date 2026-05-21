@@ -38,7 +38,7 @@ export type CelestialBodySpec = {
      */
     orbitTiltDegrees?: number;
     /** 0 → circle, 0.1 → slightly elliptical, 0.5 → very elliptical, must be < 1 for closed elliptical orbit */
-    orbitEccentricity?: number
+    orbitEccentricity?: number;
 } & CelestialBodySpecBase;
 
 export type PlanetBodySpec = {
@@ -48,11 +48,18 @@ export type PlanetBodySpec = {
 export type BeltSpec = {
     innerOrbitRadiusKm: number;
     outerOrbitRadiusKm: number;
-    
-    minOrbitEccentricity?: number;
-    maxOrbitEccentricity?: number;
-    minOrbitTiltDegrees?: number;
-    maxOrbitTiltDegrees?: number;
+
+    /**
+     * Inclination of the orbit plane, in degrees.
+     *
+     * `0` means a flat orbit in the X/Y plane. `180` is still the same X/Y
+     * plane, but the orbit normal is flipped, so the body moves in the opposite
+     * direction: a retrograde orbit. Values between those, such as `45`, tilt
+     * the orbit out of the X/Y plane.
+     */
+    orbitTiltDegrees?: number;
+    /** 0 → circle, 0.1 → slightly elliptical, 0.5 → very elliptical, must be < 1 for closed elliptical orbit */
+    orbitEccentricity?: number;
 
     minRadiusKm: number;
     maxRadiusKm: number;

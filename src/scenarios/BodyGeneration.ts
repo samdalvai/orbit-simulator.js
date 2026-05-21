@@ -3,7 +3,6 @@ import {
     clamp,
     getEllipticalOrbitPosition,
     getEllipticalOrbitalSpeedByBodyPositionAndMass,
-    getOrbitalSpeedByBodyPositionAndMass,
     getXYOrbitNormal,
     randomNumber,
 } from '../shared/Math';
@@ -118,11 +117,8 @@ export function createBelt(
 ): void {
     for (let i = 0; i < spec.numBodies; i++) {
         const semiMajorAxisKm = randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm);
-
-        const eccentricity = randomNumber(spec.minOrbitEccentricity ?? 0, spec.maxOrbitEccentricity ?? 0);
-
-        const orbitTilt = randomNumber(spec.minOrbitTiltDegrees ?? 0, spec.maxOrbitTiltDegrees ?? 0);
-
+        const eccentricity = spec.orbitEccentricity ?? 0;
+        const orbitTilt = spec.orbitTiltDegrees ?? 0;
         const anomaly = randomNumber(0, 360);
         const orbitNormal = getXYOrbitNormal(orbitTilt);
 

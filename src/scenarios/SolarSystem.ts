@@ -274,10 +274,6 @@ export const solarSystem: SolarSystemSpec = {
             colors: ['#c8d6df', '#9eb3c0', '#dfe8ec', '#8093a0'],
         },
     ],
-    // TODO: support elliptical orbits
-    // Real comets have very elliptical orbits. The current simulation creates
-    // circular starting orbits, so `orbitRadiusKm` uses each comet's real
-    // semi-major axis as the best single-radius approximation.
     comets: [
         {
             name: 'Halley Comet',
@@ -285,7 +281,7 @@ export const solarSystem: SolarSystemSpec = {
             massKg: 3.2e14,
             orbitRadiusKm: 17.8 * AU_KM,
             orbitEccentricity: 0.967,
-            orbitAngleDegrees: 310,
+            orbitAngleDegrees: 160,
             orbitTiltDegrees: 162.2422,
             color: '#d8f7ff',
             labelColor: '#d8f7ff',
@@ -298,7 +294,7 @@ export const solarSystem: SolarSystemSpec = {
             massKg: 9.982e12,
             orbitRadiusKm: 3.46 * AU_KM,
             orbitEccentricity: 0.64,
-            orbitAngleDegrees: 135,
+            orbitAngleDegrees: 180,
             orbitTiltDegrees: 7.0405,
             color: '#a9d8ef',
             labelColor: '#a9d8ef',

@@ -387,7 +387,7 @@ export default class Application {
 
         if (this.showTextures) {
             for (const renderItem of renderItems) {
-                this.renderer.drawStarGlow(renderItem);
+                this.renderer.drawGlow(renderItem);
             }
         }
 
@@ -541,7 +541,7 @@ export default class Application {
             ['Type', type],
         ];
 
-        const width = 300;
+        const width = 350;
         const height = 200;
         const padding = 14;
         const imageSize = 54;

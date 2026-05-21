@@ -332,10 +332,11 @@ export default class Renderer {
         this.bodyRenderPositionZ = parentRenderZ + moonOffsetZ;
     }
 
-    drawStarGlow(renderItem: RenderItem): void {
+    drawGlow(renderItem: RenderItem): void {
         const bodyIndex = renderItem.index;
+        const bodyType = bodyTypes[bodyIndex];
 
-        if (bodyTypes[bodyIndex] !== BodyType.STAR) {
+        if (bodyType !== BodyType.STAR && bodyType !== BodyType.COMET) {
             return;
         }
 
@@ -344,7 +345,8 @@ export default class Renderer {
         const y = renderItem.y;
         const renderRadius = renderStyle.renderRadius;
         const massFactor = Math.max(0.5, Math.min(4, Math.pow(mass[bodyIndex] / SOLAR_MASS_KG, 0.2)));
-        const lightRadius = renderRadius * (20 + massFactor * 0.1);
+        const lightRadiusScale = 20 + massFactor * 0.25;
+        const lightRadius = renderRadius * lightRadiusScale * (bodyType === BodyType.COMET ? 10 : 1);
         const screenLightRadius = lightRadius * renderItem.scale;
 
         if (

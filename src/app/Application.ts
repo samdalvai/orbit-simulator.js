@@ -37,6 +37,8 @@ const BLACK_HOLE_MASS_KG = 8e30;
 const BODY_HOVER_TOLERANCE_PIXELS = 10;
 const CAMERA_ROTATION_SENSITIVITY = 0.005;
 const CAMERA_KEY_ROTATION_STEP = 0.06;
+const MIN_SIMULATION_SPEED = 1;
+const SIMULATION_SPEED_HOLD_STEP_MS = 400;
 
 const DEMO_LABELS = ['Solar system', 'Triple star system', 'Random system', 'Random galaxy', 'Test scenario'];
 
@@ -58,6 +60,8 @@ export default class Application {
     private rightMousePressed = false;
     private controlPressed = false;
     private hasMousePosition = false;
+    private simulationSpeedKey: '+' | '-' | null = null;
+    private simulationSpeedKeyPressedAt = 0;
 
     // Debug related properties
     private debug = true;
@@ -196,15 +200,11 @@ export default class Application {
                     }
 
                     if (inputEvent.key === '+') {
-                        SETTINGS.simulationSpeed += 10;
+                        this.adjustSimulationSpeed('+', 1, inputEvent.repeat);
                     }
 
                     if (inputEvent.key === '-') {
-                        SETTINGS.simulationSpeed = clamp(
-                            SETTINGS.simulationSpeed - 10,
-                            1,
-                            SETTINGS.simulationSpeed - 10,
-                        );
+                        this.adjustSimulationSpeed('-', -1, inputEvent.repeat);
                     }
 
                     if (inputEvent.key === '*') {
@@ -266,6 +266,10 @@ export default class Application {
                 case 'keyup':
                     if (inputEvent.code === 'MetaLeft') {
                         this.controlPressed = false;
+                    }
+
+                    if (inputEvent.key === '+' || inputEvent.key === '-') {
+                        this.simulationSpeedKey = null;
                     }
 
                     break;
@@ -589,6 +593,17 @@ export default class Application {
     private stepSimulation(): void {
         this.engine.update(SETTINGS.dt);
         this.totalTime += SETTINGS.dt;
+    }
+
+    private adjustSimulationSpeed(key: '+' | '-', direction: 1 | -1, repeat: boolean): void {
+        if (this.simulationSpeedKey !== key || !repeat) {
+            this.simulationSpeedKey = key;
+            this.simulationSpeedKeyPressedAt = performance.now();
+        }
+
+        const holdMs = performance.now() - this.simulationSpeedKeyPressedAt;
+        const increment = 1 + Math.floor(holdMs / SIMULATION_SPEED_HOLD_STEP_MS);
+        SETTINGS.simulationSpeed = Math.max(MIN_SIMULATION_SPEED, SETTINGS.simulationSpeed + direction * increment);
     }
 
     private panToNextPlanetOrStar(): void {

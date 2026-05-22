@@ -76,6 +76,7 @@ export function applyBarnesHutGravitationalForces(
         worker.postMessage({
             type: 'applyForce',
             start: 0,
+            G: G,
             end: getBodyCount(),
             thetaSq: thetaSquared,
             epsilonSquared: epsilonSquared,

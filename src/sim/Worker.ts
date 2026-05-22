@@ -1,6 +1,3 @@
-import { G } from '../shared/Constants';
-import { ROOT } from './OcTree';
-
 // Body buffers
 let mass: Float64Array;
 
@@ -20,6 +17,8 @@ let nodePositionZ: Float64Array;
 let size: Float64Array;
 let children: Uint32Array;
 let next: Uint32Array;
+
+const ROOT = 0;
 
 export type WorkerInitMessage = {
     buffers: {
@@ -45,6 +44,7 @@ export type WorkerInitMessage = {
 export type WorkerApplyForceMessage = {
     start: number;
     end: number;
+    G: number;
     thetaSq: number;
     epsilonSquared: number;
     nodeCount: number;
@@ -83,7 +83,14 @@ self.onmessage = event => {
             });
             break;
         case 'applyForce':
-            applyForcesRange(message.start, message.end, message.thetaSq, message.epsilonSquared, message.nodeCount);
+            applyForcesRange(
+                message.start,
+                message.end,
+                message.G,
+                message.thetaSq,
+                message.epsilonSquared,
+                message.nodeCount,
+            );
 
             self.postMessage({
                 type: 'forcesApplied',
@@ -97,6 +104,7 @@ self.onmessage = event => {
 function applyForcesRange(
     start: number,
     end: number,
+    G: number,
     thetaSq: number,
     epsilonSquared: number,
     nodeCount: number,
@@ -107,6 +115,7 @@ function applyForcesRange(
             positionX[bodyIndex],
             positionY[bodyIndex],
             positionZ[bodyIndex],
+            G,
             thetaSq,
             epsilonSquared,
             nodeCount,
@@ -119,6 +128,7 @@ function applyForceOn(
     x: number,
     y: number,
     z: number,
+    G: number,
     thetaSq: number,
     epsilonSquared: number,
     nodeCount: number,

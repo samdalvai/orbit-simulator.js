@@ -1,9 +1,47 @@
+// Body buffers
+let mass: Float64Array;
+let forceSumX: Float64Array;
+let forceSumY: Float64Array;
+let forceSumZ: Float64Array;
+
+// OcTree buffers
+let nodeMass: Float64Array;
+let nodePositionX: Float64Array;
+let nodePositionY: Float64Array;
+let nodePositionZ: Float64Array;
+
+interface WorkerMessage {
+    buffers: {
+        mass: Float64Array;
+        forceSumX: Float64Array;
+        forceSumY: Float64Array;
+        forceSumZ: Float64Array;
+        nodeMass: Float64Array;
+        nodePositionX: Float64Array;
+        nodePositionY: Float64Array;
+        nodePositionZ: Float64Array;
+    };
+    type: string;
+}
+
 self.onmessage = event => {
-    const message = event.data;
+    const message = event.data as WorkerMessage;
 
     switch (message.type) {
         case 'init':
             console.log('Worker initialized');
+
+            // Body buffers
+            mass = new Float64Array(message.buffers.mass);
+            forceSumX = new Float64Array(message.buffers.forceSumX);
+            forceSumY = new Float64Array(message.buffers.forceSumY);
+            forceSumZ = new Float64Array(message.buffers.forceSumZ);
+
+            // OcTree buffers
+            nodePositionX = new Float64Array(message.buffers.nodePositionX);
+            nodePositionY = new Float64Array(message.buffers.nodePositionY);
+            nodePositionZ = new Float64Array(message.buffers.nodePositionZ);
+            nodeMass = new Float64Array(message.buffers.nodeMass);
 
             self.postMessage({
                 type: 'ready',

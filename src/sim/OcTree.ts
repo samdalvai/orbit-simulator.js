@@ -12,11 +12,11 @@ const NODE_CAPACITY = 1 + PARENT_CAPACITY * CHILD_COUNT;
 const children = new Uint32Array(NODE_CAPACITY);
 const next = new Uint32Array(NODE_CAPACITY);
 
-const nodePositionX = Utils.createFloat64Buffer(NODE_CAPACITY);
-const nodePositionY = Utils.createFloat64Buffer(NODE_CAPACITY);
-const nodePositionZ = Utils.createFloat64Buffer(NODE_CAPACITY);
+export const nodePositionX = Utils.createFloat64Buffer(NODE_CAPACITY);
+export const nodePositionY = Utils.createFloat64Buffer(NODE_CAPACITY);
+export const nodePositionZ = Utils.createFloat64Buffer(NODE_CAPACITY);
 
-const nodeMass = new Float64Array(NODE_CAPACITY);
+export const nodeMass = Utils.createFloat64Buffer(NODE_CAPACITY);
 
 const centerX = new Float64Array(NODE_CAPACITY);
 const centerY = new Float64Array(NODE_CAPACITY);

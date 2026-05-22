@@ -10,6 +10,9 @@ import {
     bodyIds,
     clearBodies,
     clearForces,
+    forceSumX,
+    forceSumY,
+    forceSumZ,
     getBodyCount,
     initializeAcceleration,
     integrateVerletPosition,
@@ -25,6 +28,7 @@ import {
     resolveCollision as resolveVelocity,
 } from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
+import { nodeMass, nodePositionX, nodePositionY, nodePositionZ } from './OcTree';
 
 const DESTROY_THRESHOLD = 1e-1;
 export class Engine {
@@ -47,6 +51,18 @@ export class Engine {
 
             this.worker.postMessage({
                 type: 'init',
+                buffers: {
+                    // Body buffers
+                    mass: mass,
+                    forceSumX: forceSumX,
+                    forceSumY: forceSumY,
+                    forceSumZ: forceSumZ,
+                    // OcTree buffers
+                    nodeMass: nodeMass,
+                    nodePositionX: nodePositionX,
+                    nodePositionY: nodePositionY,
+                    nodePositionZ: nodePositionZ,
+                },
             });
         }
     }

@@ -8,6 +8,7 @@ import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SET
 import { clamp } from '../shared/Math';
 import { formatDuration } from '../shared/Utils';
 import {
+    BODY_NOT_CREATED,
     BodyType,
     addNewBody,
     bodyIds,
@@ -655,7 +656,7 @@ export default class Application {
         const y = this.inputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const blackHoleId = addNewBody(x, y, 0, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.BLACK_HOLE);
 
-        if (blackHoleId !== null) {
+        if (blackHoleId !== BODY_NOT_CREATED) {
             this.bodyRenderStyles.set(blackHoleId, {
                 fillColor: '#030009',
                 texture: AssetStore.getTexture('blackHole'),

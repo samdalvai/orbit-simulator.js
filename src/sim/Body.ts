@@ -1,4 +1,4 @@
-import { MAX_BODIES, WEB_WORKERS_ENABLED } from '../shared/Constants';
+import { MAX_BODIES } from '../shared/Constants';
 import * as Utils from '../shared/Utils';
 import { createFloat64Buffer } from '../shared/Utils';
 import { Vec3 } from '../shared/Vec3';
@@ -16,6 +16,7 @@ export type BodyId = number;
 
 const CAPACITY = MAX_BODIES;
 export const NO_PARENT = -1;
+export const BODY_NOT_CREATED = -1;
 
 export const bodyIds = new Int32Array(CAPACITY);
 export const bodyIndexById = new Int32Array(CAPACITY);
@@ -79,7 +80,7 @@ export function addNewBody(
     parentId: number = NO_PARENT,
 ): BodyId {
     Utils.assert(bodyMass > 0, 'Mass needs to be greater than 0');
-    Utils.assert(bodyCount < CAPACITY, 'Body capacity exceeded');
+    if (bodyCount > CAPACITY) return BODY_NOT_CREATED;
 
     // Stale ids bug summary:
     // `bodyCount` was used both as the number of live bodies and as the next body ID.

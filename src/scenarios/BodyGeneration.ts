@@ -1,13 +1,9 @@
 import { EARTH_RADIUS_KM } from '../shared/Constants';
-import {
-    clamp,
-    getOrbitPosition,
-    getOrbitalSpeed,
-    getXYOrbitNormal,
-    randomNumber,
-} from '../shared/Math';
+import { clamp, getOrbitPosition, getOrbitalSpeed, getXYOrbitNormal, randomNumber } from '../shared/Math';
+import { assert } from '../shared/Utils';
 import { Vec3 } from '../shared/Vec3';
 import {
+    BODY_NOT_CREATED,
     BodyId,
     BodyType,
     NO_PARENT,
@@ -87,16 +83,11 @@ export function createBody(
 
     const bodyId = addNewBody(bodyPos.x, bodyPos.y, bodyPos.z, spec.radiusKm, bodyMass, bodyType, bodyVel, parentId);
 
+    assert(bodyId !== BODY_NOT_CREATED);
+
     if (spec.orbitRadiusKm) {
         const orbitalSpeed = bodyVel.addNew(
-            getOrbitalSpeed(
-                parentPos,
-                parentMass,
-                bodyPos,
-                bodyMass,
-                orbitRadius,
-                getXYOrbitNormal(orbitTilt),
-            ),
+            getOrbitalSpeed(parentPos, parentMass, bodyPos, bodyMass, orbitRadius, getXYOrbitNormal(orbitTilt)),
         );
 
         const bodyIndex = bodyIndexById[bodyId];
@@ -122,9 +113,7 @@ export function createBelt(
         const anomaly = randomNumber(0, 360);
         const orbitNormal = getXYOrbitNormal(orbitTilt);
 
-        const asteroidPosition = centerPos.addNew(
-            getOrbitPosition(semiMajorAxisKm, eccentricity, anomaly, orbitTilt),
-        );
+        const asteroidPosition = centerPos.addNew(getOrbitPosition(semiMajorAxisKm, eccentricity, anomaly, orbitTilt));
 
         const asteroidMass = randomNumber(spec.minMassKg, spec.maxMassKg);
 
@@ -137,15 +126,10 @@ export function createBelt(
             BodyType.ASTEROID,
         );
 
+        assert(asteroidId !== BODY_NOT_CREATED);
+
         const asteroidVelocity = centerVel.addNew(
-            getOrbitalSpeed(
-                centerPos,
-                centerMass,
-                asteroidPosition,
-                asteroidMass,
-                semiMajorAxisKm,
-                orbitNormal,
-            ),
+            getOrbitalSpeed(centerPos, centerMass, asteroidPosition, asteroidMass, semiMajorAxisKm, orbitNormal),
         );
 
         const asteroidIndex = bodyIndexById[asteroidId];

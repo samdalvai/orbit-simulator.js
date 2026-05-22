@@ -3,6 +3,7 @@ import { createHoneycombInSphere } from '../shared/Math';
 import { Vec3 } from '../shared/Vec3';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE } from '../view/BodyRenderStyle';
 import {
+    BODY_NOT_CREATED,
     BodyType,
     addNewBody,
     applyImpulseLinear,
@@ -202,6 +203,9 @@ export function explodeBody(bodyId: number, bodyRenderStyles: Map<number, BodyRe
             BodyType.ASTEROID,
             new Vec3(velX, velY, velZ),
         );
+
+        if (debrisId === BODY_NOT_CREATED) break;
+
         const colorIndex = Math.floor(Math.random() * 4);
         bodyRenderStyles.set(debrisId, {
             fillColor: colors[colorIndex],

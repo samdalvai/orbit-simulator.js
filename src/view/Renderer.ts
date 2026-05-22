@@ -221,7 +221,6 @@ export default class Renderer {
         this.ctx.restore();
     }
 
-    // TODO: move width as second last parameter
     drawLine(x0: number, y0: number, x1: number, y1: number, color = 'white', width = 1): void {
         this.ctx.strokeStyle = color;
         this.ctx.lineWidth = width;

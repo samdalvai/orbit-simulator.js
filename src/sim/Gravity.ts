@@ -1,7 +1,8 @@
-import { WEB_WORKERS_ENABLED } from '../shared/Constants';
+import { G, WEB_WORKERS_ENABLED } from '../shared/Constants';
 import { Vec3 } from '../shared/Vec3';
 import { addForce, getBodyCount, mass, positionX, positionY, positionZ } from './Body';
-import { applyForceOn, buildOctree } from './OcTree';
+import { applyForceOn, buildOctree, nodeCount } from './OcTree';
+import { WorkerApplyForceMessage } from './Worker';
 
 const DEFAULT_THETA = 0.5;
 const DEFAULT_EPSILON = 1;
@@ -26,7 +27,7 @@ export function generateGravitationalForce(aIndex: number, bIndex: number, G: nu
 /**
  * Convenience version that applies all gravitational forces to all bodies.
  */
-export function applyGravitationalForces(G: number): void {
+export function applyGravitationalForces(): void {
     const force = new Vec3();
     const numBodies = getBodyCount();
 
@@ -60,7 +61,6 @@ export function applyGravitationalForces(G: number): void {
  * Builds the global octree and applies one gravitational force per body.
  */
 export function applyBarnesHutGravitationalForces(
-    G: number,
     worker: Worker | null,
     theta = DEFAULT_THETA,
     epsilon = DEFAULT_EPSILON,
@@ -70,17 +70,21 @@ export function applyBarnesHutGravitationalForces(
     }
 
     const thetaSquared = theta * theta;
+    const epsilonSquared = epsilon * epsilon;
 
     if (WEB_WORKERS_ENABLED && worker) {
-        worker.postMessage({ type: 'applyForce' });
-        for (let i = 0; i < getBodyCount(); i++) {
-            if (mass[i] === 0) continue;
-            applyForceOn(i, positionX[i], positionY[i], positionZ[i], G, thetaSquared);
-        }
+        worker.postMessage({
+            type: 'applyForce',
+            start: 0,
+            end: getBodyCount(),
+            thetaSq: thetaSquared,
+            epsilonSquared: epsilonSquared,
+            nodeCount: nodeCount,
+        } as WorkerApplyForceMessage);
     } else {
         for (let i = 0; i < getBodyCount(); i++) {
             if (mass[i] === 0) continue;
-            applyForceOn(i, positionX[i], positionY[i], positionZ[i], G, thetaSquared);
+            applyForceOn(i, positionX[i], positionY[i], positionZ[i], thetaSquared);
         }
     }
 }

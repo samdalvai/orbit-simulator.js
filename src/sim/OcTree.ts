@@ -25,7 +25,7 @@ const centerZ = new Float64Array(NODE_CAPACITY);
 export const size = Utils.createFloat64Buffer(NODE_CAPACITY);
 export const parents = Utils.createFloat64Buffer(NODE_CAPACITY);
 
-let nodeCount = 0;
+export let nodeCount = 0;
 let parentCount = 0;
 let thetaSquared = 0.5 * 0.5;
 let epsilonSquared = 1;

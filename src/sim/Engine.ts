@@ -32,6 +32,7 @@ import {
 } from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
 import { children, nodeMass, nodePositionX, nodePositionY, nodePositionZ, size } from './OcTree';
+import { WorkerInitMessage } from './Worker';
 
 const DESTROY_THRESHOLD = 1e-1;
 export class Engine {
@@ -72,7 +73,7 @@ export class Engine {
                     size: size,
                     children: children,
                 },
-            });
+            } as WorkerInitMessage);
         }
     }
 
@@ -96,7 +97,7 @@ export class Engine {
         this.broadPhase();
 
         this.clearAllForces();
-        applyBarnesHutGravitationalForces(G, this.worker);
+        applyBarnesHutGravitationalForces(this.worker);
 
         for (let i = 0; i < bodyCount; i++) {
             integrateVerletVelocity(i, dt);
@@ -105,7 +106,7 @@ export class Engine {
 
     initializeVerlet(): void {
         this.clearAllForces();
-        applyBarnesHutGravitationalForces(G, this.worker);
+        applyBarnesHutGravitationalForces(this.worker);
 
         for (let i = 0; i < getBodyCount(); i++) {
             initializeAcceleration(i);

@@ -1,3 +1,6 @@
+import { G } from '../shared/Constants';
+import { ROOT } from './OcTree';
+
 // Body buffers
 let mass: Float64Array;
 
@@ -18,7 +21,7 @@ let size: Float64Array;
 let children: Uint32Array;
 let next: Uint32Array;
 
-interface WorkerMessage {
+export type WorkerInitMessage = {
     buffers: {
         mass: Float64Array;
         positionX: Float64Array;
@@ -35,10 +38,20 @@ interface WorkerMessage {
         size: Float64Array;
         children: Uint32Array;
         next: Uint32Array;
-        nodeCount: number;
     };
-    type: 'init' | 'applyForce';
-}
+    type: 'init';
+};
+
+export type WorkerApplyForceMessage = {
+    start: number;
+    end: number;
+    thetaSq: number;
+    epsilonSquared: number;
+    nodeCount: number;
+    type: 'applyForce';
+};
+
+type WorkerMessage = WorkerInitMessage | WorkerApplyForceMessage;
 
 self.onmessage = event => {
     const message = event.data as WorkerMessage;
@@ -70,9 +83,84 @@ self.onmessage = event => {
             });
             break;
         case 'applyForce':
-            console.log('I need to apply forces');
+            applyForcesRange(message.start, message.end, message.thetaSq, message.epsilonSquared, message.nodeCount);
+
+            self.postMessage({
+                type: 'forcesApplied',
+            });
             break;
         default:
-            throw new Error('Unrecognized message type: ' + message.type);
+            throw new Error('Unrecognized message type: ' + message);
     }
 };
+
+function applyForcesRange(
+    start: number,
+    end: number,
+    thetaSq: number,
+    epsilonSquared: number,
+    nodeCount: number,
+): void {
+    for (let bodyIndex = start; bodyIndex < end; bodyIndex++) {
+        applyForceOn(
+            bodyIndex,
+            positionX[bodyIndex],
+            positionY[bodyIndex],
+            positionZ[bodyIndex],
+            thetaSq,
+            epsilonSquared,
+            nodeCount,
+        );
+    }
+}
+
+function applyForceOn(
+    bodyIndex: number,
+    x: number,
+    y: number,
+    z: number,
+    thetaSq: number,
+    epsilonSquared: number,
+    nodeCount: number,
+): void {
+    let accX = 0;
+    let accY = 0;
+    let accZ = 0;
+
+    if (nodeCount === 0) {
+        return;
+    }
+
+    let node = ROOT;
+
+    for (;;) {
+        const dx = nodePositionX[node] - x;
+        const dy = nodePositionY[node] - y;
+        const dz = nodePositionZ[node] - z;
+        const distanceSquared = dx * dx + dy * dy + dz * dz;
+
+        if (children[node] === 0 || size[node] * size[node] < distanceSquared * thetaSq) {
+            const denominator = (distanceSquared + epsilonSquared) * Math.sqrt(distanceSquared);
+
+            if (denominator !== 0) {
+                const scale = Math.min((G * nodeMass[node]) / denominator, Number.MAX_VALUE);
+                accX += dx * scale;
+                accY += dy * scale;
+                accZ += dz * scale;
+            }
+
+            if (next[node] === 0) {
+                break;
+            }
+
+            node = next[node];
+        } else {
+            node = children[node];
+        }
+    }
+
+    const bodyMass = mass[bodyIndex];
+    forceSumX[bodyIndex] += accX * bodyMass;
+    forceSumY[bodyIndex] += accY * bodyMass;
+    forceSumZ[bodyIndex] += accZ * bodyMass;
+}

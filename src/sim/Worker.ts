@@ -62,22 +62,22 @@ self.onmessage = event => {
             console.log('Worker initialized');
 
             // Body buffers
-            positionX = new Float64Array(message.buffers.positionX);
-            positionY = new Float64Array(message.buffers.positionY);
-            positionZ = new Float64Array(message.buffers.positionZ);
-            mass = new Float64Array(message.buffers.mass);
-            forceSumX = new Float64Array(message.buffers.forceSumX);
-            forceSumY = new Float64Array(message.buffers.forceSumY);
-            forceSumZ = new Float64Array(message.buffers.forceSumZ);
+            positionX = message.buffers.positionX;
+            positionY = message.buffers.positionY;
+            positionZ = message.buffers.positionZ;
+            mass = message.buffers.mass;
+            forceSumX = message.buffers.forceSumX;
+            forceSumY = message.buffers.forceSumY;
+            forceSumZ = message.buffers.forceSumZ;
 
             // OcTree buffers
-            nodePositionX = new Float64Array(message.buffers.nodePositionX);
-            nodePositionY = new Float64Array(message.buffers.nodePositionY);
-            nodePositionZ = new Float64Array(message.buffers.nodePositionZ);
-            nodeMass = new Float64Array(message.buffers.nodeMass);
-            size = new Float64Array(message.buffers.size);
-            children = new Uint32Array(message.buffers.children);
-            next = new Uint32Array(message.buffers.children);
+            nodePositionX = message.buffers.nodePositionX;
+            nodePositionY = message.buffers.nodePositionY;
+            nodePositionZ = message.buffers.nodePositionZ;
+            nodeMass = message.buffers.nodeMass;
+            size = message.buffers.size;
+            children = message.buffers.children;
+            next = message.buffers.next;
 
             self.postMessage({
                 type: 'ready',

@@ -10,7 +10,7 @@ const PARENT_CAPACITY = MAX_BODIES * 4;
 const NODE_CAPACITY = 1 + PARENT_CAPACITY * CHILD_COUNT;
 
 export const children = Utils.createUint32Buffer(NODE_CAPACITY);
-const next = new Uint32Array(NODE_CAPACITY);
+export const next = Utils.createUint32Buffer(NODE_CAPACITY);
 
 export const nodePositionX = Utils.createFloat64Buffer(NODE_CAPACITY);
 export const nodePositionY = Utils.createFloat64Buffer(NODE_CAPACITY);

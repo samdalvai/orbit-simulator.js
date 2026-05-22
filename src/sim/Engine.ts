@@ -31,14 +31,15 @@ import {
     resolveCollision as resolveVelocity,
 } from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
-import { children, nodeMass, nodePositionX, nodePositionY, nodePositionZ, size } from './OcTree';
+import { children, next, nodeMass, nodePositionX, nodePositionY, nodePositionZ, size } from './OcTree';
 import { WorkerInitMessage, setupWorker } from './Worker';
 
 const DESTROY_THRESHOLD = 1e-1;
 export class Engine {
     private bodyRenderStyles: Map<number, BodyRenderStyle>;
+
     private readonly collisionPairs: [number, number][] = [];
-    private worker: Worker | null = null;
+    private readonly worker: Worker | null = null;
 
     constructor(bodyRenderStyles: Map<number, BodyRenderStyle>) {
         this.bodyRenderStyles = bodyRenderStyles;
@@ -68,6 +69,7 @@ export class Engine {
                     nodePositionZ: nodePositionZ,
                     size: size,
                     children: children,
+                    next: next,
                 },
             } as WorkerInitMessage);
 

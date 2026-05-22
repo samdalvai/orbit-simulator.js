@@ -88,7 +88,7 @@ export async function applyBarnesHutGravitationalForces(
     } else {
         for (let i = 0; i < getBodyCount(); i++) {
             if (mass[i] === 0) continue;
-            applyForceOn(i, positionX[i], positionY[i], positionZ[i], thetaSquared);
+            applyForceOn(i, positionX[i], positionY[i], positionZ[i], G, thetaSquared);
         }
     }
 

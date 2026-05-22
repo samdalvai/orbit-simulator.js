@@ -1,4 +1,4 @@
-import { G } from '../shared/Constants';
+import { G, WEB_WORKERS_ENABLED } from '../shared/Constants';
 import { BodyRenderStyle } from '../view/BodyRenderStyle';
 import {
     aabbMaxX,
@@ -33,6 +33,8 @@ export class Engine {
 
     constructor(bodyRenderStyles: Map<number, BodyRenderStyle>) {
         this.bodyRenderStyles = bodyRenderStyles;
+
+        console.log('WEB WORKERS ENABLED? ', WEB_WORKERS_ENABLED);
     }
 
     update(dt: number): void {

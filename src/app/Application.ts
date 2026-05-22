@@ -143,7 +143,7 @@ export default class Application {
                 createSolarSystem(testSystem, this.bodyRenderStyles);
             }
 
-            this.engine.initializeVerlet();
+            await this.engine.initializeVerlet();
         } finally {
             this.running = true;
             this.loadingDemo = false;
@@ -151,7 +151,7 @@ export default class Application {
         }
     }
 
-    input(): void {
+    async input(): Promise<void> {
         // Handle keyboard events
         while (this.inputManager.keyboardInputBuffer.length > 0) {
             const inputEvent = this.inputManager.keyboardInputBuffer.shift();
@@ -190,13 +190,13 @@ export default class Application {
                     }
 
                     if (inputEvent.key === '.') {
-                        this.stepSimulation();
+                        await this.stepSimulation();
                     }
 
                     if (inputEvent.key === ',') {
                         // Note: this is not physically accurate, as contacts cannot work correctly with
                         // negative delta time, this is just used for testing purposes
-                        this.engine.update(-SETTINGS.dt);
+                        await this.engine.update(-SETTINGS.dt);
                     }
 
                     if (inputEvent.key === '+') {
@@ -360,7 +360,7 @@ export default class Application {
         }
     }
 
-    update(frameTime: number): void {
+    async update(frameTime: number): Promise<void> {
         if (this.debug) {
             if (!this.lastFPSUpdate || performance.now() - this.lastFPSUpdate > 1000) {
                 this.lastFPSUpdate = performance.now();
@@ -371,7 +371,7 @@ export default class Application {
         if (this.paused) return;
 
         for (let j = 0; j < SETTINGS.subSteps; j++) {
-            this.stepSimulation();
+            await this.stepSimulation();
         }
     }
 
@@ -590,8 +590,8 @@ export default class Application {
         this.debug = value;
     }
 
-    private stepSimulation(): void {
-        this.engine.update(SETTINGS.dt);
+    private async stepSimulation(): Promise<void> {
+        await this.engine.update(SETTINGS.dt);
         this.totalTime += SETTINGS.dt;
     }
 

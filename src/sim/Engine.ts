@@ -1,4 +1,4 @@
-import { G, WEB_WORKERS_ENABLED } from '../shared/Constants';
+import { WEB_WORKERS_ENABLED } from '../shared/Constants';
 import { BodyRenderStyle } from '../view/BodyRenderStyle';
 import {
     aabbMaxX,
@@ -75,17 +75,7 @@ export class Engine {
         }
     }
 
-    // // OcTree buffers
-    // nodePositionX = new Float64Array(message.buffers.nodePositionX);
-    // nodePositionY = new Float64Array(message.buffers.nodePositionY);
-    // nodePositionZ = new Float64Array(message.buffers.nodePositionZ);
-    // nodeMass = new Float64Array(message.buffers.nodeMass);
-    // size = new Float64Array(message.buffers.size);
-    // children = new Uint32Array(message.buffers.children);
-    // next = new Uint32Array(message.buffers.children);
-    // nodeCount = message.buffers.nodeCount;
-
-    update(dt: number): void {
+    async update(dt: number): Promise<void> {
         const bodyCount = getBodyCount();
 
         for (let i = 0; i < bodyCount; i++) {
@@ -95,16 +85,16 @@ export class Engine {
         this.broadPhase();
 
         this.clearAllForces();
-        applyBarnesHutGravitationalForces(this.worker);
+        await applyBarnesHutGravitationalForces(this.worker);
 
         for (let i = 0; i < bodyCount; i++) {
             integrateVerletVelocity(i, dt);
         }
     }
 
-    initializeVerlet(): void {
+    async initializeVerlet(): Promise<void> {
         this.clearAllForces();
-        applyBarnesHutGravitationalForces(this.worker);
+        await applyBarnesHutGravitationalForces(this.worker);
 
         for (let i = 0; i < getBodyCount(); i++) {
             initializeAcceleration(i);

@@ -2,7 +2,7 @@ import { G, WEB_WORKERS_ENABLED } from '../shared/Constants';
 import { Vec3 } from '../shared/Vec3';
 import { addForce, getBodyCount, mass, positionX, positionY, positionZ } from './Body';
 import { applyForceOn, buildOctree, nodeCount } from './OcTree';
-import { runWorkerJob, WorkerJobMessage } from './Worker';
+import { runWorkerJob } from './Worker';
 
 const DEFAULT_THETA = 0.5;
 const DEFAULT_EPSILON = 1;
@@ -60,11 +60,11 @@ export function applyGravitationalForces(): void {
 /**
  * Builds the global octree and applies one gravitational force per body.
  */
-export function applyBarnesHutGravitationalForces(
+export async function applyBarnesHutGravitationalForces(
     worker: Worker | null,
     theta = DEFAULT_THETA,
     epsilon = DEFAULT_EPSILON,
-): void {
+): Promise<void> {
     if (!buildOctree(theta, epsilon)) {
         return;
     }
@@ -75,7 +75,8 @@ export function applyBarnesHutGravitationalForces(
     console.log('start: ', performance.now());
 
     if (WEB_WORKERS_ENABLED && worker) {
-        runWorkerJob(worker, {
+        //await Promise.all([])
+        await runWorkerJob(worker, {
             type: 'applyForce',
             start: 0,
             G: G,

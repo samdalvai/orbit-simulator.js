@@ -26,6 +26,7 @@ export const ASTEROID_RADIUS_RENDERING_SCALE = 8;
 export const COMET_RADIUS_RENDERING_SCALE = 6;
 
 export const WEB_WORKERS_ENABLED = window.crossOriginIsolated;
+export const NUM_WEB_WORKERS = 1;
 
 export const SETTINGS = {
     subSteps: 1,

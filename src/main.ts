@@ -26,7 +26,7 @@ async function run() {
         }
     });
 
-    function loop(now: number) {
+    async function loop(now: number) {
         let frameTime = (now - timePreviousFrame) / 1000;
         timePreviousFrame = now;
 
@@ -39,7 +39,7 @@ async function run() {
             app.input();
 
             while (accumulator >= FIXED_DELTA_TIME) {
-                app.update(frameTime);
+                await app.update(frameTime);
                 accumulator -= FIXED_DELTA_TIME;
             }
 

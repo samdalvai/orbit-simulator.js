@@ -12,9 +12,9 @@ const NODE_CAPACITY = 1 + PARENT_CAPACITY * CHILD_COUNT;
 const children = new Uint32Array(NODE_CAPACITY);
 const next = new Uint32Array(NODE_CAPACITY);
 
-const nodePositionX = new Float64Array(NODE_CAPACITY);
-const nodePositionY = new Float64Array(NODE_CAPACITY);
-const nodePositionZ = new Float64Array(NODE_CAPACITY);
+const nodePositionX = Utils.createFloat64Buffer(NODE_CAPACITY);
+const nodePositionY = Utils.createFloat64Buffer(NODE_CAPACITY);
+const nodePositionZ = Utils.createFloat64Buffer(NODE_CAPACITY);
 
 const nodeMass = new Float64Array(NODE_CAPACITY);
 
@@ -181,16 +181,16 @@ export function applyForceOn(
     let node = ROOT;
 
     for (;;) {
-        const dx = nodePositionX[node] - x; // Needs shared array buffer
-        const dy = nodePositionY[node] - y; // Needs shared array buffer
-        const dz = nodePositionZ[node] - z; // Needs shared array buffer
+        const dx = nodePositionX[node] - x;
+        const dy = nodePositionY[node] - y;
+        const dz = nodePositionZ[node] - z;
         const distanceSquared = dx * dx + dy * dy + dz * dz;
 
         if (children[node] === 0 || size[node] * size[node] < distanceSquared * thetaSq) {
             const denominator = (distanceSquared + epsilonSquared) * Math.sqrt(distanceSquared);
 
             if (denominator !== 0) {
-                const scale = Math.min((G * nodeMass[node]) / denominator, Number.MAX_VALUE); // Needs shared array buffer
+                const scale = Math.min((G * nodeMass[node]) / denominator, Number.MAX_VALUE);
                 accX += dx * scale;
                 accY += dy * scale;
                 accZ += dz * scale;
@@ -206,10 +206,10 @@ export function applyForceOn(
         }
     }
 
-    const bodyMass = mass[bodyIndex]; // Needs shared array buffer
-    forceSumX[bodyIndex] += accX * bodyMass; // Needs shared array buffer
-    forceSumY[bodyIndex] += accY * bodyMass; // Needs shared array buffer
-    forceSumZ[bodyIndex] += accZ * bodyMass; // Needs shared array buffer
+    const bodyMass = mass[bodyIndex];
+    forceSumX[bodyIndex] += accX * bodyMass;
+    forceSumY[bodyIndex] += accY * bodyMass;
+    forceSumZ[bodyIndex] += accZ * bodyMass;
 }
 
 function subdivideNode(node: number): number {

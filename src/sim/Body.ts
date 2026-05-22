@@ -1,5 +1,6 @@
-import { MAX_BODIES } from '../shared/Constants';
+import { MAX_BODIES, WEB_WORKERS_ENABLED } from '../shared/Constants';
 import * as Utils from '../shared/Utils';
+import { createFloat64Buffer } from '../shared/Utils';
 import { Vec3 } from '../shared/Vec3';
 
 export enum BodyType {
@@ -37,13 +38,12 @@ export const accelerationX = new Float64Array(CAPACITY);
 export const accelerationY = new Float64Array(CAPACITY);
 export const accelerationZ = new Float64Array(CAPACITY);
 
-// Forces
-export const forceSumX = new Float64Array(CAPACITY);
-export const forceSumY = new Float64Array(CAPACITY);
-export const forceSumZ = new Float64Array(CAPACITY);
+export const forceSumX = createFloat64Buffer(CAPACITY);
+export const forceSumY = createFloat64Buffer(CAPACITY);
+export const forceSumZ = createFloat64Buffer(CAPACITY);
 
 // Mass
-export const mass = new Float64Array(CAPACITY);
+export const mass = createFloat64Buffer(CAPACITY);
 export const invMass = new Float64Array(CAPACITY);
 
 // AABB for collision

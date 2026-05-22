@@ -1,3 +1,5 @@
+import { WEB_WORKERS_ENABLED } from './Constants';
+
 export function assert(...args: (boolean | string)[]): void {
     const message = typeof args[args.length - 1] === 'string' ? (args.pop() as string) : 'Assertion failed';
 
@@ -31,4 +33,12 @@ export function formatDuration(seconds: number): string {
 
     const years = months / 12;
     return `${years.toFixed(2)} y`;
+}
+
+export function createFloat64Buffer(length: number): Float64Array {
+    const byteLength = Float64Array.BYTES_PER_ELEMENT * length;
+
+    const buffer = WEB_WORKERS_ENABLED ? new SharedArrayBuffer(byteLength) : new ArrayBuffer(byteLength);
+
+    return new Float64Array(buffer);
 }

@@ -181,16 +181,16 @@ export function applyForceOn(
     let node = ROOT;
 
     for (;;) {
-        const dx = nodePositionX[node] - x;
-        const dy = nodePositionY[node] - y;
-        const dz = nodePositionZ[node] - z;
+        const dx = nodePositionX[node] - x; // Needs shared array buffer
+        const dy = nodePositionY[node] - y; // Needs shared array buffer
+        const dz = nodePositionZ[node] - z; // Needs shared array buffer
         const distanceSquared = dx * dx + dy * dy + dz * dz;
 
         if (children[node] === 0 || size[node] * size[node] < distanceSquared * thetaSq) {
             const denominator = (distanceSquared + epsilonSquared) * Math.sqrt(distanceSquared);
 
             if (denominator !== 0) {
-                const scale = Math.min((G * nodeMass[node]) / denominator, Number.MAX_VALUE);
+                const scale = Math.min((G * nodeMass[node]) / denominator, Number.MAX_VALUE); // Needs shared array buffer
                 accX += dx * scale;
                 accY += dy * scale;
                 accZ += dz * scale;
@@ -206,10 +206,10 @@ export function applyForceOn(
         }
     }
 
-    const bodyMass = mass[bodyIndex];
-    forceSumX[bodyIndex] += accX * bodyMass;
-    forceSumY[bodyIndex] += accY * bodyMass;
-    forceSumZ[bodyIndex] += accZ * bodyMass;
+    const bodyMass = mass[bodyIndex]; // Needs shared array buffer
+    forceSumX[bodyIndex] += accX * bodyMass; // Needs shared array buffer
+    forceSumY[bodyIndex] += accY * bodyMass; // Needs shared array buffer
+    forceSumZ[bodyIndex] += accZ * bodyMass; // Needs shared array buffer
 }
 
 function subdivideNode(node: number): number {

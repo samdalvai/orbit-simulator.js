@@ -23,10 +23,10 @@ const blackHoleSpec: CelestialBodySpecBase = {
 };
 
 export function createRandomGalaxy(renderStyles: Map<number, BodyRenderStyle>) {
-    const blackHoleId = createBody(blackHoleSpec, BodyType.STAR);
+    const blackHoleId = createBody(blackHoleSpec, BodyType.BLACK_HOLE);
     const blackHoleIndex = bodyIndexById[blackHoleId];
     const blackHoleMass = mass[blackHoleIndex];
-    renderStyles.set(blackHoleId, createRenderStyle(blackHoleSpec, BodyType.STAR));
+    renderStyles.set(blackHoleId, createRenderStyle(blackHoleSpec, BodyType.BLACK_HOLE));
 
     for (let i = 0; i < SOLAR_SYSTEM_COUNT; i++) {
         const orbitRadiusKm = randomNumber(GALAXY_INNER_ORBIT_RADIUS_AU, GALAXY_OUTER_ORBIT_RADIUS_AU) * AU_KM;

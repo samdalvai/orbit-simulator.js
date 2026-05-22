@@ -371,11 +371,9 @@ export default class Application {
 
         if (this.paused) return;
 
-        console.time('Update');
         for (let j = 0; j < SETTINGS.subSteps; j++) {
             await this.stepSimulation();
         }
-        console.timeEnd('Update');
     }
 
     render(): void {

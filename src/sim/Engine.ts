@@ -32,7 +32,7 @@ import {
 } from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
 import { children, nodeMass, nodePositionX, nodePositionY, nodePositionZ, size } from './OcTree';
-import { WorkerInitMessage } from './Worker';
+import { WorkerInitMessage, setupWorker } from './Worker';
 
 const DESTROY_THRESHOLD = 1e-1;
 export class Engine {
@@ -48,10 +48,6 @@ export class Engine {
                 type: 'module',
             });
             this.worker = worker;
-
-            this.worker.onmessage = event => {
-                console.log('Message from worker:', event.data);
-            };
 
             this.worker.postMessage({
                 type: 'init',
@@ -74,6 +70,8 @@ export class Engine {
                     children: children,
                 },
             } as WorkerInitMessage);
+
+            setupWorker(this.worker);
         }
     }
 

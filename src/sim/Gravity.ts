@@ -2,7 +2,7 @@ import { G, WEB_WORKERS_ENABLED } from '../shared/Constants';
 import { Vec3 } from '../shared/Vec3';
 import { addForce, getBodyCount, mass, positionX, positionY, positionZ } from './Body';
 import { applyForceOn, buildOctree, nodeCount } from './OcTree';
-import { WorkerApplyForceMessage } from './Worker';
+import { runWorkerJob, WorkerJobMessage } from './Worker';
 
 const DEFAULT_THETA = 0.5;
 const DEFAULT_EPSILON = 1;
@@ -72,8 +72,10 @@ export function applyBarnesHutGravitationalForces(
     const thetaSquared = theta * theta;
     const epsilonSquared = epsilon * epsilon;
 
+    console.log('start: ', performance.now());
+
     if (WEB_WORKERS_ENABLED && worker) {
-        worker.postMessage({
+        runWorkerJob(worker, {
             type: 'applyForce',
             start: 0,
             G: G,
@@ -81,11 +83,13 @@ export function applyBarnesHutGravitationalForces(
             thetaSq: thetaSquared,
             epsilonSquared: epsilonSquared,
             nodeCount: nodeCount,
-        } as WorkerApplyForceMessage);
+        });
     } else {
         for (let i = 0; i < getBodyCount(); i++) {
             if (mass[i] === 0) continue;
             applyForceOn(i, positionX[i], positionY[i], positionZ[i], thetaSquared);
         }
     }
+
+    console.log('end: ', performance.now());
 }

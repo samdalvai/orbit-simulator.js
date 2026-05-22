@@ -41,7 +41,8 @@ export type WorkerInitMessage = {
     type: 'init';
 };
 
-export type WorkerApplyForceMessage = {
+export type WorkerJobMessage = {
+    id?: number;
     start: number;
     end: number;
     G: number;
@@ -51,7 +52,7 @@ export type WorkerApplyForceMessage = {
     type: 'applyForce';
 };
 
-type WorkerMessage = WorkerInitMessage | WorkerApplyForceMessage;
+type WorkerMessage = WorkerInitMessage | WorkerJobMessage;
 
 self.onmessage = event => {
     const message = event.data as WorkerMessage;
@@ -94,6 +95,8 @@ self.onmessage = event => {
 
             self.postMessage({
                 type: 'forcesApplied',
+                id: message.id,
+                message: performance.now(),
             });
             break;
         default:
@@ -121,6 +124,7 @@ function applyForcesRange(
             nodeCount,
         );
     }
+    // console.log('Applied force on: ', start, end);
 }
 
 function applyForceOn(
@@ -173,4 +177,35 @@ function applyForceOn(
     forceSumX[bodyIndex] += accX * bodyMass;
     forceSumY[bodyIndex] += accY * bodyMass;
     forceSumZ[bodyIndex] += accZ * bodyMass;
+}
+
+let nextRequestId = 0;
+
+const pendingRequests = new Map<number, () => void>();
+
+export function setupWorker(worker: Worker): void {
+    worker.onmessage = event => {
+        const message = event.data;
+        console.log(message);
+
+        const resolve = pendingRequests.get(message.id);
+
+        if (resolve) {
+            pendingRequests.delete(message.id);
+            resolve();
+        }
+    };
+}
+
+export function runWorkerJob(worker: Worker, message: WorkerJobMessage): Promise<void> {
+    return new Promise(resolve => {
+        const id = nextRequestId++;
+
+        pendingRequests.set(id, resolve);
+
+        worker.postMessage({
+            ...message,
+            id,
+        });
+    });
 }

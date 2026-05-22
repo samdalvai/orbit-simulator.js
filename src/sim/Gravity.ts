@@ -1,6 +1,7 @@
+import { WEB_WORKERS_ENABLED } from '../shared/Constants';
+import { Vec3 } from '../shared/Vec3';
 import { addForce, getBodyCount, mass, positionX, positionY, positionZ } from './Body';
 import { applyForceOn, buildOctree } from './OcTree';
-import { Vec3 } from '../shared/Vec3';
 
 const DEFAULT_THETA = 0.5;
 const DEFAULT_EPSILON = 1;
@@ -58,15 +59,27 @@ export function applyGravitationalForces(G: number): void {
 /**
  * Builds the global octree and applies one gravitational force per body.
  */
-export function applyBarnesHutGravitationalForces(G: number, theta = DEFAULT_THETA, epsilon = DEFAULT_EPSILON): void {
+export function applyBarnesHutGravitationalForces(
+    G: number,
+    worker: Worker | null,
+    theta = DEFAULT_THETA,
+    epsilon = DEFAULT_EPSILON,
+): void {
     if (!buildOctree(theta, epsilon)) {
         return;
     }
 
     const thetaSquared = theta * theta;
 
-    for (let i = 0; i < getBodyCount(); i++) {
-        if (mass[i] === 0) continue;
-        applyForceOn(i, positionX[i], positionY[i], positionZ[i], G, thetaSquared);
+    if (WEB_WORKERS_ENABLED && worker) {
+        for (let i = 0; i < getBodyCount(); i++) {
+            if (mass[i] === 0) continue;
+            applyForceOn(i, positionX[i], positionY[i], positionZ[i], G, thetaSquared);
+        }
+    } else {
+        for (let i = 0; i < getBodyCount(); i++) {
+            if (mass[i] === 0) continue;
+            applyForceOn(i, positionX[i], positionY[i], positionZ[i], G, thetaSquared);
+        }
     }
 }

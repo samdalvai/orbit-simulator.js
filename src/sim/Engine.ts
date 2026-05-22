@@ -30,11 +30,25 @@ const DESTROY_THRESHOLD = 1e-1;
 export class Engine {
     private bodyRenderStyles: Map<number, BodyRenderStyle>;
     private readonly collisionPairs: [number, number][] = [];
+    private worker: Worker | null = null;
 
     constructor(bodyRenderStyles: Map<number, BodyRenderStyle>) {
         this.bodyRenderStyles = bodyRenderStyles;
 
-        console.log('WEB WORKERS ENABLED? ', WEB_WORKERS_ENABLED);
+        if (WEB_WORKERS_ENABLED) {
+            const worker = new Worker(new URL('./Worker.ts', import.meta.url), {
+                type: 'module',
+            });
+            this.worker = worker;
+
+            this.worker.onmessage = event => {
+                console.log('Message from worker:', event.data);
+            };
+
+            this.worker.postMessage({
+                type: 'init',
+            });
+        }
     }
 
     update(dt: number): void {
@@ -47,7 +61,7 @@ export class Engine {
         this.broadPhase();
 
         this.clearAllForces();
-        applyBarnesHutGravitationalForces(G);
+        applyBarnesHutGravitationalForces(G, this.worker);
 
         for (let i = 0; i < bodyCount; i++) {
             integrateVerletVelocity(i, dt);
@@ -56,7 +70,7 @@ export class Engine {
 
     initializeVerlet(): void {
         this.clearAllForces();
-        applyBarnesHutGravitationalForces(G);
+        applyBarnesHutGravitationalForces(G, this.worker);
 
         for (let i = 0; i < getBodyCount(); i++) {
             initializeAcceleration(i);

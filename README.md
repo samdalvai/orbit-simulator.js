@@ -2,6 +2,8 @@
 
 A canvas based application that simulates real orbital mechanics using Verlet integration and the Barnes-Hut algorithm.
 
+![image](dist/images/image.png)
+
 ## About the engine
 
 The simulation stores bodies in physical units: kilometers, kilograms, and km/s. The built-in Solar System scenario uses real planetary masses, radii, orbit distances, asteroid and Kuiper belts, and named comets, then compresses rendering scale so the whole system remains visible.
@@ -30,8 +32,6 @@ npm start
 
 Now open the browser at http://localhost:1234
 
-# Example scenario
-
-![image](dist/images/image.png)
+<!-- # App demo -->
 
 <!-- A desktop live version of the app can be found at this [link](https://samdalvai.github.io/orbit-simulator.js/) -->

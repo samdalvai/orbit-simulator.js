@@ -46,7 +46,7 @@ export type WorkerJobMessage = {
     start: number;
     end: number;
     G: number;
-    thetaSq: number;
+    thetaSquared: number;
     epsilonSquared: number;
     nodeCount: number;
     type: 'applyForce';
@@ -88,7 +88,7 @@ self.onmessage = event => {
                 message.start,
                 message.end,
                 message.G,
-                message.thetaSq,
+                message.thetaSquared,
                 message.epsilonSquared,
                 message.nodeCount,
             );

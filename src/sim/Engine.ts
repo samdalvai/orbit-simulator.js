@@ -1,4 +1,4 @@
-import { WEB_WORKERS_ENABLED } from '../shared/Constants';
+import { NUM_WEB_WORKERS, WEB_WORKERS_ENABLED } from '../shared/Constants';
 import { BodyRenderStyle } from '../view/BodyRenderStyle';
 import {
     aabbMaxX,
@@ -39,41 +39,44 @@ export class Engine {
     private bodyRenderStyles: Map<number, BodyRenderStyle>;
 
     private readonly collisionPairs: [number, number][] = [];
-    private readonly worker: Worker | null = null;
+    private readonly workers: Worker[] = [];
 
     constructor(bodyRenderStyles: Map<number, BodyRenderStyle>) {
         this.bodyRenderStyles = bodyRenderStyles;
 
         if (WEB_WORKERS_ENABLED) {
-            const worker = new Worker(new URL('./Worker.ts', import.meta.url), {
-                type: 'module',
-            });
-            this.worker = worker;
+            for (let i = 0; i < NUM_WEB_WORKERS; i++) {
+                const worker = new Worker(new URL('./Worker.ts', import.meta.url), {
+                    type: 'module',
+                });
 
-            this.worker.postMessage({
-                type: 'init',
-                buffers: {
-                    // Body buffers
-                    mass: mass,
-                    positionX: positionX,
-                    positionY: positionY,
-                    positionZ: positionZ,
-                    forceSumX: forceSumX,
-                    forceSumY: forceSumY,
-                    forceSumZ: forceSumZ,
+                worker.postMessage({
+                    type: 'init',
+                    buffers: {
+                        // Body buffers
+                        mass: mass,
+                        positionX: positionX,
+                        positionY: positionY,
+                        positionZ: positionZ,
+                        forceSumX: forceSumX,
+                        forceSumY: forceSumY,
+                        forceSumZ: forceSumZ,
 
-                    // OcTree buffers
-                    nodeMass: nodeMass,
-                    nodePositionX: nodePositionX,
-                    nodePositionY: nodePositionY,
-                    nodePositionZ: nodePositionZ,
-                    size: size,
-                    children: children,
-                    next: next,
-                },
-            } as WorkerInitMessage);
+                        // OcTree buffers
+                        nodeMass: nodeMass,
+                        nodePositionX: nodePositionX,
+                        nodePositionY: nodePositionY,
+                        nodePositionZ: nodePositionZ,
+                        size: size,
+                        children: children,
+                        next: next,
+                    },
+                } as WorkerInitMessage);
 
-            setupWorker(this.worker);
+                setupWorker(worker);
+
+                this.workers.push(worker);
+            }
         }
     }
 
@@ -87,7 +90,7 @@ export class Engine {
         this.broadPhase();
 
         this.clearAllForces();
-        await applyBarnesHutGravitationalForces(this.worker);
+        await applyBarnesHutGravitationalForces(this.workers);
 
         for (let i = 0; i < bodyCount; i++) {
             integrateVerletVelocity(i, dt);
@@ -96,7 +99,7 @@ export class Engine {
 
     async initializeVerlet(): Promise<void> {
         this.clearAllForces();
-        await applyBarnesHutGravitationalForces(this.worker);
+        await applyBarnesHutGravitationalForces(this.workers);
 
         for (let i = 0; i < getBodyCount(); i++) {
             initializeAcceleration(i);

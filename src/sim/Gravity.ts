@@ -61,7 +61,7 @@ export function applyGravitationalForces(): void {
  * Builds the global octree and applies one gravitational force per body.
  */
 export async function applyBarnesHutGravitationalForces(
-    worker: Worker | null,
+    workers: Worker[],
     theta = DEFAULT_THETA,
     epsilon = DEFAULT_EPSILON,
 ): Promise<void> {
@@ -72,17 +72,27 @@ export async function applyBarnesHutGravitationalForces(
     const thetaSquared = theta * theta;
     const epsilonSquared = epsilon * epsilon;
 
-    if (WEB_WORKERS_ENABLED && worker) {
-        //await Promise.all([])
-        await runWorkerJob(worker, {
-            type: 'applyForce',
-            start: 0,
-            end: getBodyCount(),
-            G: G,
-            thetaSq: thetaSquared,
-            epsilonSquared: epsilonSquared,
-            nodeCount: nodeCount,
-        });
+    if (WEB_WORKERS_ENABLED && workers.length > 0) {
+        const workerJobs: Promise<void>[] = new Array(workers.length);
+        const workerCount = workers.length;
+        const bodyCount = getBodyCount();
+
+        for (let i = 0; i < workerCount; i++) {
+            const start = Math.floor((bodyCount * i) / workerCount);
+            const end = Math.floor((bodyCount * (i + 1)) / workerCount);
+
+            workerJobs[i] = runWorkerJob(workers[i], {
+                type: 'applyForce',
+                start,
+                end,
+                nodeCount,
+                G,
+                thetaSquared,
+                epsilonSquared,
+            });
+        }
+
+        await Promise.all(workerJobs);
     } else {
         for (let i = 0; i < getBodyCount(); i++) {
             if (mass[i] === 0) continue;

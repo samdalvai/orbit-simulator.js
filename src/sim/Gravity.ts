@@ -79,8 +79,8 @@ export async function applyBarnesHutGravitationalForces(
         await runWorkerJob(worker, {
             type: 'applyForce',
             start: 0,
-            G: G,
             end: getBodyCount(),
+            G: G,
             thetaSq: thetaSquared,
             epsilonSquared: epsilonSquared,
             nodeCount: nodeCount,

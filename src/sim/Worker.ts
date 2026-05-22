@@ -21,7 +21,7 @@ interface WorkerMessage {
         nodePositionY: Float64Array;
         nodePositionZ: Float64Array;
     };
-    type: string;
+    type: 'init' | 'applyForce';
 }
 
 self.onmessage = event => {
@@ -47,5 +47,10 @@ self.onmessage = event => {
                 type: 'ready',
             });
             break;
+        case 'applyForce':
+            console.log('I need to apply forces');
+            break;
+        default:
+            throw new Error('Unrecognized message type: ' + message.type);
     }
 };

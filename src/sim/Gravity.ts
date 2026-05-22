@@ -72,6 +72,7 @@ export function applyBarnesHutGravitationalForces(
     const thetaSquared = theta * theta;
 
     if (WEB_WORKERS_ENABLED && worker) {
+        worker.postMessage({ type: 'applyForce' });
         for (let i = 0; i < getBodyCount(); i++) {
             if (mass[i] === 0) continue;
             applyForceOn(i, positionX[i], positionY[i], positionZ[i], G, thetaSquared);

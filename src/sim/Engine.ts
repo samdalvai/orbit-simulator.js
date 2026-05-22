@@ -18,6 +18,9 @@ import {
     integrateVerletPosition,
     integrateVerletVelocity,
     mass,
+    positionX,
+    positionY,
+    positionZ,
     swapBodies,
 } from './Body';
 import {
@@ -28,7 +31,7 @@ import {
     resolveCollision as resolveVelocity,
 } from './Collision';
 import { applyBarnesHutGravitationalForces } from './Gravity';
-import { nodeMass, nodePositionX, nodePositionY, nodePositionZ } from './OcTree';
+import { children, nodeMass, nodePositionX, nodePositionY, nodePositionZ, size } from './OcTree';
 
 const DESTROY_THRESHOLD = 1e-1;
 export class Engine {
@@ -54,18 +57,34 @@ export class Engine {
                 buffers: {
                     // Body buffers
                     mass: mass,
+                    positionX: positionX,
+                    positionY: positionY,
+                    positionZ: positionZ,
                     forceSumX: forceSumX,
                     forceSumY: forceSumY,
                     forceSumZ: forceSumZ,
+
                     // OcTree buffers
                     nodeMass: nodeMass,
                     nodePositionX: nodePositionX,
                     nodePositionY: nodePositionY,
                     nodePositionZ: nodePositionZ,
+                    size: size,
+                    children: children,
                 },
             });
         }
     }
+
+    // // OcTree buffers
+    // nodePositionX = new Float64Array(message.buffers.nodePositionX);
+    // nodePositionY = new Float64Array(message.buffers.nodePositionY);
+    // nodePositionZ = new Float64Array(message.buffers.nodePositionZ);
+    // nodeMass = new Float64Array(message.buffers.nodeMass);
+    // size = new Float64Array(message.buffers.size);
+    // children = new Uint32Array(message.buffers.children);
+    // next = new Uint32Array(message.buffers.children);
+    // nodeCount = message.buffers.nodeCount;
 
     update(dt: number): void {
         const bodyCount = getBodyCount();

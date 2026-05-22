@@ -42,3 +42,11 @@ export function createFloat64Buffer(length: number): Float64Array {
 
     return new Float64Array(buffer);
 }
+
+export function createUint32Buffer(length: number): Uint32Array {
+    const byteLength = Uint32Array.BYTES_PER_ELEMENT * length;
+
+    const buffer = WEB_WORKERS_ENABLED ? new SharedArrayBuffer(byteLength) : new ArrayBuffer(byteLength);
+
+    return new Uint32Array(buffer);
+}

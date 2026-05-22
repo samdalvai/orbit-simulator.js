@@ -26,9 +26,9 @@ export const bodyTypes = new Uint8Array(CAPACITY);
 export const radii = new Float64Array(CAPACITY);
 
 // Linear motion
-export const positionX = new Float64Array(CAPACITY);
-export const positionY = new Float64Array(CAPACITY);
-export const positionZ = new Float64Array(CAPACITY);
+export const positionX = createFloat64Buffer(CAPACITY);
+export const positionY = createFloat64Buffer(CAPACITY);
+export const positionZ = createFloat64Buffer(CAPACITY);
 
 export const velocityX = new Float64Array(CAPACITY);
 export const velocityY = new Float64Array(CAPACITY);

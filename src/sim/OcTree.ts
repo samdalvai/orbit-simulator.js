@@ -2,14 +2,14 @@ import { MAX_BODIES } from '../shared/Constants';
 import * as Utils from '../shared/Utils';
 import { forceSumX, forceSumY, forceSumZ, getBodyCount, mass, positionX, positionY, positionZ } from './Body';
 
-const ROOT = 0;
+export const ROOT = 0;
 const CHILD_COUNT = 8;
 
 // TODO: the PARENT_CAPACITY is arbitrary, can we define exactly how many nodes we need for the octree?
 const PARENT_CAPACITY = MAX_BODIES * 4;
 const NODE_CAPACITY = 1 + PARENT_CAPACITY * CHILD_COUNT;
 
-const children = new Uint32Array(NODE_CAPACITY);
+export const children = Utils.createUint32Buffer(NODE_CAPACITY);
 const next = new Uint32Array(NODE_CAPACITY);
 
 export const nodePositionX = Utils.createFloat64Buffer(NODE_CAPACITY);
@@ -22,8 +22,8 @@ const centerX = new Float64Array(NODE_CAPACITY);
 const centerY = new Float64Array(NODE_CAPACITY);
 const centerZ = new Float64Array(NODE_CAPACITY);
 
-const size = new Float64Array(NODE_CAPACITY);
-const parents = new Uint32Array(PARENT_CAPACITY);
+export const size = Utils.createFloat64Buffer(NODE_CAPACITY);
+export const parents = Utils.createFloat64Buffer(NODE_CAPACITY);
 
 let nodeCount = 0;
 let parentCount = 0;

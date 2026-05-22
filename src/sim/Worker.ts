@@ -96,7 +96,6 @@ self.onmessage = event => {
             self.postMessage({
                 type: 'forcesApplied',
                 id: message.id,
-                message: performance.now(),
             });
             break;
         default:
@@ -186,7 +185,6 @@ const pendingRequests = new Map<number, () => void>();
 export function setupWorker(worker: Worker): void {
     worker.onmessage = event => {
         const message = event.data;
-        console.log(message);
 
         const resolve = pendingRequests.get(message.id);
 

@@ -72,8 +72,6 @@ export async function applyBarnesHutGravitationalForces(
     const thetaSquared = theta * theta;
     const epsilonSquared = epsilon * epsilon;
 
-    console.log('start: ', performance.now());
-
     if (WEB_WORKERS_ENABLED && worker) {
         //await Promise.all([])
         await runWorkerJob(worker, {
@@ -91,6 +89,4 @@ export async function applyBarnesHutGravitationalForces(
             applyForceOn(i, positionX[i], positionY[i], positionZ[i], G, thetaSquared);
         }
     }
-
-    console.log('end: ', performance.now());
 }

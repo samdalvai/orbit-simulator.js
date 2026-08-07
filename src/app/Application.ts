@@ -130,7 +130,7 @@ export default class Application {
 
             if (this.demoIndex === 3) {
                 this.renderer.zoom = 0.16;
-                const randomSolarSystemSpec = createRandomSolarSystem();
+                const randomSolarSystemSpec = createRandomSolarSystem(true);
                 createSolarSystem(randomSolarSystemSpec, this.bodyRenderStyles);
             }
 

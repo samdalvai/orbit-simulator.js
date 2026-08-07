@@ -3,7 +3,7 @@ import { randomNumber } from '../shared/Math';
 import { assert } from '../shared/Utils';
 import { Vec3 } from '../shared/Vec3';
 import { TextureName } from '../view/AssetStore';
-import { CelestialBodySpec, PlanetBodySpec, SolarSystemSpec } from './BodySpec';
+import { BeltSpec, CelestialBodySpec, PlanetBodySpec, SolarSystemSpec } from './BodySpec';
 
 export type RandomSolarSystemProbabilities = {
     starCount?: [number, number, number];
@@ -59,9 +59,10 @@ const MOON_TEXTURES: TextureName[] = [
 const STAR_COLORS = ['#fff7b2', '#fff6bf', '#ffd28a', '#ff6f5e', '#9fc8ff'];
 const PLANET_COLORS = ['#b7ada5', '#d8b16f', '#4a9fe8', '#c76245', '#d1a06f', '#d7c28b', '#9fe1df', '#5279e8'];
 const MOON_COLORS = ['#b8b8b1', '#8f7a69', '#d7cab6', '#9a8b7a', '#d0b48a', '#a8a097', '#d6e0dd'];
+const ASTEROID_COLORS = ['#8f7a66', '#6f6258', '#a08b72', '#5a514c', '#c8d6df', '#9eb3c0'];
 const NAME_CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-export function createRandomSolarSystem() {
+export function createRandomSolarSystem(generateBelts = false) {
     const starCount = weightedCount(DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.starCount) + 1;
     const planetCount = weightedCount(DEFAULT_RANDOM_SOLAR_SYSTEM_PROBABILITIES.planetCount) + 1;
     const randomStarColor = Math.floor(randomNumber(0, STAR_COLORS.length));
@@ -133,6 +134,31 @@ export function createRandomSolarSystem() {
 
         planetOrbitRadiusKm += randomNumber(0.35, 0.9) * AU_KM;
         randomSolarSystemSpec.planets.push(planetSpec);
+    }
+
+    if (generateBelts) {
+        const beltCount = Math.floor(randomNumber(1, 4));
+        let nextBeltOrbitRadiusKm = randomNumber(1.2, 2) * AU_KM;
+
+        for (let i = 0; i < beltCount; i++) {
+            const innerOrbitRadiusKm = nextBeltOrbitRadiusKm;
+            const outerOrbitRadiusKm = innerOrbitRadiusKm + randomNumber(0.2, 0.8) * AU_KM;
+            const beltSpec: BeltSpec = {
+                innerOrbitRadiusKm,
+                outerOrbitRadiusKm,
+                orbitEccentricity: randomNumber(0, 0.15),
+                orbitTiltDegrees: randomNumber(-15, 15),
+                minRadiusKm: randomNumber(5, 20),
+                maxRadiusKm: randomNumber(200, 500),
+                minMassKg: randomNumber(1e13, 1e15),
+                maxMassKg: randomNumber(1e18, 2e19),
+                numBodies: Math.floor(randomNumber(500, 1501)),
+                colors: ASTEROID_COLORS,
+            };
+
+            randomSolarSystemSpec.belts.push(beltSpec);
+            nextBeltOrbitRadiusKm = outerOrbitRadiusKm + randomNumber(0.5, 2) * AU_KM;
+        }
     }
 
     return randomSolarSystemSpec;

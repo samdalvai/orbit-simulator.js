@@ -409,7 +409,7 @@ export default class Application {
         const simulationSecondsPerSecond = (SETTINGS.dt * SETTINGS.subSteps) / FIXED_DELTA_TIME;
 
         const stats: Array<[string, string]> = [
-            ['Demo', DEMO_LABELS[this.demoIndex - 1]],
+            ['Demo', DEMO_LABELS[this.demoIndex - 1] + ' (' + this.demoIndex + ')'],
             ['Paused', this.paused ? 'ON' : 'OFF'],
             ['Bodies', `${getBodyCount()}/${MAX_BODIES}`],
             ['FPS', this.FPS.toFixed(2)],

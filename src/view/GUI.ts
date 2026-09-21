@@ -1,4 +1,5 @@
 const SHORTCUTS: Array<[string, string]> = [
+    ['[1-5]', 'Select scenario'],
     ['L', 'Toggle labels'],
     ['D', 'Toggle debug panel'],
     ['T', 'Toggle textures'],

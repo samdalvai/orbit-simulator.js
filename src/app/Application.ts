@@ -5,6 +5,7 @@ import { solarSystem } from '../scenarios/SolarSystem';
 import { testSystem } from '../scenarios/TestSystem';
 import { tripleStarSystem } from '../scenarios/TripleStarSystem';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from '../shared/Constants';
+import { COMPACT_SCREEN_WIDTH, USE_MOBILE_LAYOUT } from '../shared/Device';
 import { clamp } from '../shared/Math';
 import { formatDuration } from '../shared/Utils';
 import {
@@ -29,8 +30,8 @@ import { explodeBody } from '../sim/Collision';
 import { Engine } from '../sim/Engine';
 import AssetStore from '../view/AssetStore';
 import { BodyRenderStyle, DEFAULT_BODY_RENDER_STYLE, getBodyRenderRadius } from '../view/BodyRenderStyle';
-import GUI from '../view/GUI';
-import InputManager, { MouseButton } from '../view/InputManager';
+import GUI, { ControlActions } from '../view/GUI';
+import InputManager, { MouseButton, TouchGesture } from '../view/InputManager';
 import Renderer, { RenderItem } from '../view/Renderer';
 
 const BLACK_HOLE_RADIUS_KM = 220_000;
@@ -38,6 +39,9 @@ const BLACK_HOLE_MASS_KG = 8e30;
 const BODY_HOVER_TOLERANCE_PIXELS = 10;
 const CAMERA_ROTATION_SENSITIVITY = 0.005;
 const CAMERA_KEY_ROTATION_STEP = 0.06;
+const TOUCH_TAP_TOLERANCE_PIXELS = 18;
+const BODY_POPUP_WIDTH = 350;
+const BODY_POPUP_HEIGHT = 200;
 const MIN_SIMULATION_SPEED = 1;
 const SIMULATION_SPEED_HOLD_STEP_MS = 400;
 
@@ -65,7 +69,7 @@ export default class Application {
     private simulationSpeedKeyPressedAt = 0;
 
     // Debug related properties
-    private debug = true;
+    private debug = !USE_MOBILE_LAYOUT;
     private FPS = 0;
     private lastFPSUpdate = 0;
     private showTextures = true;
@@ -92,7 +96,7 @@ export default class Application {
 
     async setup(): Promise<void> {
         GUI.setLoadingMessage('Loading simulation...');
-        GUI.initialize();
+        GUI.initialize(this.createControlActions());
 
         await AssetStore.loadTextures();
         await this.loadDemo();
@@ -149,6 +153,7 @@ export default class Application {
             this.running = true;
             this.loadingDemo = false;
             GUI.setLoadingMessage(null);
+            GUI.refreshControls();
         }
     }
 
@@ -359,6 +364,113 @@ export default class Application {
             this.renderer.zoomAt(inputEvent.x, inputEvent.y, inputEvent.deltaY > 0 ? 1 / 1.1 : 1.1);
             this.updateMouseWorldPosition(inputEvent);
         }
+
+        // Handle touch gestures
+        while (this.inputManager.touchGestureBuffer.length > 0) {
+            const gesture = this.inputManager.touchGestureBuffer.shift();
+            if (!gesture) return;
+
+            this.handleTouchGesture(gesture);
+        }
+    }
+
+    private handleTouchGesture(gesture: TouchGesture): void {
+        switch (gesture.type) {
+            case 'drag':
+                this.renderer.rotateCamera(
+                    gesture.dx * CAMERA_ROTATION_SENSITIVITY,
+                    -gesture.dy * CAMERA_ROTATION_SENSITIVITY,
+                );
+                break;
+            case 'pinch':
+                if (gesture.dx !== 0 || gesture.dy !== 0) {
+                    // Panning detaches the camera from the followed body
+                    this.selectedPlanet = null;
+                    this.renderer.panByScreenDelta(gesture.dx, gesture.dy);
+                }
+
+                if (gesture.factor !== 1 && Number.isFinite(gesture.factor) && gesture.factor > 0) {
+                    if (this.selectedPlanet !== null) {
+                        // Keep the followed body centered while zooming
+                        this.renderer.zoom *= gesture.factor;
+                    } else {
+                        this.renderer.zoomAt(gesture.x, gesture.y, gesture.factor);
+                    }
+                }
+                break;
+            case 'tap': {
+                this.setPointerPosition(gesture.x, gesture.y);
+                const bodyId = this.getHoveredBody(undefined, TOUCH_TAP_TOLERANCE_PIXELS);
+
+                if (bodyId === null) {
+                    this.selectedPlanet = null;
+                    break;
+                }
+
+                this.panToBody(bodyIndexById[bodyId]);
+                if (this.renderer.zoom < 1) {
+                    this.renderer.zoom = 1;
+                }
+                this.selectedPlanet = bodyId;
+                break;
+            }
+        }
+    }
+
+    private createControlActions(): ControlActions {
+        return {
+            demoLabels: DEMO_LABELS,
+            getState: () => ({
+                demoIndex: this.demoIndex,
+                paused: this.paused,
+                showLabels: this.showLabels,
+                showMoonLabels: this.showMoonLabels,
+                showTextures: this.showTextures,
+                debug: this.debug,
+                hasBlackHole: this.blackHole !== null,
+                simulationSpeed: SETTINGS.simulationSpeed,
+                subSteps: SETTINGS.subSteps,
+            }),
+            selectDemo: index => {
+                this.demoIndex = clamp(index, 1, DEMO_LABELS.length);
+                void this.loadDemo();
+            },
+            resetDemo: () => void this.loadDemo(),
+            togglePause: () => {
+                this.paused = !this.paused;
+            },
+            step: () => void this.stepSimulation(),
+            changeSimulationSpeed: direction => {
+                const speed = SETTINGS.simulationSpeed;
+                const reference = direction > 0 ? speed : speed - 1;
+                const step = reference < 10 ? 1 : reference < 100 ? 10 : 100;
+                SETTINGS.simulationSpeed = Math.max(MIN_SIMULATION_SPEED, speed + direction * step);
+            },
+            changeSubSteps: direction => {
+                SETTINGS.subSteps = Math.max(1, SETTINGS.subSteps + direction);
+            },
+            nextBody: () => this.panToNextPlanetOrStar(),
+            toggleLabels: () => {
+                this.showLabels = !this.showLabels;
+            },
+            toggleMoonLabels: () => {
+                this.showMoonLabels = !this.showMoonLabels;
+            },
+            toggleTextures: () => {
+                this.showTextures = !this.showTextures;
+            },
+            toggleDebug: () => this.setDebug(!this.debug),
+            toggleBlackHole: () => {
+                if (this.blackHole !== null) {
+                    this.removeBlackHole();
+                    return;
+                }
+
+                // On touch devices there is no mouse, create the black hole at the screen center
+                const center = this.renderer.screenToWorldAtZ(this.renderer.width() / 2, this.renderer.height() / 2, 0);
+                this.createBlackHoleAt(center?.x ?? this.renderer.targetX, center?.y ?? this.renderer.targetY);
+            },
+        };
     }
 
     async update(frameTime: number): Promise<void> {
@@ -377,6 +489,9 @@ export default class Application {
     }
 
     render(): void {
+        // Keep the control bar in sync with state changed by keyboard shortcuts
+        GUI.refreshControls();
+
         this.renderer.clearScreen();
 
         if (this.selectedPlanet !== null) {
@@ -398,7 +513,7 @@ export default class Application {
         }
 
         if (!this.debug) {
-            this.drawHoveredBodyPopup(renderItems);
+            this.drawBodyPopup(renderItems);
             return;
         }
 
@@ -436,6 +551,15 @@ export default class Application {
         const rowHeight = 22;
         const panelHeight = panelPaddingY * 2 + titleHeight + subtitleHeight + stats.length * rowHeight;
 
+        // Shrink the panel on small screens, leaving room for the help button and the touch controls
+        // On touch devices the info popup of the followed body is docked at the bottom, keep room for it
+        const popupHeight = USE_MOBILE_LAYOUT && this.selectedPlanet !== null ? BODY_POPUP_HEIGHT + 12 : 0;
+        const hudScale = this.getHudScale(
+            panelX + panelWidth + 70,
+            panelY + panelHeight + popupHeight + GUI.bottomBarHeight() + 16,
+        );
+        this.renderer.pushScreenScale(hudScale);
+
         this.renderer.drawFillRect(panelX, panelY, panelWidth, panelHeight, 'rgba(10, 12, 16, 0.78)');
         this.renderer.drawStrokeRect(panelX, panelY, panelWidth, panelHeight, 'rgba(255, 255, 255, 0.14)');
         this.renderer.drawFillRect(panelX, panelY, panelWidth, 3, '#ff9d2e');
@@ -464,7 +588,22 @@ export default class Application {
             this.renderer.drawText(value, valueX, rowY, 14, 'Arial', '#ffffff', 'right', 'middle');
         }
 
-        this.drawHoveredBodyPopup(renderItems);
+        this.renderer.popScreenScale();
+
+        this.drawBodyPopup(renderItems);
+    }
+
+    /** Scale factor for HUD panels so that a panel of the required size fits on small screens */
+    private getHudScale(requiredWidth: number, requiredHeight = 0): number {
+        const width = this.renderer.width();
+        if (width >= COMPACT_SCREEN_WIDTH && !USE_MOBILE_LAYOUT) return 1;
+        const height = this.renderer.height();
+        const scale = Math.min(width / requiredWidth, requiredHeight > 0 ? height / requiredHeight : 1);
+        return clamp(scale, 0.55, 1);
+    }
+
+    private setPointerPosition(screenX: number, screenY: number): void {
+        this.updateMouseWorldPosition({ x: screenX, y: screenY } as MouseEvent);
     }
 
     private updateMouseWorldPosition(inputEvent: MouseEvent): void {
@@ -490,13 +629,12 @@ export default class Application {
         this.hasMousePosition = true;
     }
 
-    private getHoveredBody(renderItems?: RenderItem[]): number | null {
+    private getHoveredBody(renderItems?: RenderItem[], tolerance = BODY_HOVER_TOLERANCE_PIXELS): number | null {
         if (!this.hasMousePosition) return null;
 
         const hitTestRenderItems = renderItems ?? this.renderer.getRenderItems();
         const mouseScreenX = this.inputManager.mouseScreenPosition.x;
         const mouseScreenY = this.inputManager.mouseScreenPosition.y;
-        const tolerance = BODY_HOVER_TOLERANCE_PIXELS;
 
         for (let i = hitTestRenderItems.length - 1; i >= 0; i--) {
             const renderItem = hitTestRenderItems[i];
@@ -515,10 +653,21 @@ export default class Application {
         return null;
     }
 
-    private drawHoveredBodyPopup(renderItems: RenderItem[]): void {
+    private drawBodyPopup(renderItems: RenderItem[]): void {
+        if (USE_MOBILE_LAYOUT) {
+            // There is no hover on touch screens: show the info of the followed body instead
+            if (this.selectedPlanet === null || bodyIndexById[this.selectedPlanet] === undefined) return;
+            this.drawBodyInfoPopup(this.selectedPlanet, true);
+            return;
+        }
+
         const bodyId = this.getHoveredBody(renderItems);
         if (bodyId === null) return;
 
+        this.drawBodyInfoPopup(bodyId, false);
+    }
+
+    private drawBodyInfoPopup(bodyId: number, dockToBottom: boolean): void {
         const bodyIndex = bodyIndexById[bodyId];
         const style = this.bodyRenderStyles.get(bodyId);
         const bodyType = BodyType[bodyTypes[bodyIndex]];
@@ -542,14 +691,27 @@ export default class Application {
             ['Type', type],
         ];
 
-        const width = 350;
-        const height = 200;
+        const width = BODY_POPUP_WIDTH;
+        const height = BODY_POPUP_HEIGHT;
         const padding = 14;
         const imageSize = 54;
-        const mouseScreenX = this.inputManager.mouseScreenPosition.x;
-        const mouseScreenY = this.inputManager.mouseScreenPosition.y;
-        const x = Math.max(12, Math.min(mouseScreenX + 18, this.renderer.width() - width - 12));
-        const y = Math.max(12, Math.min(mouseScreenY + 18, this.renderer.height() - height - 12));
+        const scale = this.getHudScale(width + 24, height + GUI.bottomBarHeight() + 24);
+        let x: number;
+        let y: number;
+
+        if (dockToBottom) {
+            // Centered above the bottom control bar
+            x = (this.renderer.width() / scale - width) / 2;
+            y = (this.renderer.height() - GUI.bottomBarHeight() - 12) / scale - height;
+        } else {
+            const mouseScreenX = this.inputManager.mouseScreenPosition.x;
+            const mouseScreenY = this.inputManager.mouseScreenPosition.y;
+            x = Math.max(12, Math.min(mouseScreenX + 18, this.renderer.width() - width - 12));
+            const bottomLimit = this.renderer.height() - GUI.bottomBarHeight();
+            y = Math.max(12, Math.min(mouseScreenY + 18, bottomLimit - height - 12));
+        }
+
+        this.renderer.pushScreenScale(scale);
 
         this.renderer.drawFillRect(x, y, width, height, 'rgba(10, 12, 16, 0.88)');
         this.renderer.drawStrokeRect(x, y, width, height, 'rgba(255, 255, 255, 0.18)');
@@ -585,6 +747,8 @@ export default class Application {
             );
             this.renderer.drawText(value, x + width - padding, rowY, 13, 'Arial', '#ffffff', 'right', 'middle');
         }
+
+        this.renderer.popScreenScale();
     }
 
     private setDebug(value: boolean): void {
@@ -648,10 +812,15 @@ export default class Application {
     }
 
     private createBlackHoleAtMouse(): void {
+        this.createBlackHoleAt(this.inputManager.mousePosition.x, this.inputManager.mousePosition.y);
+    }
+
+    /** Creates a black hole at the given world position (in rendering pixels) */
+    private createBlackHoleAt(worldX: number, worldY: number): void {
         this.removeBlackHole();
 
-        const x = this.inputManager.mousePosition.x / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
-        const y = this.inputManager.mousePosition.y / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const x = worldX / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
+        const y = worldY / KILOMETERS_TO_PIXELS_RENDERING_SCALE;
         const blackHoleId = addNewBody(x, y, 0, BLACK_HOLE_RADIUS_KM, BLACK_HOLE_MASS_KG, BodyType.BLACK_HOLE);
 
         if (blackHoleId !== BODY_NOT_CREATED) {

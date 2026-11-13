@@ -84,11 +84,17 @@ export default class InputManager {
 
     private handleMouseClick = (event: MouseEvent) => {
         if (this.isEmulatedMouseEvent()) return;
+        // Clicks on GUI controls (buttons, menus) must not select or deselect bodies
+        if (event.type === 'mousedown' && !(event.target instanceof HTMLCanvasElement)) return;
         this.mouseInputBuffer.push(event);
     };
 
     private handlePointerDown = (event: PointerEvent) => {
         if (event.pointerType === 'mouse') return;
+
+        // Touches on GUI controls also produce emulated mouse events, which must be ignored
+        this.lastTouchTime = performance.now();
+
         // Only gestures starting on the simulation canvas are handled (not on GUI controls)
         if (!(event.target instanceof HTMLCanvasElement)) return;
 
@@ -173,6 +179,10 @@ export default class InputManager {
     };
 
     private handlePointerUp = (event: PointerEvent) => {
+        if (event.pointerType !== 'mouse') {
+            this.lastTouchTime = performance.now();
+        }
+
         if (!this.touches.has(event.pointerId)) return;
 
         this.lastTouchTime = performance.now();

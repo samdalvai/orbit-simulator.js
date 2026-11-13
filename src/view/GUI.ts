@@ -1,3 +1,5 @@
+import { IS_TOUCH_DEVICE } from '../shared/Device';
+
 const SHORTCUTS: Array<[string, string]> = [
     ['[1-5]', 'Select scenario'],
     ['L', 'Toggle labels'],
@@ -21,11 +23,229 @@ const SHORTCUTS: Array<[string, string]> = [
     ['Up/Down arrow', 'Rotate camera vertically'],
 ];
 
+// Inline SVG icons (unicode media symbols are rendered as emoji on some mobile browsers)
+const PAUSE_ICON =
+    '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>';
+const PLAY_ICON =
+    '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg>';
+
+const TOUCH_CONTROLS: Array<[string, string]> = [
+    ['Tap', 'Select and follow a body'],
+    ['Tap empty space', 'Stop following'],
+    ['One finger drag', 'Rotate camera'],
+    ['Pinch', 'Zoom'],
+    ['Two finger drag', 'Pan camera'],
+    ['Scenario menu', 'Select scenario'],
+    ['Play / pause', 'Pause / resume simulation'],
+    ['\u2212 / +', 'Decrease / increase simulation speed'],
+    ['\u22EF', 'More: next planet, labels, textures, stats, black hole, reset, substeps'],
+];
+
+export type ControlState = {
+    demoIndex: number;
+    paused: boolean;
+    showLabels: boolean;
+    showMoonLabels: boolean;
+    showTextures: boolean;
+    debug: boolean;
+    hasBlackHole: boolean;
+    simulationSpeed: number;
+    subSteps: number;
+};
+
+/** Actions triggered by the on-screen controls shown on touch devices */
+export type ControlActions = {
+    demoLabels: string[];
+    getState(): ControlState;
+    selectDemo(index: number): void;
+    resetDemo(): void;
+    togglePause(): void;
+    step(): void;
+    changeSimulationSpeed(direction: 1 | -1): void;
+    changeSubSteps(direction: 1 | -1): void;
+    nextBody(): void;
+    toggleLabels(): void;
+    toggleMoonLabels(): void;
+    toggleTextures(): void;
+    toggleDebug(): void;
+    toggleBlackHole(): void;
+};
+
+type ToggleKey = 'showLabels' | 'showMoonLabels' | 'showTextures' | 'debug' | 'hasBlackHole';
+
 export default class GUI {
     private static shortcutsOverlay: HTMLDivElement | null = null;
 
-    static initialize() {
+    // Touch controls
+    private static actions: ControlActions | null = null;
+    private static demoSelect: HTMLSelectElement | null = null;
+    private static pauseButton: HTMLButtonElement | null = null;
+    private static speedLabel: HTMLSpanElement | null = null;
+    private static subStepsLabel: HTMLSpanElement | null = null;
+    private static moreButton: HTMLButtonElement | null = null;
+    private static moreMenu: HTMLDivElement | null = null;
+    private static toggleButtons: Array<[ToggleKey, HTMLButtonElement]> = [];
+
+    static initialize(actions?: ControlActions) {
         this.createShortcutsButton();
+
+        if (IS_TOUCH_DEVICE && actions) {
+            this.actions = actions;
+            this.createTouchControls(actions);
+            this.refreshControls();
+        }
+    }
+
+    /** Height in CSS pixels covered by the bottom touch control bar (0 when not shown) */
+    static bottomBarHeight(): number {
+        const bar = document.getElementById('touchControls');
+        return bar ? bar.getBoundingClientRect().height : 0;
+    }
+
+    /** Syncs the touch controls with the current application state */
+    static refreshControls(): void {
+        if (!this.actions) return;
+
+        const state = this.actions.getState();
+
+        if (this.demoSelect) {
+            this.demoSelect.value = String(state.demoIndex);
+        }
+
+        if (this.pauseButton) {
+            this.pauseButton.innerHTML = state.paused ? PLAY_ICON : PAUSE_ICON;
+            this.pauseButton.ariaLabel = state.paused ? 'Resume' : 'Pause';
+            this.pauseButton.setAttribute('aria-pressed', String(state.paused));
+        }
+
+        if (this.speedLabel) {
+            this.speedLabel.textContent = `${state.simulationSpeed}\u00D7`;
+        }
+
+        if (this.subStepsLabel) {
+            this.subStepsLabel.textContent = `Substeps ${state.subSteps}`;
+        }
+
+        for (const [key, button] of this.toggleButtons) {
+            button.setAttribute('aria-pressed', String(state[key]));
+        }
+    }
+
+    private static createTouchControls(actions: ControlActions): void {
+        document.body.classList.add('touch');
+
+        const bar = document.createElement('div');
+        bar.id = 'touchControls';
+        bar.className = 'touch-bar';
+        bar.setAttribute('role', 'toolbar');
+        bar.ariaLabel = 'Simulation controls';
+
+        const select = document.createElement('select');
+        select.className = 'touch-select';
+        select.ariaLabel = 'Scenario';
+        actions.demoLabels.forEach((label, i) => {
+            const option = document.createElement('option');
+            option.value = String(i + 1);
+            option.textContent = label;
+            select.appendChild(option);
+        });
+        select.addEventListener('change', () => {
+            actions.selectDemo(Number(select.value));
+            this.refreshControls();
+        });
+        this.demoSelect = select;
+
+        this.pauseButton = this.createButton('', 'Pause', () => actions.togglePause());
+        this.pauseButton.classList.add('touch-icon');
+
+        const speedGroup = document.createElement('div');
+        speedGroup.className = 'touch-group';
+        this.speedLabel = document.createElement('span');
+        this.speedLabel.className = 'touch-value';
+        speedGroup.append(
+            this.createButton('\u2212', 'Decrease simulation speed', () => actions.changeSimulationSpeed(-1)),
+            this.speedLabel,
+            this.createButton('+', 'Increase simulation speed', () => actions.changeSimulationSpeed(1)),
+        );
+
+        this.moreButton = this.createButton('\u22EF', 'More options', () => this.toggleMoreMenu());
+
+        bar.append(select, this.pauseButton, speedGroup, this.moreButton);
+
+        const menu = document.createElement('div');
+        menu.className = 'touch-menu';
+        menu.hidden = true;
+
+        const nextButton = this.createButton('Next planet / star', 'Pan to next planet or star', () => {
+            actions.nextBody();
+            this.toggleMoreMenu(false);
+        });
+        nextButton.classList.add('touch-span');
+        menu.appendChild(nextButton);
+
+        const toggles: Array<[ToggleKey, string, () => void]> = [
+            ['showLabels', 'Labels', () => actions.toggleLabels()],
+            ['showMoonLabels', 'Moon labels', () => actions.toggleMoonLabels()],
+            ['showTextures', 'Textures', () => actions.toggleTextures()],
+            ['debug', 'Stats', () => actions.toggleDebug()],
+            ['hasBlackHole', 'Black hole', () => actions.toggleBlackHole()],
+        ];
+
+        for (const [key, label, action] of toggles) {
+            const button = this.createButton(label, label, action);
+            button.classList.add('touch-toggle');
+            this.toggleButtons.push([key, button]);
+            menu.appendChild(button);
+        }
+
+        menu.appendChild(this.createButton('Step', 'Step simulation', () => actions.step()));
+        menu.appendChild(this.createButton('Reset', 'Reset scenario', () => actions.resetDemo()));
+
+        const subStepsGroup = document.createElement('div');
+        subStepsGroup.className = 'touch-group touch-span';
+        this.subStepsLabel = document.createElement('span');
+        this.subStepsLabel.className = 'touch-value';
+        subStepsGroup.append(
+            this.createButton('\u2212', 'Decrease substeps', () => actions.changeSubSteps(-1)),
+            this.subStepsLabel,
+            this.createButton('+', 'Increase substeps', () => actions.changeSubSteps(1)),
+        );
+        menu.appendChild(subStepsGroup);
+
+        this.moreMenu = menu;
+
+        // Close the menu when touching anywhere else
+        window.addEventListener('pointerdown', event => {
+            const target = event.target as Node | null;
+            if (menu.hidden || !target) return;
+            if (menu.contains(target) || this.moreButton?.contains(target)) return;
+            this.toggleMoreMenu(false);
+        });
+
+        document.body.append(menu, bar);
+    }
+
+    private static toggleMoreMenu(open?: boolean): void {
+        if (!this.moreMenu) return;
+
+        const shouldOpen = open ?? this.moreMenu.hidden;
+        this.moreMenu.hidden = !shouldOpen;
+        this.moreButton?.setAttribute('aria-expanded', String(shouldOpen));
+    }
+
+    private static createButton(text: string, label: string, onClick: () => void): HTMLButtonElement {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'touch-button';
+        button.textContent = text;
+        button.ariaLabel = label;
+        button.title = label;
+        button.addEventListener('click', event => {
+            event.stopPropagation();
+            onClick();
+            this.refreshControls();
+        });
+        return button;
     }
 
     static shortcutsOverlayVisible(): boolean {
@@ -36,13 +256,14 @@ export default class GUI {
         const button = document.createElement('button');
         button.type = 'button';
         button.textContent = '?';
-        button.title = 'Show shortcuts';
-        button.ariaLabel = 'Show shortcuts';
+        button.title = IS_TOUCH_DEVICE ? 'Show controls' : 'Show shortcuts';
+        button.ariaLabel = button.title;
+        button.className = 'help-button';
 
         Object.assign(button.style, {
             position: 'fixed',
-            top: '16px',
-            right: '18px',
+            top: 'calc(16px + env(safe-area-inset-top, 0px))',
+            right: 'calc(18px + env(safe-area-inset-right, 0px))',
             zIndex: '10',
             width: '36px',
             height: '36px',
@@ -100,7 +321,7 @@ export default class GUI {
         });
 
         const title = document.createElement('h2');
-        title.textContent = 'Shortcuts';
+        title.textContent = IS_TOUCH_DEVICE ? 'Controls' : 'Shortcuts';
         Object.assign(title.style, {
             margin: '0 0 16px',
             color: '#ffb15c',
@@ -117,7 +338,7 @@ export default class GUI {
             font: '14px Arial, sans-serif',
         });
 
-        for (const [keys, action] of SHORTCUTS) {
+        for (const [keys, action] of IS_TOUCH_DEVICE ? TOUCH_CONTROLS : SHORTCUTS) {
             const term = document.createElement('dt');
             const key = document.createElement('kbd');
             key.textContent = keys;

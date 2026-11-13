@@ -4,6 +4,7 @@ import {
     MOON_ORBIT_RENDERING_SCALE,
     SOLAR_MASS_KG,
 } from '../shared/Constants';
+import { IS_TOUCH_DEVICE, MAX_DEVICE_PIXEL_RATIO } from '../shared/Device';
 import { degreesToRadians } from '../shared/Math';
 import { Vec3 } from '../shared/Vec3';
 import {
@@ -33,6 +34,7 @@ export type RenderItem = {
 export default class Renderer {
     private windowWidth: number;
     private windowHeight: number;
+    private pixelRatio = 1;
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
 
@@ -59,25 +61,35 @@ export default class Renderer {
 
         this.canvas = canvas;
         this.ctx = ctx;
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
         this.windowWidth = window.innerWidth;
         this.windowHeight = window.innerHeight;
+        this.updateCanvasSize();
 
         this.camera = new Camera3D(this.windowWidth, this.windowHeight);
         this.bodyRenderStyles = bodyRenderStyles;
 
         window.addEventListener('resize', () => {
-            this.resize(canvas);
+            this.resize();
         });
     }
 
-    private resize(canvas: HTMLCanvasElement): void {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+    private resize(): void {
         this.windowWidth = window.innerWidth;
         this.windowHeight = window.innerHeight;
+        this.updateCanvasSize();
         this.camera.resize(this.windowWidth, this.windowHeight);
+    }
+
+    /**
+     * Sizes the canvas backing store. On touch devices (usually high density screens)
+     * the device pixel ratio is used, so that text and bodies are rendered sharply.
+     * All drawing code keeps working in CSS pixels thanks to the base transform set
+     * in `clearScreen()`.
+     */
+    private updateCanvasSize(): void {
+        this.pixelRatio = IS_TOUCH_DEVICE ? Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO) : 1;
+        this.canvas.width = Math.round(this.windowWidth * this.pixelRatio);
+        this.canvas.height = Math.round(this.windowHeight * this.pixelRatio);
     }
 
     width(): number {
@@ -190,7 +202,20 @@ export default class Renderer {
     }
 
     clearScreen(): void {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        this.ctx.clearRect(0, 0, this.windowWidth, this.windowHeight);
+    }
+
+    /** Scales subsequent screen space drawing (used to shrink HUD panels on small screens). */
+    pushScreenScale(scale: number, originX = 0, originY = 0): void {
+        this.ctx.save();
+        this.ctx.translate(originX, originY);
+        this.ctx.scale(scale, scale);
+        this.ctx.translate(-originX, -originY);
+    }
+
+    popScreenScale(): void {
+        this.ctx.restore();
     }
 
     /**

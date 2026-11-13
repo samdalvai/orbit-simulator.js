@@ -1,5 +1,6 @@
 import Application from './app/Application';
 import { FIXED_DELTA_TIME } from './shared/Constants';
+import { IS_TOUCH_DEVICE, MOBILE_MAX_PHYSICS_STEPS_PER_FRAME } from './shared/Device';
 import GUI from './view/GUI';
 
 async function run() {
@@ -38,9 +39,18 @@ async function run() {
         if (app.isRunning()) {
             app.input();
 
+            let steps = 0;
+
             while (accumulator >= FIXED_DELTA_TIME) {
+                if (IS_TOUCH_DEVICE && steps >= MOBILE_MAX_PHYSICS_STEPS_PER_FRAME) {
+                    // Drop the remaining time: the simulation slows down instead of the app freezing
+                    accumulator = 0;
+                    break;
+                }
+
                 await app.update(frameTime);
                 accumulator -= FIXED_DELTA_TIME;
+                steps++;
             }
 
             app.render();

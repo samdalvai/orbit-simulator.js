@@ -1,4 +1,5 @@
 import { EARTH_RADIUS_KM } from '../shared/Constants';
+import { IS_TOUCH_DEVICE, MOBILE_BELT_BODIES_SCALE } from '../shared/Device';
 import { clamp, getOrbitPosition, getOrbitalSpeed, getXYOrbitNormal, randomNumber } from '../shared/Math';
 import { assert } from '../shared/Utils';
 import { Vec3 } from '../shared/Vec3';
@@ -106,7 +107,9 @@ export function createBelt(
     spec: BeltSpec,
     renderStyles: Map<number, BodyRenderStyle>,
 ): void {
-    for (let i = 0; i < spec.numBodies; i++) {
+    const numBodies = IS_TOUCH_DEVICE ? Math.round(spec.numBodies * MOBILE_BELT_BODIES_SCALE) : spec.numBodies;
+
+    for (let i = 0; i < numBodies; i++) {
         const semiMajorAxisKm = randomNumber(spec.innerOrbitRadiusKm, spec.outerOrbitRadiusKm);
         const eccentricity = spec.orbitEccentricity ?? 0;
         const orbitTilt = spec.orbitTiltDegrees ?? 0;

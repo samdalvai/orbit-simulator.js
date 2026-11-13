@@ -40,6 +40,7 @@ The app adapts automatically to touch devices (phones and tablets):
 - The `⋯` button opens a menu with the remaining actions: pan to next planet/star, labels, moon labels, textures, stats panel, black hole (created at the center of the screen), single step, reset scenario and substeps.
 - The canvas is rendered at the device pixel ratio for sharp output on high density screens, and the HUD panels scale down to fit small screens. The stats panel is hidden by default and can be enabled from the menu.
 - Tapping a body follows it and shows its info at the bottom of the screen.
+- To keep the simulation smooth on mobile CPUs, scenarios generate fewer bodies on touch devices (asteroid and Kuiper belts use 20% of the desktop amount, the random galaxy has 120 solar systems instead of 500), and at most 2 physics steps run per frame: on a slow device the simulation slows down instead of the app freezing.
 
 | Gesture | Action |
 | --- | --- |

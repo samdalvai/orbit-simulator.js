@@ -5,7 +5,7 @@ import { solarSystem } from '../scenarios/SolarSystem';
 import { testSystem } from '../scenarios/TestSystem';
 import { tripleStarSystem } from '../scenarios/TripleStarSystem';
 import { FIXED_DELTA_TIME, KILOMETERS_TO_PIXELS_RENDERING_SCALE, MAX_BODIES, SETTINGS } from '../shared/Constants';
-import { COMPACT_SCREEN_WIDTH, IS_TOUCH_DEVICE } from '../shared/Device';
+import { COMPACT_SCREEN_WIDTH, USE_MOBILE_LAYOUT } from '../shared/Device';
 import { clamp } from '../shared/Math';
 import { formatDuration } from '../shared/Utils';
 import {
@@ -69,7 +69,7 @@ export default class Application {
     private simulationSpeedKeyPressedAt = 0;
 
     // Debug related properties
-    private debug = !IS_TOUCH_DEVICE;
+    private debug = !USE_MOBILE_LAYOUT;
     private FPS = 0;
     private lastFPSUpdate = 0;
     private showTextures = true;
@@ -489,6 +489,9 @@ export default class Application {
     }
 
     render(): void {
+        // Keep the control bar in sync with state changed by keyboard shortcuts
+        GUI.refreshControls();
+
         this.renderer.clearScreen();
 
         if (this.selectedPlanet !== null) {
@@ -550,7 +553,7 @@ export default class Application {
 
         // Shrink the panel on small screens, leaving room for the help button and the touch controls
         // On touch devices the info popup of the followed body is docked at the bottom, keep room for it
-        const popupHeight = IS_TOUCH_DEVICE && this.selectedPlanet !== null ? BODY_POPUP_HEIGHT + 12 : 0;
+        const popupHeight = USE_MOBILE_LAYOUT && this.selectedPlanet !== null ? BODY_POPUP_HEIGHT + 12 : 0;
         const hudScale = this.getHudScale(
             panelX + panelWidth + 70,
             panelY + panelHeight + popupHeight + GUI.bottomBarHeight() + 16,
@@ -593,7 +596,7 @@ export default class Application {
     /** Scale factor for HUD panels so that a panel of the required size fits on small screens */
     private getHudScale(requiredWidth: number, requiredHeight = 0): number {
         const width = this.renderer.width();
-        if (width >= COMPACT_SCREEN_WIDTH && !IS_TOUCH_DEVICE) return 1;
+        if (width >= COMPACT_SCREEN_WIDTH && !USE_MOBILE_LAYOUT) return 1;
         const height = this.renderer.height();
         const scale = Math.min(width / requiredWidth, requiredHeight > 0 ? height / requiredHeight : 1);
         return clamp(scale, 0.55, 1);
@@ -651,7 +654,7 @@ export default class Application {
     }
 
     private drawBodyPopup(renderItems: RenderItem[]): void {
-        if (IS_TOUCH_DEVICE) {
+        if (USE_MOBILE_LAYOUT) {
             // There is no hover on touch screens: show the info of the followed body instead
             if (this.selectedPlanet === null || bodyIndexById[this.selectedPlanet] === undefined) return;
             this.drawBodyInfoPopup(this.selectedPlanet, true);
@@ -704,7 +707,8 @@ export default class Application {
             const mouseScreenX = this.inputManager.mouseScreenPosition.x;
             const mouseScreenY = this.inputManager.mouseScreenPosition.y;
             x = Math.max(12, Math.min(mouseScreenX + 18, this.renderer.width() - width - 12));
-            y = Math.max(12, Math.min(mouseScreenY + 18, this.renderer.height() - height - 12));
+            const bottomLimit = this.renderer.height() - GUI.bottomBarHeight();
+            y = Math.max(12, Math.min(mouseScreenY + 18, bottomLimit - height - 12));
         }
 
         this.renderer.pushScreenScale(scale);

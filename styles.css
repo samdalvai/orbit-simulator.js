@@ -44,9 +44,9 @@ canvas {
   display: none;
 }
 
-/* Touch controls (only created on touch devices) */
+/* Control bar: full width at the bottom on the mobile layout, floating on the desktop layout */
 
-.touch-bar {
+.control-bar {
   position: fixed;
   left: 0;
   right: 0;
@@ -62,8 +62,8 @@ canvas {
   touch-action: manipulation;
 }
 
-.touch-button,
-.touch-select {
+.control-button,
+.control-select {
   height: 40px;
   min-width: 40px;
   padding: 0 9px;
@@ -76,11 +76,29 @@ canvas {
   cursor: pointer;
 }
 
-.touch-button:active {
+.control-button:active {
   background: rgba(255, 177, 92, 0.35);
 }
 
-.touch-select {
+.control-button:focus-visible,
+.control-select:focus-visible {
+  outline: 2px solid #ffb15c;
+  outline-offset: 1px;
+}
+
+@media (hover: hover) {
+  .control-button:hover,
+  .control-select:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(255, 255, 255, 0.14);
+  }
+}
+
+.control-text {
+  font-size: 14px;
+}
+
+.control-select {
   flex: 1 1 auto;
   min-width: 0;
   max-width: 240px;
@@ -96,19 +114,19 @@ canvas {
   text-overflow: ellipsis;
 }
 
-.touch-select option {
+.control-select option {
   background: #10141a;
   color: #fff;
 }
 
-.touch-group {
+.control-group {
   display: flex;
   align-items: center;
   gap: 4px;
   flex: 0 0 auto;
 }
 
-.touch-value {
+.control-value {
   min-width: 36px;
   text-align: center;
   color: #ffb15c;
@@ -116,20 +134,20 @@ canvas {
   white-space: nowrap;
 }
 
-.touch-icon {
+.control-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.touch-bar > .touch-button {
+.control-bar > .control-button {
   flex: 0 0 auto;
 }
 
-.touch-menu {
-  position: fixed;
+.control-menu {
+  position: absolute;
   right: calc(10px + env(safe-area-inset-right, 0px));
-  bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(100% + 8px);
   z-index: 11;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -143,43 +161,65 @@ canvas {
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
 }
 
-.touch-menu[hidden] {
+.control-menu[hidden] {
   display: none;
 }
 
-.touch-menu .touch-button {
+.control-menu .control-button {
   font-size: 14px;
 }
 
-.touch-menu .touch-span {
+.control-menu .control-span {
   grid-column: 1 / -1;
 }
 
-.touch-menu .touch-group.touch-span {
+.control-menu .control-group.control-span {
   justify-content: space-between;
 }
 
-.touch-menu .touch-span .touch-value {
+.control-menu .control-span .control-value {
   flex: 1;
 }
 
-.touch-toggle[aria-pressed='true'] {
+.control-toggle[aria-pressed='true'] {
   border-color: #ff9d2e;
   background: rgba(255, 157, 46, 0.22);
   color: #ffb15c;
 }
 
+/* Desktop layout: a compact floating bar centered at the bottom */
+.desktop-layout .control-bar {
+  left: 50%;
+  right: auto;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.desktop-layout .control-select {
+  width: 180px;
+}
+
+.desktop-layout .control-menu {
+  right: 0;
+}
+
 /* Very narrow phones: tighter spacing so the whole bar fits */
 @media (max-width: 360px) {
-  .touch-bar {
+  .control-bar {
     gap: 5px;
   }
 
-  .touch-button {
+  .control-button {
     padding: 0 7px;
   }
 
-  .touch-value {
+  .control-value {
     min-width: 30px;
   }
 }

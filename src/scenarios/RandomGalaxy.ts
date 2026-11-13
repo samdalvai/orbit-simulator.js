@@ -1,12 +1,13 @@
 import { BodyType, bodyIndexById, mass } from '../sim/Body';
 import { BodyRenderStyle } from '../view/BodyRenderStyle';
 import { AU_KM, G } from '../shared/Constants';
+import { IS_TOUCH_DEVICE, MOBILE_GALAXY_SOLAR_SYSTEMS } from '../shared/Device';
 import { getOrbitPosition, randomNumber } from '../shared/Math';
 import { CelestialBodySpecBase } from './BodySpec';
 import { createRandomSolarSystem } from './RandomSolarSystem';
 import { createBody, createRenderStyle, createSolarSystem } from './BodyGeneration';
 
-const SOLAR_SYSTEM_COUNT = 500;
+const SOLAR_SYSTEM_COUNT = IS_TOUCH_DEVICE ? MOBILE_GALAXY_SOLAR_SYSTEMS : 500;
 const SUPERMASSIVE_BLACK_HOLE_RADIUS_KM = 80_000_000;
 const SUPERMASSIVE_BLACK_HOLE_MASS_KG = 8e32;
 const GALAXY_INNER_ORBIT_RADIUS_AU = 25;
